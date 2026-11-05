@@ -705,7 +705,7 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261105-1626"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261105-1646"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -8353,16 +8353,16 @@ function alertMsg(t){const m=$$('lms-main');if(m)m.insertAdjacentHTML('afterbegi
 
 /* ---- Latihan Soal Baru (soal harian dari tim agent, lolos audit) ---- */
 let QM={docs:{},sel:null,qs:null,i:0,ans:[],ord:[]};
-const QMN={kotoba:['語','Kotoba'],kanji:['漢','Kanji'],susun:['並','Susun Kalimat'],kerja:['動','Kata Kerja'],sifat:['形','Kata Sifat'],hyougen:['句','Ungkapan (Hyougen)']};
+const QMN={kotoba:['語','Kotoba'],kanji:['漢','Kanji'],susun:['並','Susun Kalimat'],kerja:['動','Kata Kerja'],sifat:['形','Kata Sifat'],hyougen:['句','Ungkapan (Hyougen)'],partikel:['助','Partikel'],arti:['訳','Arti Kalimat'],semakna:['同','Kalimat Semakna']};
 const QMC=['①','②','③','④'];
 function qmInit(dbx){try{dbx.tree('qbank/menu').onSnapshot(s=>{const o={};s.docs.forEach(x=>{const d=x.data();if(d&&Array.isArray(d.items))o[x.id]=d.items.filter(q=>q&&q.o&&q.o.length>=2&&typeof q.a==='number')});QM.docs=o;if((CUR==='latihan'||(CUR==='menu'&&!QM.qs)))renderPage()},()=>{})}catch(e){}}
 const qmShuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-function qmStart(m){const all=QM.docs[m]||[];if(all.length<3)return;QM.sel=m;QM.qs=qmShuf(all).slice(0,10);QM.i=0;QM.ans=[];QM.ord=QM.qs.map(q=>qmShuf(q.o.map((_,i)=>i)))}
+function qmStart(m){const all=QM.docs[m]||[];if(all.length<3)return;QM.sel=m;QM.qs=qmShuf(all).slice(0,12);QM.i=0;QM.ans=[];QM.ord=QM.qs.map(q=>qmShuf(q.o.map((_,i)=>i)))}
 function menuHTML(){
   const back='';
   if(!QM.sel||!QM.qs){
     const rows=Object.keys(QMN).map(k=>{const n=(QM.docs[k]||[]).length;return `<button type="button" class="lat${n>=3?'':' off'}" ${n>=3?'data-lms="qmpick" data-m="'+k+'"':'disabled'}><i aria-hidden="true">${QMN[k][0]}</i><b>${QMN[k][1]}</b><span>${n>=3?n+' soal tersedia':'Belum ada soal'}</span></button>`}).join('');
-    return `${back}<section class="card hero slim"><div class="big">新</div><h2>Latihan Soal Baru</h2><p class="hl">Soal segar dari tim AI, sudah diperiksa tim audit. Tiap sesi 10 soal.</p></section><div class="lgrid">${rows}</div>`;
+    return `${back}<section class="card hero slim"><div class="big">新</div><h2>Latihan Soal Baru</h2><p class="hl">Soal segar dari tim AI, sudah diperiksa tim audit. Tiap sesi 12 soal, diacak dari bank.</p></section><div class="lgrid">${rows}</div>`;
   }
   const n=QM.qs.length;
   if(QM.i>=n){
@@ -8374,7 +8374,7 @@ function menuHTML(){
   const chips=q.bagian&&q.bagian.length?`<div class="small muted" style="margin:6px 0">Potongan: ${q.bagian.map(x=>'<b>'+esc(x)+'</b>').join(' / ')}</div>`:'';
   const opts=ord.map((oi,pos)=>{const cls=done?(oi===q.a?'key':oi===mine?'mine':''):'';return `<button type="button" class="btn ghost qmo ${cls}" style="display:block;width:100%;text-align:left;margin:6px 0${done&&oi===q.a?';border-color:#2e9d5b':done&&oi===mine?';border-color:#d0453a':''}" ${done?'disabled':'data-lms="qmans" data-k="'+oi+'"'}><b>${QMC[pos]}</b> ${esc(q.o[oi])}</button>`}).join('');
   const fb=done?`<div class="status ${mine===q.a?'ok':'warn'}" style="margin-top:8px"><b>${mine===q.a?'Bener!':'Belum pas.'}</b> ${esc((q.w||[])[mine===q.a?q.a:mine]||'')}${mine!==q.a?'<br><b>Kunci:</b> '+esc(q.o[q.a])+'. '+esc((q.w||[])[q.a]||''):''}</div><div class="actions"><button class="btn big" data-lms="qmnext">${QM.i===n-1?'Lihat hasil':'Soal berikutnya'}</button></div>`:'';
-  return `${back}<section class="card"><div class="muted small">${QMN[QM.sel][1]} · soal ${QM.i+1} dari ${n}${q.lv?' · '+esc(q.lv):''}</div><div class="qt" style="font-size:19px;margin:8px 0">${blank(q.t)}</div>${chips}${opts}${fb}</section>`;
+  return `${back}<section class="card"><div class="muted small">${QMN[QM.sel][1]} · soal ${QM.i+1} dari ${n}${q.lv?' · '+esc(q.lv):''}</div>${q.sit?`<div class="small muted" style="margin:6px 0">${esc(q.sit)}</div>`:''}${Array.isArray(q.dialog)&&q.dialog.length?`<div class="status" style="margin:8px 0">${q.dialog.map(l=>`<div style="margin:3px 0">${blank(String(l))}</div>`).join('')}</div>`:''}<div class="qt" style="font-size:19px;margin:8px 0">${blank(q.t)}</div>${chips}${opts}${fb}</section>`;
 }
 
 /* ---- Pusat Latihan ---- */
