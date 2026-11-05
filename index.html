@@ -705,7 +705,7 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261105-1402"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261105-1510"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -4706,6 +4706,7 @@ const passed=a=>passInfo(a).ok;
 const hasPassed=()=>myAttempts().some(passed);
 const passedBab=b=>myAttempts().some(a=>babOf(pkOf(a))===b&&passed(a));
 const remFor=b=>me.isOwner||(CFG.remedial&&!passedBab(b));
+const babOpen=b=>me.isOwner||b===13||(Array.isArray(CFG.unlock)&&CFG.unlock.includes(b))||passedBab(b-1);
 const remAvail=()=>[13,14].some(remFor);
 const packKeys=()=>PACKORDER.filter(k=>PACKS[k].t!=='R'||remFor(PACKS[k].bab));
 const pc=(c,t)=>t?Math.round(c/t*100):null;
@@ -4730,7 +4731,7 @@ const pctCell=(c,t)=>{const p=pc(c,t);return p==null?'-':`<span class="${p<60?'l
 let db=null,usr=null,dbReady=false;
 let me={id:null,name:'',email:null,avatarUrl:'',isOwner:false,canEdit:false};
 let canWrite=null,view='home',P=null,myDoc=null,RES=[],BOARD=[],EXAM_OPEN=true,showAllQ=false;
-const CFGDEF={open:true,remedial:false,passMin:10,secMin:50,maxTry:3};let CFG={...CFGDEF};
+const CFGDEF={open:true,remedial:false,passMin:10,secMin:50,maxTry:3,unlock:[]};let CFG={...CFGDEF};
 let saveErr='',retryN=0,retryT=null,selPack='A',openUid=null,reviewAtt=null,reviewFrom='hist',lastResult=null,saveState='',renderTok=0,flushing=false,delAsk=null,draftNama='';
 const audios={};
 const pkey=()=>'jft13p:'+(me.id||'tamu');
@@ -4847,6 +4848,7 @@ function packChooser(){
 }
 let jstep='bab',selBab=13;
 function babCard(b){
+  if(!babOpen(b))return `<div class="babk off" aria-disabled="true"><span class="n">&#128274;</span><span class="t"><b>${b>18?bl(b):'Bab '+b+' · '+BABINFO[b].topic}</b><small>Terkunci. Lulus ujian Bab ${b-1} dulu, atau tunggu Sensei membukanya.</small></span></div>`;
   const ks=PACKORDER.filter(k=>PACKS[k].bab===b&&PACKS[k].t!=='R'),at=myAttempts().filter(a=>babOf(pkOf(a))===b);
   const best=at.length?Math.max(...at.map(a=>a.benar)):0;
   return `<button type="button" class="babk" data-act="jbab" data-b="${b}"><span class="n">${bn(b)}</span><span class="t"><b>${b>18?bl(b):'Bab '+b+' · '+BABINFO[b].topic}</b><span class="jp">${BABINFO[b].jp}</span><small>${passedBab(b)?'✓ Sudah lulus':at.length?'Skor terbaik '+best+'/25':'Belum dicoba'} · ${ks.length} ujian</small></span><span class="go" aria-hidden="true">›</span></button>`;
@@ -5257,6 +5259,7 @@ async function guruAsync(){
     <tr><td class="wrap-t">Batas lulus (benar dari ${TOTAL})</td><td>${stepper('passMin',1,'')}</td><td class="wrap-t muted small">Setara est. JFT ${estOf(CFG.passMin)} (${lvl(estOf(CFG.passMin))}). Est. 200 butuh ${need200} benar.</td></tr>
     <tr><td class="wrap-t">Jatah percobaan per ujian</td><td>${stepper('maxTry',1,'x')}</td><td class="wrap-t muted small">1 kali pertama + ${Math.max(0,CFG.maxTry-1)} kali ulang. Sensei tidak terkena batas.</td></tr>
     <tr><td class="wrap-t">Minimal tiap bagian</td><td>${stepper('secMin',10,'%')}</td><td class="wrap-t muted small">Murid bisa gagal walau total cukup kalau satu bagian terlalu rendah.</td></tr>
+    <tr><td class="wrap-t">Kunci Bab</td><td>${Object.keys(BABINFO).map(Number).filter(x=>x>13).map(x=>`<button class="btn sm ${(CFG.unlock||[]).includes(x)?'':'ghost'}" data-act="tunlock" data-b="${x}">${(CFG.unlock||[]).includes(x)?'Tutup':'Buka'} Bab ${x}</button>`).join(' ')}</td><td class="wrap-t small">Bab terbuka otomatis setelah murid lulus ujian bab sebelumnya. Tombol ini membuka bab untuk semua murid tanpa syarat lulus.</td></tr>
     <tr><td class="wrap-t">Paket Remedial</td><td><button class="btn ${CFG.remedial?'ghost':''}" data-act="togrem">${CFG.remedial?'Matikan':'Aktifkan'}</button></td><td class="wrap-t small">${CFG.remedial?'<b>AKTIF</b>. Hanya murid yang belum lulus yang melihat paket Remedial.':'Nonaktif. Murid belum melihat paket Remedial.'} ${RES.length?`${nOk} lulus, ${nNo} belum lulus.`:''}</td></tr>
    </tbody></table></div>`;
   if(!RES.length){g.innerHTML=`<h2>Panel guru</h2>${ctl}<p class="muted">Belum ada hasil masuk. Bagikan tautan ke murid sebagai Kontributor lewat menu Share.</p>`;return}
@@ -5336,7 +5339,7 @@ function saveCfg(p){
   if(!me.isOwner||!db)return;
   const n={...CFG,...p};n.passMin=Math.max(1,Math.min(TOTAL,n.passMin));n.secMin=Math.max(0,Math.min(100,n.secMin));n.maxTry=Math.max(1,Math.min(10,n.maxTry||3));
   CFG=n;EXAM_OPEN=n.open!==false;
-  db.doc('config/exam').set({open:n.open!==false,remedial:!!n.remedial,passMin:n.passMin,secMin:n.secMin,maxTry:n.maxTry,at:Date.now()}).catch(()=>{});
+  db.doc('config/exam').set({open:n.open!==false,remedial:!!n.remedial,passMin:n.passMin,secMin:n.secMin,maxTry:n.maxTry,unlock:(n.unlock||[]).map(Number),at:Date.now()}).catch(()=>{});
   if(view==='guru')guruAsync();
 }
 /* ============ EVENTS ============ */
@@ -5358,7 +5361,7 @@ LMS.on(NAME,'click',e=>{
   else if(act==='import')doImport();
   else if(act==='resume'){preloadAudio();view='exam';render();window.scrollTo(0,0)}
   else if(act==='abandon'){lsDel(pkey());dropWip();P=null;render()}
-  else if(act==='jbab'){selBab=+b.dataset.b;jstep='pack';render();window.scrollTo(0,0)}
+  else if(act==='jbab'){if(!babOpen(+b.dataset.b))return;selBab=+b.dataset.b;jstep='pack';render();window.scrollTo(0,0)}
   else if(act==='jpk'){selPack=b.dataset.k;selBab=babOf(selPack);usePack(selPack);jstep='detail';render();window.scrollTo(0,0)}
   else if(act==='jback'){jstep=b.dataset.to;render();window.scrollTo(0,0)}
   else if(act==='startsec'){P.phase='run';P.secStart=Date.now();P.qi=0;P.sec=0;P.secIntro=true;persist();preloadAudio();render();window.scrollTo(0,0)}
@@ -5390,6 +5393,7 @@ LMS.on(NAME,'click',e=>{
   else if(act==='toggleopen')saveCfg({open:!EXAM_OPEN});
   else if(act==='cfg')saveCfg({[b.dataset.k]:CFG[b.dataset.k]+(+b.dataset.d)});
   else if(act==='togrem')saveCfg({remedial:!CFG.remedial});
+  else if(act==='tunlock'){const x=+b.dataset.b,u=new Set((CFG.unlock||[]).map(Number));u.has(x)?u.delete(x):u.add(x);saveCfg({unlock:[...u]})}
   else if(act==='showall'){showAllQ=!showAllQ;guruAsync()}
   else if(act==='goremedial'){const rb=lastResult?babOf(pkOf(lastResult.att)):selBab;selPack=PACKORDER.find(k=>PACKS[k].t==='R'&&PACKS[k].bab===rb&&remFor(rb))||PACKORDER.find(k=>PACKS[k].t==='R'&&remFor(PACKS[k].bab))||'R';selBab=babOf(selPack);jstep='detail';usePack(selPack);view='home';render();window.scrollTo(0,0)}
   else if(act==='delask'){delAsk=b.dataset.u;guruAsync()}
@@ -5743,13 +5747,13 @@ function dailyHTML(){
   ${tr}
   <section class="card"><h2>Kode tugas dari guru</h2><p class="muted small">Kalau guru mengirim kode yang diawali TGS1:, tempel di sini lalu mulai.</p><textarea id="tgs" rows="3" class="mono" placeholder="Tempel kode TGS1:... di sini">${esc(draftTgs)}</textarea><div class="actions"><button class="btn" data-act="tgsgo">Mulai tugas</button></div>${tgsMsg?`<div class="status warn">${esc(tgsMsg)}</div>`:''}</section>`;
 }
-function startDaily(g){
+function startDaily(g,nb){
   const at=hist().map(x=>x.att),an=analyze(at);const nama=lsGet('ktk:nama')||CLN||(window.LMS_NAME&&window.LMS_NAME())||'';
   if(!nama){tgsMsg='Isi nama dulu di tab Tes.';view='daily';render();return}
   const focus=an&&an.weakL[0]?an.weakL[0].k:sel.b+'.'+sel.l;const [fb,fl]=focus.split('.');let qs=[],s;
   if(g==='H1'){const ids=fillIds((an?an.weakW:[]).slice(0,10),focus,8);s={b:fb,l:+fl,cum:false,type:'K',n:ids.length,fb:true};qs=makeTest({...s,ids})}
   else if(g==='H2'){s={b:fb,l:+fl,cum:false,type:'K',n:10,fb:true};qs=makeTest(s)}
-  else if(g==='B'){const ty=poolSize({b:fb,l:+fl,cum:true,type:'J'})>=20?'J':'K';s={b:fb,l:+fl,cum:true,type:ty,n:20,fb:false,dir:'mix'};qs=makeTest(s)}
+  else if(g==='B'){const ty=poolSize({b:fb,l:+fl,cum:true,type:'J'})>=20?'J':'K';s={b:fb,l:+fl,cum:true,type:ty,n:Math.min(40,Math.max(20,+nb||20)),fb:false,dir:'mix'};qs=makeTest(s)}
   else{const ty=new Date().getDate()%2===0&&poolSize({b:fb,l:+fl,cum:true,type:'J'})>=5?'J':'K';s={b:fb,l:+fl,cum:true,type:ty,n:10,fb:true};qs=makeTest(s)}
   if(qs.length<3){tgsMsg='Kata belum cukup untuk tugas ini. Coba tes biasa dulu.';view='daily';render();return}
   startSession(qs,s,nama,g==='B'?'Batsu (hukuman)':'Tugas harian',g);
@@ -6028,7 +6032,7 @@ const _ready=init();
 
 LMS.reg(NAME,{ready:_ready,mount(){render()},go(v){view=v;if(v!=='kartu')CARD=null;render();window.scrollTo(0,0)},inQuiz:()=>view==='quiz'&&!!S,hasSession:()=>!!S,
  preset(p){Object.assign(sel,p);kstep=p.kstep||1;if(view!=='quiz')view='home'},resume(){if(S){view='quiz'}},
- api:{cloudName:()=>CLN,srsToday:()=>SRSD[dkey()]||0,srsDays:()=>new Set(Object.keys(SRSD).filter(x=>SRSD[x]>=10)),startDaily:g=>startDaily(g),quickCards:()=>quickCards(),dueCount:()=>dueIds().length,activeDays,srsReviews,srsTotal,sync:syncInfo,syncNow:syncCloud,hist,analyze,spark,trendBadge,advStudent,advice,lessonName,daysLeft,pct,mean,dkey,poolSize,passed,BOOKS,EMAP,BYBOOK,CFG:()=>CFG,lab,fmt}});
+ api:{cloudName:()=>CLN,srsToday:()=>SRSD[dkey()]||0,srsDays:()=>new Set(Object.keys(SRSD).filter(x=>SRSD[x]>=10)),startDaily:(g,n)=>startDaily(g,n),quickCards:()=>quickCards(),dueCount:()=>dueIds().length,activeDays,srsReviews,srsTotal,sync:syncInfo,syncNow:syncCloud,hist,analyze,spark,trendBadge,advStudent,advice,lessonName,daysLeft,pct,mean,dkey,poolSize,passed,BOOKS,EMAP,BYBOOK,CFG:()=>CFG,lab,fmt}});
 
 })();
 </script>
@@ -7779,7 +7783,7 @@ function accrue(g,exp){if(g.kv!==2||exp==null)return false;let ch=false;const dl
 function koinOf(g,e){e=e||{k:0};if(g.kv!==2)return Math.floor(((g.stats&&g.stats.exp)||0)/2)+achKoinOld(g)+e.k-(g.spentK||0);
  return (g.kb||0)+Object.values(g.kd||{}).reduce((t,v)=>t+v,0)+achKoin(g)+e.k-(g.spentK||0)}
 const ext=(uid,gr)=>{const l=LOGS[uid]||[];return {p:((gr&&gr.permata)||0)+l.reduce((t,e)=>t+(+e.p||0),0),k:((gr&&gr.koin)||0)+l.reduce((t,e)=>t+(+e.k||0),0)}};
-function wallet(d){const g=G||blank(),e=ext(ME.id,GR);const exp=d?d.xp:((g.stats&&g.stats.exp)||0);if(d&&ready){const m=ensureV2(g,exp),a=accrue(g,exp);if(m||a)needSave=true}return {exp,koin:koinOf(g,e),permata:e.p-(g.spentP||0),today:(g.kd||{})[dayOf()]||0,cap:KCAP}}
+function wallet(d){const g=G||blank(),e=ext(ME.id,GR);const exp=d?d.xp:((g.stats&&g.stats.exp)||0);if(d&&ready){const m=ensureV2(g,exp);let a=false;if(d.batsu){if(g.kv===2&&exp>(g.kl||0)){g.kl=exp;a=true}}else a=accrue(g,exp);if(m||a)needSave=true}return {exp,koin:koinOf(g,e),permata:e.p-(g.spentP||0),today:(g.kd||{})[dayOf()]||0,cap:KCAP}}
 function owned(){const g=G||blank();return new Set([...FREE,...(g.owned||[]),...(((GR||{}).items)||[]),...ACH.filter(a=>a.item&&(g.claimed||[]).includes(a.id)).map(a=>a.item)])}
 const nickOf=g=>(g&&g.nick)||'Tanpa nickname';
 
@@ -8301,9 +8305,11 @@ function ngambekHTML(d){
   const n=new Date();if(d.fullToday||n.getHours()*60+n.getMinutes()<20*60+30)return '';
   return `<section class="card ngambek"><div class="ng-face" aria-hidden="true">怒</div><div><b>Sensei ngambek</b><p>${esc(NGAMBEK[n.getDate()%NGAMBEK.length])}</p><button class="btn sm" data-lms="go" data-r="harian">Kerjakan sekarang</button></div></section>`;
 }
+/* hukuman naik tiap hari bolong: 20 soal (1 hari) sampai 40 soal (5 hari atau lebih) */
+const batsuN=m=>Math.min(40,20+5*Math.max(0,(m||1)-1));
 function batsuCard(d,big){
   if(!d.batsu)return '';
-  return `<section class="card batsu"><div class="bz">罰</div><div><b>BATSU dari Sensei</b><p>${d.miss>1?`Misi harianmu bolong ${d.miss} hari.`:'Kemarin misi harianmu bolong.'} Hukumanmu: <b>20 soal kanji campuran</b> dari semua bab yang sudah dipelajari, tanpa bocoran jawaban per soal. Harus <b>minimal 80%</b>. Belum lulus? Ulang sampai bisa.</p>${big?'<ul class="info"><li>Selama batsu belum beres, <b>Toko dikunci</b>.</li><li>Lulus batsu = toko terbuka lagi, dan kamu tetap harus mengerjakan misi hari ini.</li></ul>':''}<button class="btn" data-lms="mis" data-m="batsu">Kerjakan batsu</button></div></section>`;
+  return `<section class="card batsu"><div class="bz">罰</div><div><b>BATSU dari Sensei</b><p>${d.miss>1?`Misi harianmu bolong ${d.miss} hari.`:'Kemarin misi harianmu bolong.'} Hukumanmu: <b>${batsuN(d.miss)} soal kanji campuran</b> dari semua bab yang sudah dipelajari, tanpa bocoran jawaban per soal. Harus <b>minimal 80%</b>. Belum lulus? Ulang sampai bisa.</p><p class="small"><b>Koin berhenti bertambah</b> sampai batsu ini lulus. Makin banyak hari bolong, makin banyak soalnya.</p>${big?'<ul class="info"><li>Selama batsu belum beres, <b>Toko dikunci</b>.</li><li>Lulus batsu = toko terbuka lagi, dan kamu tetap harus mengerjakan misi hari ini.</li></ul>':''}<button class="btn" data-lms="mis" data-m="batsu">Kerjakan batsu</button></div></section>`;
 }
 function misiCard(d,compact){
   const nx=d.ms.find(m=>!m.done);
@@ -8657,7 +8663,7 @@ document.addEventListener('click',e=>{
   else if(a==='savename'){const v=($$('lms-nama')||{}).value;if(v&&v.trim()){setName(v);renderPage()}else{const i=$$('lms-nama');if(i)i.focus()}}
   else if(a==='jft')go('jft');
   else if(a==='go'){go(b.dataset.r)}
-  else if(a==='mis'){const m=b.dataset.m;if(m==='kartu'){go('kotoba');K().api.quickCards()}else if(m==='tes'){go('kotoba');K().api.startDaily('H2')}else if(m==='h1'){K().api.startDaily('H1');go('kotoba')}else if(m==='batsu'){K().api.startDaily('B');go('kotoba')}else if(m==='verb'){GAME.verbQuick();go('verb')}else if(m==='bab')go('jft')}
+  else if(a==='mis'){const m=b.dataset.m;if(m==='kartu'){go('kotoba');K().api.quickCards()}else if(m==='tes'){go('kotoba');K().api.startDaily('H2')}else if(m==='h1'){K().api.startDaily('H1');go('kotoba')}else if(m==='batsu'){K().api.startDaily('B',batsuN(me().miss));go('kotoba')}else if(m==='verb'){GAME.verbQuick();go('verb')}else if(m==='bab')go('jft')}
   else if(a==='qmpick'){qmStart(b.dataset.m);go('menu');renderPage()}
   else if(a==='qmmenu'){QM.sel=null;QM.qs=null;renderPage()}
   else if(a==='qmans'){if(QM.qs&&QM.ans[QM.i]===undefined){QM.ans[QM.i]=+b.dataset.k;renderPage()}}
