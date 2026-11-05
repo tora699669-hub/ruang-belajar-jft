@@ -705,7 +705,7 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261105-1510"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261105-1626"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -8353,7 +8353,7 @@ function alertMsg(t){const m=$$('lms-main');if(m)m.insertAdjacentHTML('afterbegi
 
 /* ---- Latihan Soal Baru (soal harian dari tim agent, lolos audit) ---- */
 let QM={docs:{},sel:null,qs:null,i:0,ans:[],ord:[]};
-const QMN={kotoba:['語','Kotoba'],kanji:['漢','Kanji'],susun:['並','Susun Kalimat'],kerja:['動','Kata Kerja'],sifat:['形','Kata Sifat']};
+const QMN={kotoba:['語','Kotoba'],kanji:['漢','Kanji'],susun:['並','Susun Kalimat'],kerja:['動','Kata Kerja'],sifat:['形','Kata Sifat'],hyougen:['句','Ungkapan (Hyougen)']};
 const QMC=['①','②','③','④'];
 function qmInit(dbx){try{dbx.tree('qbank/menu').onSnapshot(s=>{const o={};s.docs.forEach(x=>{const d=x.data();if(d&&Array.isArray(d.items))o[x.id]=d.items.filter(q=>q&&q.o&&q.o.length>=2&&typeof q.a==='number')});QM.docs=o;if((CUR==='latihan'||(CUR==='menu'&&!QM.qs)))renderPage()},()=>{})}catch(e){}}
 const qmShuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
