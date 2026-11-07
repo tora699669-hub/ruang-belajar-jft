@@ -695,6 +695,8 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 .pkc .stg{display:block;font-size:12px;color:#7a5200;margin-top:2px}
 
 .lsec{font-size:18px;margin:22px 0 2px}.lsub{margin:0 0 10px}
+
+.qimg{margin:8px 0;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;max-width:100%}.qimg svg{display:block;width:100%;height:auto}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -707,7 +709,7 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261107-0733"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261107-0757"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -4617,14 +4619,15 @@ function dynConv(it,sec,idx){
     subs.forEach((s,i)=>{
       const q=mk(s,subs.length>1?it.id+'-'+(i+1):it.id);
       q.t='次の 文を 読んで ください。';q.q2=fix(s.t);
-      q.p={title:it.judul||'Bacaan',text:it.teks||''};
+      q.p={title:it.judul||'Bacaan',text:it.svg?'':(it.teks||''),svg:cleanSvg(it.svg),alt:it.alt||''};
       out.push(q)});
     return out}
   const q=mk(null,it.id);
   if(sec==='CE'&&it.dialog&&it.dialog.length){q.t='次の 会話を 読んで ください。';q.q2=fix(it.t);q.p={title:'Percakapan',lines:it.dialog.map(fix)}}
   else if(it.kal){q.t=fix(it.kal.replace(/\[\[(.+?)\]\]/g,'「$1」')+(/読み|漢字|意味/.test(it.t||'')?' '+it.t:''))}
   else q.t=fix(it.t);
-  if(it.gambar)q.t='🖼 ['+it.gambar+'] '+q.t;
+  if(it.svg){q.svg=cleanSvg(it.svg);q.alt=it.alt||''}
+  else if(it.gambar)q.t='🖼 ['+it.gambar+'] '+q.t;
   return [q];
 }
 function dynBuild(id,d){
@@ -4936,7 +4939,8 @@ function askSec(){
 function optsHTML(q){
   return `<div class="opts" role="radiogroup" aria-label="Pilihan jawaban ${q.id}">`+P.ord[q.id].map((oi,pos)=>`<label class="opt"><input type="radio" name="${q.id}" value="${oi}" ${P.ans[q.id]===oi?'checked':''}><span class="lab"><span class="m">${CM[pos]}</span><span class="tx">${esc(q.o[oi])}</span></span></label>`).join('')+`</div>`;
 }
-function passageHTML(q){return `<div class="passage"><div class="pt">${esc(q.p.title)}</div>${q.p.lines?'<ul>'+q.p.lines.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul>':'<div>'+esc(q.p.text)+'</div>'}</div>`}
+function cleanSvg(x){x=String(x||'').trim();if(!/^<svg[\s>]/i.test(x))return '';return x.replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi,'').replace(/\son\w+\s*=\s*("[^"]*"|'[^']*')/gi,'').replace(/javascript:/gi,'')}
+function passageHTML(q){return `<div class="passage"><div class="pt">${esc(q.p.title)}</div>${q.p.svg?'<div class="qimg" role="img" aria-label="'+esc(q.p.alt||'Gambar soal')+'">'+q.p.svg+'</div>':''}${q.p.lines?'<ul>'+q.p.lines.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul>':'<div>'+esc(q.p.text)+'</div>'}</div>`}
 function examHTML(){
   if(P.phase==='intro')return introHTML();
   if(P.secIntro)return secIntroHTML();
@@ -4946,7 +4950,7 @@ function examHTML(){
   pals+='</div>';
   let body;
   if(q.p)body=`<div class="split"><div class="qpanel"><div class="qhead">Teks bacaan</div><div class="qt" style="font-size:18px">${qfmt(q.t,q.sec)}</div>${passageHTML(q)}</div><div class="qpanel"><div class="qhead">Soal ${P.qi+1} dari ${n}</div><div class="qt">${qfmt(q.q2,q.sec)}</div>${optsHTML(q)}</div></div>`;
-  else body=`<div class="qpanel"><div class="qhead">Soal ${P.qi+1} dari ${n} · ${esc(sc.title)}</div>${q.track?`<div class="aud"><button class="btn" id="pl-${q.id}" data-act="play" data-q="${q.id}">▶ Putar audio</button><span class="am" id="am-${q.id}"></span><label class="loc">Audio tidak bunyi? Pilih file<input type="file" accept="audio/*,video/mp4" data-q="${q.id}" class="locf"></label></div>`:''}<div class="qt">${qfmt(q.t,q.sec)}</div>${optsHTML(q)}</div>`;
+  else body=`<div class="qpanel"><div class="qhead">Soal ${P.qi+1} dari ${n} · ${esc(sc.title)}</div>${q.svg?'<div class="qimg" role="img" aria-label="'+esc(q.alt||'Gambar soal')+'">'+q.svg+'</div>':''}${q.track?`<div class="aud"><button class="btn" id="pl-${q.id}" data-act="play" data-q="${q.id}">▶ Putar audio</button><span class="am" id="am-${q.id}"></span><label class="loc">Audio tidak bunyi? Pilih file<input type="file" accept="audio/*,video/mp4" data-q="${q.id}" class="locf"></label></div>`:''}<div class="qt">${qfmt(q.t,q.sec)}</div>${optsHTML(q)}</div>`;
   const nAns=ALL.filter(x=>P.ans[x.id]!==undefined).length;
   return body+`<details class="palbox"><summary>Nomor soal · terjawab ${nAns} dari ${n} · bagian ${P.sec+1}/${SECTIONS.length}</summary>${pals}</details>`;
 }
@@ -7693,7 +7697,7 @@ tiers('vb','動',['Warming up kata kerja','Hafal perubahan','Jago konjugasi','Ah
 tiers('vs','変',['Ronde pertama','Lima ronde','Lima belas ronde','Tiga puluh ronde','Enam puluh ronde'],n=>`Selesaikan ${n} ronde Latihan Bunpou`,[1,5,15,30,60],()=>vst().sess,[40,100,200,400,800]);
 tiers('vp','完',['Ronde sempurna','Tiga ronde sempurna','Sepuluh ronde sempurna'],n=>`Dapat 10/10 di ${n} ronde Latihan Bunpou`,[1,3,10],()=>vst().perfect,[100,250,700],[0,0,'t_hachi']);
 ACH.push(A('va','精','Presisi kata kerja','Akurasi 90% atau lebih setelah 100 jawaban Bunpou',300,()=>{const s=vst();return s.n>=100&&s.ok/s.n>=.9},{}));
-tiers('it','衣',['Mulai bergaya','Koleksi baju','Fashionista','Kolektor sejati'],n=>`Punya ${n} item di Lemari`,[6,12,20,30],()=>owned().size,[50,150,300,600]);
+tiers('it','衣',['Mulai bergaya','Koleksi baju','Fashionista','Kolektor sejati'],n=>`Punya ${n} item avatar`,[6,12,20,30],()=>owned().size,[50,150,300,600]);
 ACH.push(A('nk','名','Punya nama beken','Isi nickname di Karakter',40,()=>!!(G&&G.nick)));
 tiers('rk','冠',['Masuk lima besar','Masuk tiga besar','Juara satu'],n=>n===5?'Masuk 5 besar di salah satu papan peringkat':n===3?'Masuk 3 besar di salah satu papan peringkat':'Juara 1 di salah satu papan peringkat',[5,3,1],()=>{const r=bestRank();return r>5?0:6-r},[100,200,500],['a_headphone',0,0]);
 ACH.forEach(x=>{if(x.id.startsWith('rk')){const th=+x.id.slice(2);x.ok=()=>bestRank()<=th;x.v=()=>bestRank()<=th?th:0;x.n=th}});
@@ -7755,7 +7759,7 @@ function avatarSVGold(cfg,size,flip){
 }
 
 /* ---------- state ---------- */
-let needSave=false,DB=null,ME={id:null,name:'',sensei:false},G=null,GR=null,ALL=[],GRALL={},LOGS={},giving=false,HAD={},onChange=()=>{},tab='avatar',shopSlot='baju',lbTab='umum',msg='',preview=null,ready=false,pushT=null,lastPush='';
+let needSave=false,DB=null,ME={id:null,name:'',sensei:false},G=null,GR=null,ALL=[],GRALL={},LOGS={},giving=false,HAD={},onChange=()=>{},tab='avatar',shopSlot='baju',shopOwn=false,lbTab='umum',msg='',preview=null,ready=false,pushT=null,lastPush='';
 const blank=()=>({nick:'',body:'L',skin:1,hair:0,eye:0,equip:{baju:'b_putih',celana:'c_jeans',sepatu:'s_kets',pose:'p_diri'},owned:[],spentK:0,spentP:0,claimed:[],kit:{char:'',pose:'idle',badge:''}});
 function cfgOf(g){const c=Object.assign(blank(),g||{});const eq={};Object.values(c.equip||{}).forEach(id=>{const x=IT[id];if(x)eq[x.slot]=id});if(!eq.sepatu)eq.sepatu='s_kets';c.equip=eq;const kt=c.kit&&typeof c.kit==='object'?c.kit:{};c.kit={char:String(kt.char||''),pose:String(kt.pose||'idle'),badge:String(kt.badge||'')};c.skin=Math.min(5,+c.skin||0);c.hair=Math.min(HAIR.length-1,+c.hair||0);return c}
 function local(){return cfgOf(lsG('lms:game:'+(ME.id||'tamu'),null))}
@@ -7964,9 +7968,11 @@ function komentar(p,seed){
 /* ---------- halaman Karakter ---------- */
 function karakterHTML(d){
  const g=G||blank(),w=wallet(d),own=owned();
- const tabs=[['avatar','Avatar'],['toko','Toko'],['koleksi','Koleksi'],['lemari','Lemari'],['ach','Penghargaan']];
+ if(tab==='koleksi'||tab==='lemari')tab='toko';
+ const isK=shopSlot.slice(0,2)==='k:';
+ const tabs=[['avatar','Avatar'],['toko','Toko'],['ach','Penghargaan']];
  const cfgPrev=preview?Object.assign({},g,{kit:null,equip:Object.assign({},g.equip,preview)}):g;
- const kv=tab==='koleksi'?kview(g):null,stageCfg=kv&&kv.char?Object.assign({},cfgPrev,{kit:{char:kv.char,pose:kv.pose,badge:kv.badge}}):cfgPrev;
+ const kv=(tab==='toko'&&isK)?kview(g):null,stageCfg=kv&&kv.char?Object.assign({},cfgPrev,{kit:{char:kv.char,pose:kv.pose,badge:kv.badge}}):cfgPrev;
  let body='';
  if(tab==='avatar'){
   body=`<section class="card"><h2>Nickname</h2><div class="row"><input id="g-nick" maxlength="16" value="${esc(g.nick||'')}" placeholder="Contoh: NinjaKanji"><button class="btn" data-g="nick">Simpan</button></div><p class="muted small">Teman melihat nickname-mu. Sensei tetap melihat nama aslimu.</p></section>
@@ -7974,20 +7980,21 @@ function karakterHTML(d){
   <h3>Warna kulit</h3><div class="sw">${SKIN.map((c,i)=>`<button class="swb ${(+g.skin||0)===i?'on':''}" style="background:${c}" data-g="set" data-k="skin" data-v="${i}" aria-label="Warna kulit ${i+1}"></button>`).join('')}</div>
   <h3>Warna rambut</h3><div class="sw">${HAIR.map((c,i)=>`<button class="swb ${(+g.hair||0)===i?'on':''}" style="background:${c}" data-g="set" data-k="hair" data-v="${i}" aria-label="Warna rambut ${i+1}"></button>`).join('')}</div>
   <h3>Warna mata</h3><div class="sw">${EYEC.map((c,i)=>`<button class="swb ${(+g.eye||0)===i?'on':''}" style="background:${c}" data-g="set" data-k="eye" data-v="${i}" aria-label="Warna mata ${i+1}"></button>`).join('')}</div>
-  <p class="muted small">Gaya rambut, baju, celana, sepatu, topi, dan aksesori ada di Toko. Item yang sudah dibeli dipakai lewat Lemari.</p>${kitOf(g)?'<p class="muted small">Sekarang kamu memakai karakter BlokKit, jadi pilihan di sini tidak tampil. Lepas karakter di tab Koleksi untuk kembali ke avatar biasa.</p>':''}</section>`;
+  <p class="muted small">Gaya rambut, baju, celana, sepatu, topi, dan aksesori ada di Toko. Item yang sudah dibeli dipakai langsung di Toko.</p>${kitOf(g)?'<p class="muted small">Sekarang kamu memakai karakter BlokKit, jadi pilihan di sini tidak tampil. Lepas karakter di Toko > Karakter untuk kembali ke avatar biasa.</p>':''}</section>`;
  }else if(tab==='toko'){
   const card=x=>{const has=own.has(x.id),can=(x.cur==='K'?w.koin:w.permata)>=x.price;const eqd=(g.equip||{})[x.slot]===x.id;
    return `<div class="shopc ${has?'has':''}"><button class="sprev" data-g="prev" data-id="${x.id}" aria-label="Coba ${esc(x.name)}">${avatarSVG(Object.assign({},g,{kit:null,equip:Object.assign({},g.equip,{[x.slot]:x.id})}),72,false,x.slot)}</button><b>${esc(x.name)}</b>${rarChip(x.rar)}
-    ${has?(eqd?'<span class="tag ok">Dipakai</span>':`<button class="btn sm" data-g="wear" data-id="${x.id}">Pakai</button>`):`<button class="btn sm ${can?'':'ghost'}" data-g="buy" data-id="${x.id}" ${can?'':'disabled'}>${x.cur==='K'?'🪙':'💎'} ${x.price}</button>`}</div>`};
+    ${has?(eqd?(x.slot==='topi'||x.slot==='aksesori'||x.slot==='wajah'?`<button class="btn sm ghost" data-g="unwear" data-v="${x.slot}">Lepas</button>`:'<span class="tag ok">Dipakai</span>'):`<button class="btn sm" data-g="wear" data-id="${x.id}">Pakai</button>`):`<button class="btn sm ${can?'':'ghost'}" data-g="buy" data-id="${x.id}" ${can?'':'disabled'}>${x.cur==='K'?'🪙':'💎'} ${x.price}</button>`}</div>`};
   const sets=SETS.filter(s=>!s.bd||s.bd===(g.body==='P'?'P':'L')).map(s=>{const all=s.items.every(i=>own.has(i)),can=(s.cur==='K'?w.koin:w.permata)>=s.price;const eq={};s.items.forEach(i=>eq[IT[i].slot]=i);
    return `<div class="setc"><div class="sav">${avatarSVG(Object.assign({},g,{kit:null,equip:Object.assign({},g.equip,eq)}),70)}</div><div class="st"><b>${esc(s.name)}</b><small>${s.items.map(i=>esc(IT[i].name)).join(', ')}</small>${all?'<span class="tag ok">Sudah punya</span>':`<button class="btn sm" data-g="buyset" data-id="${s.id}" ${can?'':'disabled'}>${s.cur==='K'?'🪙':'💎'} ${s.price}</button>`}</div></div>`}).join('');
-  body=`<section class="card"><h2>Set hemat</h2><div class="sets">${sets}</div></section>
-  <section class="card"><div class="chips">${SLOTS.map(s=>`<button class="chipb ${shopSlot===s[0]?'on':''}" data-g="slot" data-v="${s[0]}">${s[1]}</button>`).join('')}</div><div class="shop">${ITEMS.filter(x=>x.slot===shopSlot&&x.price>0&&okBody(x,g)).map(card).join('')}</div>
+  const cats=[...SLOTS,['k:char','Karakter'],['k:pose','Pose gerak'],['k:badge','Badge']];
+  const chips=`<div class="chips">${cats.map(s=>`<button class="chipb ${shopSlot===s[0]?'on':''}" data-g="slot" data-v="${s[0]}">${s[1]}</button>`).join('')}</div><div class="chips"><button class="chipb ${shopOwn?'on':''}" data-g="own" aria-pressed="${shopOwn}">Punyaku saja</button></div>`;
+  if(isK){body=`<section class="card">${chips}</section>`+koleksiHTML(g,w,own)}
+  else{
+   const xs=ITEMS.filter(x=>x.slot===shopSlot&&(shopOwn?own.has(x.id):x.price>0)&&okBody(x,g));
+   body=(shopOwn?'':`<section class="card"><h2>Set hemat</h2><div class="sets">${sets}</div></section>`)+`<section class="card">${chips}<div class="shop">${xs.map(card).join('')||'<p class="muted">'+(shopOwn?'Belum punya di kategori ini.':'Belum ada.')+'</p>'}</div>
   <p class="muted small">Ketuk gambar untuk mencoba. 💎 Permata hanya dari Sensei dan hadiah peringkat.</p></section>`;
- }else if(tab==='koleksi'){
-  body=koleksiHTML(g,w,own);
- }else if(tab==='lemari'){
-  body=`<p class="muted small">Karakter, pose, dan badge BlokKit dipakai lewat tab Koleksi.</p>`+SLOTS.map(s=>{const xs=ITEMS.filter(x=>x.slot===s[0]&&own.has(x.id)&&okBody(x,g));return `<section class="card"><h2>${s[1]}</h2><div class="shop">${xs.map(x=>{const eqd=(g.equip||{})[x.slot]===x.id;return `<div class="shopc has"><div class="sprev">${avatarSVG(Object.assign({},g,{kit:null,equip:Object.assign({},g.equip,{[x.slot]:x.id})}),72,false,x.slot)}</div><b>${esc(x.name)}</b>${eqd?(x.slot==='topi'||x.slot==='aksesori'||x.slot==='wajah'?`<button class="btn sm ghost" data-g="unwear" data-v="${x.slot}">Lepas</button>`:'<span class="tag ok">Dipakai</span>'):`<button class="btn sm" data-g="wear" data-id="${x.id}">Pakai</button>`}</div>`}).join('')||'<p class="muted">Belum punya. Cek Toko.</p>'}</div></section>`}).join('');
+  }
  }else{
   const cl=new Set(g.claimed||[]);
   const st=x=>cl.has(x.id)?2:x.ok(d)?0:1;
@@ -8006,7 +8013,7 @@ function kview(g){const k=g.kit||{},p=kpv||{};const char=p.char||k.char||defChar
 function koleksiHTML(g,w,own){
  const k=g.kit||{};
  const subs=[['char','Karakter'],['pose','Pose gerak'],['badge','Badge']];
- const list=KITS.filter(x=>x.kind===kSub&&(kRar==='semua'||x.rar===kRar)).sort((a,b)=>RARN.indexOf(b.rar)-RARN.indexOf(a.rar)||a.price-b.price);
+ const list=KITS.filter(x=>x.kind===kSub&&(kRar==='semua'||x.rar===kRar)&&(!shopOwn||x.price<=0||own.has(x.id))).sort((a,b)=>RARN.indexOf(b.rar)-RARN.indexOf(a.rar)||a.price-b.price);
  const act=x=>{const has=x.price<=0||own.has(x.id),cur=x.cur==='K'?w.koin:w.permata,can=cur>=x.price;
   const eqd=x.kind==='char'?k.char===x.key:x.kind==='pose'?(k.pose||'idle')===x.key:k.badge===x.key;
   if(has)return eqd?(x.kind==='badge'?'<button class="btn sm ghost" data-g="kbadgeoff">Lepas</button>':'<span class="tag ok">Dipakai</span>'):`<button class="btn sm" data-g="kwear" data-id="${x.id}">Pakai</button>`;
@@ -8015,9 +8022,8 @@ function koleksiHTML(g,w,own){
   if(x.kind==='char')return `<div class="shopc kc ${has?'has':''}"><button class="sprev" data-g="kprev" data-id="${x.id}" aria-label="Coba ${esc(x.name)}"><span class="bks kbig">${BK.statSVG(BK.BYID[x.key])}</span></button><b>${esc(x.name)}</b>${rarChip(x.rar)}<small>${esc(x.inc||'')}</small>${act(x)}</div>`;
   if(x.kind==='badge')return `<div class="shopc kc ${has?'has':''}"><button class="sprev" data-g="kprev" data-id="${x.id}" aria-label="Coba badge ${esc(x.name)}"><span class="bks kbdg">${BK.badgeSVG(x.key)}</span></button><b>${esc(x.name)}</b>${rarChip(x.rar)}${act(x)}</div>`;
   return `<div class="shopc kc ${has?'has':''}"><b>${esc(x.name)}</b>${rarChip(x.rar)}<small>${esc(x.desc||'')}</small><button class="btn sm ghost" data-g="kprev" data-id="${x.id}">Coba</button>${act(x)}</div>`};
- return `<section class="card"><h2>Koleksi BlokKit</h2><p class="muted small">Karakter BlokKit adalah satu set utuh (badan, baju, topi, aksesori) dan menggantikan avatar biasa. Pose gerak dan badge hanya tampil di karakter BlokKit. Makin langka makin mahal; Legendary dan Mythic memakai 💎 Permata dari Sensei dan hadiah peringkat. Ketuk gambar atau tombol Coba untuk melihatnya bergerak di atas.</p>
+ return `<section class="card"><h2>Karakter BlokKit</h2><p class="muted small">Karakter BlokKit adalah satu set utuh (badan, baju, topi, aksesori) dan menggantikan avatar biasa. Pose gerak dan badge hanya tampil di karakter BlokKit. Makin langka makin mahal; Legendary dan Mythic memakai 💎 Permata dari Sensei dan hadiah peringkat. Ketuk gambar atau tombol Coba untuk melihatnya bergerak di atas.</p>
   ${k.char?'<button class="btn sm ghost" data-g="kclear">Pakai avatar biasa</button>':''}
-  <div class="chips">${subs.map(s=>`<button class="chipb ${kSub===s[0]?'on':''}" data-g="ksub" data-v="${s[0]}">${s[1]}</button>`).join('')}</div>
   <div class="chips">${['semua',...RARN].map(r=>`<button class="chipb ${kRar===r?'on':''}" data-g="krar" data-v="${r}">${r==='semua'?'Semua rarity':RARL[r]}</button>`).join('')}</div>
   <div class="kgrid">${list.map(card).join('')||'<p class="muted">Belum ada di filter ini.</p>'}</div></section>`}
 /* ---------- halaman Peringkat ---------- */
@@ -8089,7 +8095,8 @@ function buyKit(x,d){
 document.addEventListener('click',async e=>{
  const b=e.target.closest('[data-g]');if(!b)return;const a=b.dataset.g;const d=window.LMS_ME?window.LMS_ME():null;G=G||blank();msg='';
  if(a==='tab'){tab=b.dataset.v;preview=null;kpv=null;if(b.dataset.go&&window.LMS_GO){window.LMS_GO(b.dataset.go);return}}
- else if(a==='slot')shopSlot=b.dataset.v;
+ else if(a==='slot'){shopSlot=b.dataset.v;if(shopSlot.slice(0,2)==='k:'){kSub=shopSlot.slice(2);kRar='semua'}preview=null;kpv=null}
+ else if(a==='own')shopOwn=!shopOwn;
  else if(a==='ksub'){kSub=b.dataset.v;kRar='semua'}
  else if(a==='krar')kRar=b.dataset.v;
  else if(a==='kprev'){const x=KT[b.dataset.id];if(x)kpv=Object.assign({},kpv||{},{[x.kind]:x.key})}
