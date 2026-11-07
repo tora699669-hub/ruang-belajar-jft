@@ -715,7 +715,7 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261107-0905"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261107-0916"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -7665,8 +7665,8 @@ const ACH=[];
 /* penghargaan lama (id dipertahankan) */
 [
  A('a1','初','Langkah pertama','Selesaikan 1 tes',50,d=>d.at.length+d.jt.length>=1,{v:d=>d.at.length+d.jt.length,n:1}),
- A('a2','三','Streak 3 hari','Belajar 3 hari berturut-turut',80,d=>d.streak>=3,{v:d=>d.streak,n:3}),
- A('a3','七','Streak 7 hari','Belajar 7 hari berturut-turut',150,d=>d.streak>=7,{v:d=>d.streak,n:7,item:'t_ikat'}),
+ A('a2','三','Beruntun 3 hari','Belajar 3 hari berturut-turut',80,d=>d.streak>=3,{v:d=>d.streak,n:3}),
+ A('a3','七','Beruntun 7 hari','Belajar 7 hari berturut-turut',150,d=>d.streak>=7,{v:d=>d.streak,n:7,item:'t_ikat'}),
  A('a4','満','Nilai sempurna','100% di satu tes (min. 10 soal)',100,d=>d.at.some(a=>a.ok===a.n&&a.n>=10),{v:d=>d.at.filter(a=>a.ok===a.n&&a.n>=10).length,n:1}),
  A('a5','合','Lulus 5 tes','Capai batas lulus di 5 tes',120,d=>d.at.filter(a=>d.ka.passed(a)).length>=5,{v:d=>d.at.filter(a=>d.ka.passed(a)).length,n:5}),
  A('a6','漢','Pemburu kanji','Lulus 3 tes kanji',120,d=>d.at.filter(a=>a.y==='J'&&d.ka.passed(a)).length>=3,{v:d=>d.at.filter(a=>a.y==='J'&&d.ka.passed(a)).length,n:3}),
@@ -7960,13 +7960,13 @@ function heroHTML(d,nama){
  return `<section class="card ghero"><div class="gav" data-g="tab" data-v="avatar" data-go="karakter" role="button" tabindex="0" aria-label="Ubah karakter">${c3HTML('hero',g,170,bestRank()===1,1.55)}</div>
   <div class="gmeta"><div class="gnick">${esc(g.nick||nama||'Halo!')}</div>${g.nick&&nama?`<div class="greal">${esc(nama)}</div>`:''}
   <div class="gtitle">${esc(titleOf(d.lv.L))}</div><div class="glv"><b>Lv ${d.lv.L}</b><div class="xpbar"><span style="width:${pct}%"></span></div><small>${d.lv.next-d.xp} EXP lagi</small></div>
-  ${money(w)}<div class="gstk">🔥 ${d.streak} hari streak</div>${d.batsu?'<button class="bztag" data-g="tab" data-v="avatar" data-go="harian">罰 Batsu aktif</button>':''}</div></section>`;
+  ${money(w)}<div class="gstk">🔥 ${d.streak} hari beruntun</div>${d.batsu?'<button class="bztag" data-g="tab" data-v="avatar" data-go="harian">罰 Batsu aktif</button>':''}</div></section>`;
 }
 function komentar(p,seed){
  const T=[[40,['Nilai segini bikin kanji pun ikut sedih. Tenang, soal yang salah itu justru PR-mu hari ini.','Jawabannya kreatif banget. Sayangnya ujian butuh yang benar. Ulang kartu kata lemahmu 10 menit dulu, yuk.','Kalau ini game, kamu masih di tutorial. Ulangi sekali lagi, pasti naik.']],
   [60,['Setengah jalan. Setengahnya lagi nunggu kamu belajar, bukan nunggu keajaiban.','Lumayan, tapi lumayan belum lulus JFT. Fokus ke bagian yang paling banyak salah.']],
   [80,['Usahanya sudah kelihatan. Tinggal rapikan yang salah, jangan puas dulu.','Dikit lagi lulus. Sayang banget kalau berhenti di sini.']],
-  [95,['Mantap! Sensei mulai susah cari bahan buat ngomel.','Bagus banget. Pertahankan, jangan sampai streak-nya putus.']],
+  [95,['Mantap! Sensei mulai susah cari bahan buat ngomel.','Bagus banget. Pertahankan, jangan sampai rangkaian harimu putus.']],
   [101,['Sempurna. Oke, Sensei akui kamu jago. Untuk kali ini.','Nilai dewa. Jangan sombong dulu, besok ada soal baru.']]];
  const L=T.find(t=>p<t[0])[1];const h=String(seed||p).split('').reduce((s,c)=>s+c.charCodeAt(0),0);
  return `<div class="komen ${p<60?'lo':p<80?'mid':'hi'}"><div class="kq">${esc(L[h%L.length])}</div><div class="ks">Sensei, Kelas Akimichi</div></div>`;
@@ -10811,8 +10811,8 @@ function badges(d){
   const at=d.at,kp=at.filter(a=>d.ka.passed(a)).length;
   return [
    ['初','Langkah pertama','Selesaikan 1 tes',at.length>=1],
-   ['三','Streak 3 hari','Latihan 3 hari berturut-turut',d.streak>=3],
-   ['七','Streak 7 hari','Latihan 7 hari berturut-turut',d.streak>=7],
+   ['三','Beruntun 3 hari','Latihan 3 hari berturut-turut',d.streak>=3],
+   ['七','Beruntun 7 hari','Latihan 7 hari berturut-turut',d.streak>=7],
    ['満','Nilai sempurna','Dapat 100% di satu tes (min. 10 soal)',at.some(a=>a.ok===a.n&&a.n>=10)],
    ['合','Lulus 5 tes','Capai batas lulus di 5 tes',kp>=5],
    ['漢','Pemburu kanji','Lulus 3 tes kanji',at.filter(a=>a.y==='J'&&d.ka.passed(a)).length>=3],
@@ -10855,7 +10855,7 @@ function berandaHTML(){
   const prog=`<section class="card"><h2>Progresmu</h2><div class="score-row sr3">
     <div class="sc main"><div class="k">Kesiapan</div><div class="v">${r?r.v+'%':'-'}</div><div class="s">${r?r.label:'Belum ada data'}</div></div>
     <div class="sc"><div class="k">Level ${d.lv.L}</div><div class="v">${d.xp}<small> XP</small></div><div class="s">${d.lv.next-d.xp} XP lagi</div></div>
-    <div class="sc"><div class="k">Streak</div><div class="v">${d.streak}<small> hari</small></div><div class="s">berturut-turut</div></div></div>
+    <div class="sc"><div class="k">Beruntun</div><div class="v">${d.streak}<small> hari</small></div><div class="s">berturut-turut</div></div></div>
     <div class="xpbar" role="progressbar" aria-valuenow="${pctL}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pctL}%"></span></div>
     <p class="muted small">JFT terbaik: ${best?best.est+' ('+esc(d.ja.lvl(best.est))+')':'belum dikerjakan'} · Kotoba dan kanji: ${an?an.avg+'% dari '+an.n+' tes':'belum ada tes'}</p>
     <div class="actions"><button class="btn ghost" data-lms="nav" data-r="progres" type="button">Lihat progres lengkap</button></div></section>`;
@@ -10885,7 +10885,7 @@ function belajarHTML(){
 }
 
 /* ---- Misi Harian, batsu, ngambek ---- */
-const NGAMBEK=['Sensei nunggu dari tadi lho. Misi harian belum disentuh. Mau sampai kapan?','Streak-mu lagi sekarat. Selamatkan sebelum jam 12 malam, atau besok kena batsu.','Kanji nggak akan hafal sendiri sambil kamu scroll. Buka misinya, 15 menit aja.','Sensei nggak marah. Cuma kecewa. ...Oke, marah dikit. Kerjakan misimu.','Yang lain udah setor misi. Kamu masih ngapain?','Kalau malam ini bolong, besok ada batsu 20 soal kanji. Sensei serius.','Hari ini kamu belum belajar. Sensei pura-pura nggak lihat, tapi aplikasinya lihat.','JFT nggak nunggu kamu siap. Ayo, tiga misi aja.'];
+const NGAMBEK=['Sensei nunggu dari tadi lho. Misi harian belum disentuh. Mau sampai kapan?','Rangkaian harimu lagi sekarat. Selamatkan sebelum jam 12 malam, atau besok kena batsu.','Kanji nggak akan hafal sendiri sambil kamu scroll. Buka misinya, 15 menit aja.','Sensei nggak marah. Cuma kecewa. ...Oke, marah dikit. Kerjakan misimu.','Yang lain udah setor misi. Kamu masih ngapain?','Kalau malam ini bolong, besok ada batsu 20 soal kanji. Sensei serius.','Hari ini kamu belum belajar. Sensei pura-pura nggak lihat, tapi aplikasinya lihat.','JFT nggak nunggu kamu siap. Ayo, tiga misi aja.'];
 function ngambekHTML(d){
   if(OWNER&&!(window.lmsHosted&&STU()))return '';
   const n=new Date();if(d.fullToday||n.getHours()*60+n.getMinutes()<20*60+30)return '';
@@ -10900,7 +10900,7 @@ function batsuCard(d,big){
 function misiCard(d,compact){
   const nx=d.ms.find(m=>!m.done);
   const row=m=>`<li class="${m.done?'ok':''}"><i aria-hidden="true">${m.done?'✓':m.ic}</i><div><b>${m.t}</b>${compact?'':`<small>${m.why}</small>`}${m.prog&&!m.done?`<small>${m.prog}</small>`:''}</div>${m.done?'<span class="tag ok">Beres</span>':`<button class="btn sm" data-lms="mis" data-m="${m.id}">Gas</button>`}</li>`;
-  return `<section class="card misi"><div class="lms-step"><div class="t"><h2>Misi harian <small class="wj">wajib</small></h2><div class="small muted">3 misi lengkap = streak +1. Bolong = streak putus dan besok batsu.</div></div><b class="dn">${d.done}/3</b></div>
+  return `<section class="card misi"><div class="lms-step"><div class="t"><h2>Misi harian <small class="wj">wajib</small></h2><div class="small muted">3 misi lengkap = beruntun +1 hari. Bolong = rangkaian putus dan besok batsu.</div></div><b class="dn">${d.done}/3</b></div>
    <div class="xpbar" role="progressbar" aria-valuenow="${Math.round(d.done/3*100)}" aria-valuemin="0" aria-valuemax="100"><span style="width:${Math.round(d.done/3*100)}%"></span></div>
    <ul class="mis">${d.ms.map(row).join('')}</ul>${nx?`<div class="actions"><button class="btn big" data-lms="mis" data-m="${nx.id}">▶ Lanjut: ${nx.t}</button>${compact?'<button class="btn ghost" data-lms="go" data-r="harian">Buka Misi Harian</button>':''}</div>`:'<div class="status ok">Misi hari ini beres. Streak aman. Mantap!</div>'}</section>`;
 }
@@ -10908,7 +10908,7 @@ function harianHTML(){
   const d=me(),dl=d.ka.daysLeft();
   const pushSt=pushState();
   return `<h1 class="pgt">Misi Harian</h1>${batsuCard(d,true)}
-  <section class="card"><div class="score-row sr3"><div class="sc main"><div class="k">Streak</div><div class="v">${d.streak}<small> hari</small></div></div><div class="sc"><div class="k">Hari ini</div><div class="v">${d.done}/3</div></div><div class="sc"><div class="k">Menuju JFT</div><div class="v">${dl}<small> hari</small></div></div></div></section>
+  <section class="card"><div class="score-row sr3"><div class="sc main"><div class="k">Beruntun</div><div class="v">${d.streak}<small> hari</small></div></div><div class="sc"><div class="k">Hari ini</div><div class="v">${d.done}/3</div></div><div class="sc"><div class="k">Menuju JFT</div><div class="v">${dl}<small> hari</small></div></div></div></section>
   ${misiCard(d,false)}
   <section class="card"><h2>Bonus (tidak wajib)</h2><ul class="mis"><li><i>復</i><div><b>Ulang kata yang salah</b><small>Kata yang pernah salah di tesmu.</small></div><button class="btn sm ghost" data-lms="mis" data-m="h1">Gas</button></li><li><i>試</i><div><b>Latihan Bab</b><small>Simulasi bagian-bagian JFT, sekali seminggu cukup.</small></div><button class="btn sm ghost" data-lms="mis" data-m="bab">Gas</button></li></ul></section>
   <section class="card"><h2>Pengingat jam 20:30</h2><p class="muted small">Sensei kirim notifikasi ngambek ke HP-mu kalau misi belum beres jam 20:30.</p>${pushSt}</section>`;
@@ -10976,7 +10976,7 @@ function latihanHTML(){
   const nq=Object.values(QM.docs).reduce((t,x)=>t+x.length,0);
   const vs=GAME.verbStats();
   return `<h1 class="pgt">Latihan</h1>
-  <div class="lgrid">${card(d.batsu?'罰':'日',d.batsu?'Batsu menunggu':'Misi Harian (wajib)',d.batsu?'Kerjakan hukuman dulu, ya':d.done+' dari 3 selesai · streak '+d.streak+' hari','data-lms="go" data-r="harian"',true,'feat')}
+  <div class="lgrid">${card(d.batsu?'罰':'日',d.batsu?'Batsu menunggu':'Misi Harian (wajib)',d.batsu?'Kerjakan hukuman dulu, ya':d.done+' dari 3 selesai · beruntun '+d.streak+' hari','data-lms="go" data-r="harian"',true,'feat')}
   ${rem?card('補','Tugas Remedial','Dibuka Sensei, kerjakan ya','data-lms="jft"',true,'warnc'):''}</div>
   ${sec('Hafalan','Kartu bisa dibalik, ditandai hafal atau belum, dan diulang per status. Pilih buku lalu pelajarannya.',
    card('必','Kanji Kata Irodori',fn.kata+' kata · A1, A2.1, A2.2','data-lms="go" data-r="kwajib"',true)+
@@ -11025,7 +11025,7 @@ function raporHTML(d){
    if(v.n>=10){const p=Math.round(v.ok/v.n*100);lem.push(`Perubahan kata kerja: akurasi ${p}% dari ${v.n} jawaban`);const w=Object.entries(v.form||{}).filter(x=>x[1][1]>=3).map(x=>({f:x[0],p:Math.round(x[1][0]/x[1][1]*100)})).sort((a,b)=>a.p-b.p)[0];if(w&&w.p<80){lem.push(`Bentuk terlemah: ${GAME.VFORMS[w.f]} (${w.p}%)`);act('Latihan '+GAME.VFORMS[w.f],'Fokus di bentuk kata kerja yang masih sering salah.','data-lms="go" data-r="verb"')}}
    else act('Coba Latihan Bunpou','Perubahan kata kerja penting banget buat JFT.','data-lms="go" data-r="verb"')}
   if(due>0)act('Ulang '+due+' kartu','Kartu ini sudah waktunya diulang.','data-lms="kartu"');
-  if(d.done<3)act('Misi Harian ('+d.done+'/3)','Wajib tiap hari supaya streak aman.','data-lms="go" data-r="harian"');
+  if(d.done<3)act('Misi Harian ('+d.done+'/3)','Wajib tiap hari supaya rangkaian harimu aman.','data-lms="go" data-r="harian"');
   if(!plan.length)act('Santai, kamu on track','Jaga ritme: 5 hari per minggu.','data-lms="kdaily"');
   return `<section class="card rapor"><h2>Rapor Diri</h2><ul class="lem">${lem.map(x=>`<li>${x}</li>`).join('')}</ul></section>
   <section class="card rapor"><h2>Rencana Tindak Lanjut</h2><ol class="plan">${plan.join('')}</ol></section>`;
@@ -11148,7 +11148,7 @@ function bantuanHTML(){
    <tr><td><b>JFT-Basic</b></td><td>Ujian bahasa Jepang dasar. Skor lulus di sini 200 dari 250.</td></tr>
    <tr><td><b>Tugas harian</b></td><td>3 langkah singkat tiap hari: ulang yang salah, tes kecil, lalu review kartu.</td></tr>
    <tr><td><b>Kartu ulang</b></td><td>Kata yang muncul lagi pada waktu yang pas supaya tidak lupa.</td></tr>
-   <tr><td><b>Streak</b></td><td>Berapa hari berturut-turut kamu belajar.</td></tr>
+   <tr><td><b>Beruntun</b></td><td>Berapa hari berturut-turut kamu belajar.</td></tr>
    <tr><td><b>XP dan level</b></td><td>Poin dari belajar. Makin rutin, makin naik level.</td></tr>
    <tr><td><b>Batas lulus</b></td><td>Nilai tes kotoba atau kanji minimal 80% supaya dianggap lulus.</td></tr></tbody></table></div></section>
   <section class="card"><h2>Masalah yang sering terjadi</h2><div style="display:flex;flex-direction:column;gap:8px">${faq([
