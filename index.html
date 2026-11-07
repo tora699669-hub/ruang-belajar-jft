@@ -703,6 +703,7 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 /* Laptop: kartu hafalan dan kamus tidak melebar penuh, supaya kartu terlihat tanpa menggulir jauh */
 @media(min-width:900px){#fc-root{max-width:700px;margin-inline:auto}#fc-root .fc-f,#fc-root .fc-b{min-height:300px}}
 @media(min-width:900px){.cbt{padding-inline:28px!important}}
+.vlb small.vok{color:var(--ok,#2e9d5b);font-weight:700}.vlb small.vno{color:var(--bad,#d0453a);font-weight:700}.vlv{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.petunjuk ol{padding-left:20px;margin:6px 0 12px}.petunjuk li{margin:4px 0}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -715,7 +716,7 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261107-1029"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261107-1111"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -7659,7 +7660,7 @@ const titleOf=L=>TITLES.filter(t=>L>=t[0]).pop()[1];
 const dkey=(t)=>{const d=new Date(t||Date.now());return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 
 /* ---------- penghargaan ---------- */
-const vst=()=>Object.assign({n:0,ok:0,sess:0,perfect:0,best:0,xp:0,form:{}},(G&&G.verb)||{});
+const vst=()=>Object.assign({n:0,ok:0,sess:0,perfect:0,best:0,xp:0,form:{},hist:[]},(G&&G.verb)||{});
 const A=(id,ic,name,why,k,ok,o)=>Object.assign({id,ic,name,why,k,ok},o||{});
 const ACH=[];
 /* penghargaan lama (id dipertahankan) */
@@ -7834,10 +7835,28 @@ const VERBS=[
 ['する','する',3,'melakukan'],['来る','くる',3,'datang'],['勉強する','べんきょうする',3,'belajar'],['予約する','よやくする',3,'memesan'],['掃除する','そうじする',3,'membersihkan'],
 ['洗濯する','せんたくする',3,'mencuci pakaian'],['説明する','せつめいする',3,'menjelaskan'],['入力する','にゅうりょくする',3,'menginput'],['両替する','りょうがえする',3,'menukar uang'],['連絡する','れんらくする',3,'menghubungi']
 ].map(a=>({w:a[0],r:a[1],g:a[2],m:a[3],tr:!!a[4]}));
-const FORMS={masu:'ます形',te:'て形',nai:'ない形',ta:'た形',pot:'可能形',pas:'受身形',jisho:'辞書形'};
+const FORMS={masu:'ます形',masen:'ません形',mashita:'ました形',tai:'たい形',te:'て形',nai:'ない形',nakatta:'なかった形',ta:'た形',tara:'たら形',jisho:'辞書形',proh:'禁止形 (〜な)',pot:'可能形',pas:'受身形',cau:'使役形',vol:'意向形',ba:'ば形',imp:'命令形'};
+const ROWO={'う':'お','く':'こ','ぐ':'ご','す':'そ','つ':'と','ぬ':'の','ぶ':'ぼ','む':'も','る':'ろ'};
+const ROWE={'う':'え','く':'け','ぐ':'げ','す':'せ','つ':'て','ぬ':'ね','ぶ':'べ','む':'め','る':'れ'};
 const ROW={'う':['い','わ','え'],'く':['き','か','け'],'ぐ':['ぎ','が','げ'],'す':['し','さ','せ'],'つ':['ち','た','て'],'ぬ':['に','な','ね'],'ぶ':['び','ば','べ'],'む':['み','ま','め'],'る':['り','ら','れ']};
 const TEEND={'う':['って','った'],'つ':['って','った'],'る':['って','った'],'む':['んで','んだ'],'ぶ':['んで','んだ'],'ぬ':['んで','んだ'],'く':['いて','いた'],'ぐ':['いで','いだ'],'す':['して','した']};
 function conj(v,f){
+ const w=v.w,g=v.g;
+ if(f==='masen')return conj0(v,'masu').slice(0,-1)+'せん';
+ if(f==='mashita')return conj0(v,'masu').slice(0,-1)+'した';
+ if(f==='tai')return conj0(v,'masu').slice(0,-2)+'たい';
+ if(f==='nakatta')return conj0(v,'nai').slice(0,-1)+'かった';
+ if(f==='tara')return conj0(v,'ta')+'ら';
+ if(f==='proh')return w+'な';
+ if(f==='cau'||f==='vol'||f==='ba'||f==='imp'){
+  if(g===3){const x=w==='来る'?{cau:'来させる',vol:'来よう',ba:'来れば',imp:'来い'}:{cau:'させる',vol:'しよう',ba:'すれば',imp:'しろ'};return w==='来る'?x[f]:w.slice(0,-2)+x[f]}
+  const st=w.slice(0,-1),l=w.slice(-1);
+  if(g===2)return st+{cau:'させる',vol:'よう',ba:'れば',imp:'ろ'}[f];
+  return st+{cau:ROW[l][1]+'せる',vol:ROWO[l]+'う',ba:ROWE[l]+'ば',imp:ROWE[l]}[f];
+ }
+ return conj0(v,f);
+}
+function conj0(v,f){
  const w=v.w,g=v.g;
  if(g===3){
   if(w==='来る'){return {masu:'来ます',te:'来て',nai:'来ない',ta:'来た',pot:'来られる',pas:'来られる',jisho:'来る'}[f]}
@@ -7891,11 +7910,25 @@ function wrongs(v,f){
    if(f==='jisho'){add(p+'し');add(p+'すり');add(p+'します')}
   }
  }
- ['masu','te','ta','nai','pot','pas'].forEach(x=>{if(x!==f)add(conj(v,x))});
+ if(v.g===1&&['vol','ba','imp','cau'].includes(f)){const st=v.w.slice(0,-1),l=v.w.slice(-1);if(f==='vol'){add(st+ROW[l][0]+'よう');add(st+ROW[l][2]+'う')}if(f==='ba'){add(st+ROW[l][0]+'ば');add(st+ROW[l][1]+'ば')}if(f==='imp'){add(st+ROW[l][0]);add(st+ROW[l][1])}if(f==='cau'){add(st+ROW[l][1]+'される');add(st+ROW[l][0]+'せる')}}
+ if(v.g===2&&['vol','ba','imp','cau'].includes(f)){const st=v.w.slice(0,-1);if(f==='vol')add(st+'ろう');if(f==='ba')add(st+'ば');if(f==='imp')add(st+'れ');if(f==='cau')add(st+'せる')}
+ ['masu','te','ta','nai','pot','pas','cau','vol','ba','imp','tara','nakatta','masen','jisho'].forEach(x=>{if(x!==f&&out.length<8)add(conj(v,x))});
  return out;
 }
+const NEWRULE={
+ masen:['ubah ke ます形 lalu ます → ません','ます形 lalu ます → ません'],mashita:['ます形 lalu ます → ました','ます形 lalu ます → ました'],tai:['ます形 lalu buang ます, tambah たい','ます形 lalu buang ます, tambah たい'],
+ nakatta:['ない形 lalu ない → なかった','ない形 lalu ない → なかった'],tara:['た形 lalu tambah ら','た形 lalu tambah ら'],proh:['bentuk kamus + な (jangan ...)','bentuk kamus + な (jangan ...)']};
+const GRP={1:'I',2:'II',3:'III (tidak beraturan)'};
 function ruleOf(v,f){
  const ok=conj(v,f),g=v.g;
+ if(NEWRULE[f])return `${v.w} kelompok ${GRP[g]}: ${NEWRULE[f][0]}. Hasil: ${ok}.`;
+ if(f==='cau'||f==='vol'||f==='ba'||f==='imp'){
+  if(g===3)return `${v.w} kelompok III (tidak beraturan): ${FORMS[f]} = ${ok}.`;
+  const l=v.w.slice(-1);
+  if(g===2){const m={cau:'buang る, tambah させる',vol:'buang る, tambah よう',ba:'buang る, tambah れば',imp:'buang る, tambah ろ'}[f];return `${v.w} kelompok II: ${m}. Hasil: ${ok}.`}
+  const m={cau:'ubah akhiran '+l+' ke baris あ (a) + せる',vol:'ubah akhiran '+l+' ke baris お (o) + う',ba:'ubah akhiran '+l+' ke baris え (e) + ば',imp:'ubah akhiran '+l+' ke baris え (e)'}[f];
+  return `${v.w} kelompok I: ${m}. Hasil: ${ok}.`;
+ }
  if(g===3)return v.w==='来る'?`来る (kelompok III, tidak beraturan): ${FORMS[f]} = ${ok}.`:`する (kelompok III, tidak beraturan): ${FORMS[f]} = ${ok}.`;
  if(g===2){const m={masu:'buang る, tambah ます',te:'buang る, tambah て',ta:'buang る, tambah た',nai:'buang る, tambah ない',pot:'buang る, tambah られる',pas:'buang る, tambah られる',jisho:'tambah る pada stem'}[f];return `${v.w} kelompok II (-eru/-iru): ${m}. Hasil: ${ok}.`}
  const l=v.w.slice(-1);
@@ -7903,20 +7936,34 @@ function ruleOf(v,f){
  const rowName={masu:'baris い (i)',nai:'baris あ (a)',pot:'baris え (e) + る',pas:'baris あ (a) + れる',jisho:'bentuk kamus'}[f];
  return `${v.w} kelompok I${v.tr?' (tampak seperti kelompok II tapi bukan)':''}: ubah akhiran ${l} ke ${rowName}. Hasil: ${ok}.`;
 }
-const VLEV={dasar:['Dasar','ます形 dan て形',['masu','te']],tengah:['Menengah','ない形, た形, 辞書形',['nai','ta','jisho']],lanjut:['Lanjut','可能形 dan 受身形',['pot','pas']],campur:['Campur','semua bentuk',['masu','te','nai','ta','jisho','pot','pas']]};
-let V={view:'home',lv:'dasar',qs:[],i:0,sel:-1,ok:0,wrong:[]};
+const VLEV={
+ sopan:['Bentuk sopan','ます · ません · ました · たい','飲みます',['masu','masen','mashita','tai']],
+ te:['て形','makan → 食べて','飲んで',['te']],
+ ta:['た形 dan たら','sudah makan → 食べた','飲んだ',['ta','tara']],
+ nai:['ない形','tidak: 食べない','飲まない',['nai','nakatta']],
+ jisho:['辞書形 dan larangan','bentuk kamus · 〜な','飲む',['jisho','proh']],
+ pot:['可能形 (bisa)','bisa: 食べられる','飲める',['pot']],
+ pas:['受身形 (pasif)','dimakan: 食べられる','飲まれる',['pas']],
+ cau:['使役形 (menyuruh)','menyuruh: 食べさせる','飲ませる',['cau']],
+ vol:['意向形 (ayo/hendak)','ayo: 食べよう','飲もう',['vol']],
+ ba:['ば形 (kalau)','kalau: 食べれば','飲めば',['ba']],
+ imp:['命令形 (perintah)','perintah: 食べろ','飲め',['imp']],
+ campur:['Campur semua','semua bentuk di atas','',['masu','masen','mashita','tai','te','nai','nakatta','ta','tara','jisho','proh','pot','pas','cau','vol','ba','imp']]
+};
+let V={view:'home',lv:'campur',qs:[],i:0,sel:-1,ok:0,wrong:[]};
 const rnd=n=>Math.floor(Math.random()*n);
 function shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
 function vq(v,f){
  const ok=conj(v,f);const ws=shuf(wrongs(v,f)).slice(0,3);
  const opts=shuf([ok,...ws]);return {v,f,opts,a:opts.indexOf(ok),prompt:f==='jisho'?conj(v,'masu'):v.w};
 }
+function vweak(){const s=vs();const w=Object.entries(s.form||{}).filter(x=>x[1][1]>=3&&x[1][0]/x[1][1]<0.8).sort((a,b)=>a[1][0]/a[1][1]-b[1][0]/b[1][1]).slice(0,3).map(x=>x[0]);return w}
 function vstart(){
- const forms=VLEV[V.lv][2];let pool=VERBS;
- if(V.lv==='lanjut'||V.lv==='tengah')pool=VERBS.concat(VERBS.filter(x=>x.tr||x.g===3||x.w==='行く'));
+ let forms=V.lv==='lemah'?vweak():(VLEV[V.lv]||VLEV.campur)[3];if(!forms.length)forms=VLEV.campur[3];let pool=VERBS;
+ if(V.lv!=='sopan')pool=VERBS.concat(VERBS.filter(x=>x.tr||x.g===3||x.w==='行く'));
  const qs=[];const seen=new Set();let guard=0;
  while(qs.length<10&&guard++<200){const v=pool[rnd(pool.length)],f=forms[rnd(forms.length)];const k=v.w+f;if(seen.has(k))continue;seen.add(k);qs.push(vq(v,f))}
- V=Object.assign(V,{view:'quiz',qs,i:0,sel:-1,ok:0,wrong:[]});
+ V=Object.assign(V,{cat:V.lv,view:'quiz',qs,i:0,sel:-1,ok:0,wrong:[]});
 }
 const vs=()=>Object.assign({n:0,ok:0,sess:0,perfect:0,best:0,xp:0,form:{}},(G&&G.verb)||{});
 function vfinish(){
@@ -7924,6 +7971,7 @@ function vfinish(){
  s.n+=n;s.ok+=V.ok;s.sess+=1;if(V.ok===n)s.perfect+=1;s.best=Math.max(s.best,p);
  const gain=V.ok*5+10+(V.ok===n?15:0);s.xp+=gain;V.gain=gain;
  V.qs.forEach((q,i)=>{const f=s.form[q.f]||[0,0];f[1]++;if(!V.wrong.includes(i))f[0]++;s.form[q.f]=f});
+ s.hist=((s.hist||[]).concat([{t:Date.now(),c:V.cat||V.lv,n,ok:V.ok}])).slice(-80);
  G.verb=s;G.vd=[...new Set([...(G.vd||[]),dkey()])].slice(-400);save();
  V.view='result';sfx(p>=70?'ok':'bad');
 }
@@ -7932,7 +7980,7 @@ function verbHTML(){
  if(V.view==='quiz'){
   const q=V.qs[V.i],ans=V.sel>=0;
   const fb=ans?`<div class="vfb ${V.sel===q.a?'ok':'no'}"><b>${V.sel===q.a?'Benar!':'Belum tepat.'}</b><p>${esc(ruleOf(q.v,q.f))}</p><button class="btn big" data-g="vnext">${V.i+1<V.qs.length?'Lanjut':'Lihat hasil'}</button></div>`:'';
-  return `<h1 class="pgt">Latihan Bunpou</h1><section class="card vq"><div class="vtop"><span>Soal ${V.i+1} dari ${V.qs.length}</span><button class="lnk" data-g="vquit">Berhenti</button></div>
+  return `<h1 class="pgt">Ubah Kata Kerja</h1><section class="card vq"><div class="vtop"><span>Soal ${V.i+1} dari ${V.qs.length}</span><button class="lnk" data-g="vquit">Berhenti</button></div>
    <div class="vbar"><span style="width:${V.i/V.qs.length*100}%"></span></div>
    <div class="vword jp">${esc(q.prompt)}</div><div class="vsub">${q.f==='jisho'?'':esc(q.v.r)+' · '}${esc(q.v.m)}</div>
    <div class="vask">${q.f==='jisho'?'Bentuk kamus (辞書形) dari kata ini?':'Ubah ke <b>'+FORMS[q.f]+'</b>'}</div>
@@ -7946,11 +7994,11 @@ function verbHTML(){
    <div class="actions"><button class="btn big" data-g="vagain">Main lagi</button><button class="btn ghost" data-g="vhome">Pilih level</button><button class="btn ghost" data-g="tab" data-v="avatar" data-go="harian">Kembali ke Misi Harian</button></div></section>`;
  }
  const forms=Object.entries(s.form).filter(x=>x[1][1]>=3).map(x=>({f:x[0],p:Math.round(x[1][0]/x[1][1]*100)})).sort((a,b)=>a.p-b.p);
- return `<h1 class="pgt">Latihan Bunpou</h1><section class="card"><h2>Perubahan kata kerja</h2><p class="muted">10 soal per ronde. Pilih bentuk yang benar, penjelasan langsung muncul.</p>
-  <div class="vlv">${Object.entries(VLEV).map(([k,x])=>`<button class="vlb ${V.lv===k?'on':''}" data-g="vlvl" data-v="${k}"><b>${x[0]}</b><small>${x[1]}</small></button>`).join('')}</div>
+ return `<h1 class="pgt">Ubah Kata Kerja</h1><section class="card"><h2>Pilih bentuk yang mau dilatih</h2><p class="muted">10 soal per ronde. Tiap kategori punya akurasi sendiri, jadi kelihatan bentuk mana yang masih lemah.</p>
+  <div class="vlv">${Object.entries(VLEV).map(([k,x])=>{const fs=x[3];let n=0,o=0;fs.forEach(f=>{const r=s.form[f];if(r){n+=r[1];o+=r[0]}});const pc=n>=3?Math.round(o/n*100):null;return `<button class="vlb ${V.lv===k?'on':''}" data-g="vlvl" data-v="${k}"><b>${x[0]}</b><small>${x[1]}${x[2]?' · '+x[2]:''}</small><small class="${pc==null?'':pc>=80?'vok':'vno'}">${pc==null?'Belum dicoba':pc+'% · '+n+' jawaban'}</small></button>`}).join('')}${vweak().length?`<button class="vlb ${V.lv==='lemah'?'on':''}" data-g="vlvl" data-v="lemah"><b>Fokus yang lemah</b><small>${vweak().map(f=>FORMS[f]).join(', ')}</small></button>`:''}</div>
   <div class="actions"><button class="btn big" data-g="vagain">Mulai</button></div></section>
   <section class="card"><h2>Statistikmu</h2><div class="facts"><div><b>${s.n}</b><span>jawaban</span></div><div><b>${s.n?acc+'%':'-'}</b><span>akurasi</span></div><div><b>${s.sess}</b><span>ronde</span></div></div>
-  ${forms.length?`<p class="small"><b>Paling lemah:</b> ${forms.slice(0,2).map(x=>FORMS[x.f]+' '+x.p+'%').join(', ')}</p>`:''}</section>`;
+  ${forms.length?`<p class="small"><b>Paling lemah:</b> ${forms.slice(0,3).map(x=>FORMS[x.f]+' '+x.p+'%').join(', ')}</p>`:''}</section>`;
 }
 
 /* ---------- komponen ---------- */
@@ -10878,7 +10926,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const J=()=>LMS.mods.jft,K=()=>LMS.mods.ktk;
-const ROUTES=[['beranda','家','Beranda'],['latihan','試','Latihan'],['jft','試','Latihan Bab'],['verb','動','Bunpou'],['harian','日','Misi Harian'],['menu','新','Latihan Soal Baru'],['kotoba','語','Kotoba'],['kamus','辞','Kamus Irodori'],['kwajib','必','Kanji Kata Irodori'],['bunfc','文','Kartu Bunpou'],['bunlat','文','Latihan Bunpou'],['kosa','語','Kosakata Irodori'],['progres','進','Rapor'],['peringkat','冠','Peringkat'],['karakter','人','Karakter'],['guru','師','Guru'],['bantuan','助','Bantuan']];
+const ROUTES=[['beranda','家','Beranda'],['latihan','試','Latihan'],['jft','試','Latihan Bab'],['verb','動','Bunpou'],['harian','日','Misi Harian'],['menu','新','Latihan Soal Baru'],['petunjuk','案','Petunjuk'],['kotoba','語','Kotoba'],['kamus','辞','Kamus Irodori'],['kwajib','必','Kanji Kata Irodori'],['bunfc','文','Kartu Bunpou'],['bunlat','文','Latihan Bunpou'],['kosa','語','Kosakata Irodori'],['progres','進','Rapor'],['peringkat','冠','Peringkat'],['karakter','人','Karakter'],['guru','師','Guru'],['bantuan','助','Bantuan']];
 const slug=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,30)||'tanpa-nama';
 const HARI=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const PLAN=['Ulangi yang salah dari tes minggu ini (Tugas harian, langkah 1).','Tes kotoba bab fokus, 20 soal.','Tes kanji bab fokus, 20 soal.','Ulang kata lemah (Tugas harian, langkah 1), lalu kerjakan tugas kelas dari guru.','Tes gabungan bab, 20 soal.','Latihan soal JFT Bab 13 (menu JFT).','Tes gabungan 30 soal, lalu kirim kode hasil ke guru.'];
@@ -10900,7 +10948,7 @@ function renderTop(){
 function renderNav(){
   document.body.classList.toggle('lms-admin',ADMIN());
   if(ADMIN()){$$('lms-nav').innerHTML='<div class="lms-nav-in"><button type="button" data-lms="nav" data-r="guru" aria-current="true"><i aria-hidden="true">師</i>Panel Guru</button><button type="button" data-lms="viewas" aria-current="false"><i aria-hidden="true">生</i>Mode Murid</button></div>';return}
-  $$('lms-nav').innerHTML='<div class="lms-nav-in">'+ROUTES.filter(r=>r[0]!=='bantuan'&&r[0]!=='kotoba'&&r[0]!=='jft'&&r[0]!=='verb'&&r[0]!=='harian'&&r[0]!=='menu'&&r[0]!=='kamus'&&r[0]!=='bunfc'&&r[0]!=='bunlat'&&r[0]!=='kwajib'&&r[0]!=='kosa'&&r[0]!=='progres'&&(r[0]!=='guru'||(OWNER&&!(window.lmsHosted&&STU())))).map(r=>`<button type="button" data-lms="nav" data-r="${r[0]}" aria-current="${CUR===r[0]||(r[0]==='belajar'&&CUR==='kotoba')||(r[0]==='latihan'&&(CUR==='jft'||CUR==='verb'||CUR==='bunfc'||CUR==='bunlat'||CUR==='kwajib'||CUR==='kosa'||CUR==='kamus'||CUR==='flash'))}"><i aria-hidden="true">${r[1]}</i>${r[2]}</button>`).join('')+'</div>';
+  $$('lms-nav').innerHTML='<div class="lms-nav-in">'+ROUTES.filter(r=>r[0]!=='bantuan'&&r[0]!=='kotoba'&&r[0]!=='jft'&&r[0]!=='verb'&&r[0]!=='harian'&&r[0]!=='menu'&&r[0]!=='petunjuk'&&r[0]!=='kamus'&&r[0]!=='bunfc'&&r[0]!=='bunlat'&&r[0]!=='kwajib'&&r[0]!=='kosa'&&r[0]!=='progres'&&(r[0]!=='guru'||(OWNER&&!(window.lmsHosted&&STU())))).map(r=>`<button type="button" data-lms="nav" data-r="${r[0]}" aria-current="${CUR===r[0]||(r[0]==='belajar'&&CUR==='kotoba')||(r[0]==='latihan'&&(CUR==='petunjuk'||CUR==='menu'||CUR==='jft'||CUR==='verb'||CUR==='bunfc'||CUR==='bunlat'||CUR==='kwajib'||CUR==='kosa'||CUR==='kamus'||CUR==='flash'))}"><i aria-hidden="true">${r[1]}</i>${r[2]}</button>`).join('')+'</div>';
 }
 function show(r){
   if(CUR&&CUR!==r)PREVR=CUR;CUR=r;const isJ=r==='jft',isK=r==='kotoba';
@@ -10914,7 +10962,7 @@ function show(r){
 }
 function renderPage(){
   const m=$$('lms-main');if(!m||CUR==='jft'||CUR==='kotoba')return;
-  const f={beranda:berandaHTML,belajar:belajarHTML,latihan:latihanHTML,verb:()=>GAME.verbHTML(),harian:harianHTML,menu:menuHTML,progres:progresHTML,guru:guruHTML,bantuan:bantuanHTML,kamus:()=>window.KAMUS?KAMUS.html():'',bunfc:()=>window.FLASH?FLASH.bunfc():'',bunlat:()=>window.FLASH?FLASH.bunlat():'',flash:()=>window.FLASH?FLASH.kwajib():'',kwajib:()=>window.FLASH?FLASH.kwajib():'',kosa:()=>window.FLASH?FLASH.kosa():'',peringkat:()=>GAME.peringkatHTML(me()),karakter:()=>GAME.karakterHTML(me())}[CUR]||berandaHTML;
+  const f={beranda:berandaHTML,belajar:belajarHTML,latihan:latihanHTML,verb:()=>GAME.verbHTML(),harian:harianHTML,menu:menuHTML,petunjuk:petunjukHTML,progres:progresHTML,guru:guruHTML,bantuan:bantuanHTML,kamus:()=>window.KAMUS?KAMUS.html():'',bunfc:()=>window.FLASH?FLASH.bunfc():'',bunlat:()=>window.FLASH?FLASH.bunlat():'',flash:()=>window.FLASH?FLASH.kwajib():'',kwajib:()=>window.FLASH?FLASH.kwajib():'',kosa:()=>window.FLASH?FLASH.kosa():'',peringkat:()=>GAME.peringkatHTML(me()),karakter:()=>GAME.karakterHTML(me())}[CUR]||berandaHTML;
   const keep=$$('lms-nama');const kv=keep?keep.value:null;const gk=$$('g-nick'),gkv=gk&&document.activeElement===gk?gk.value:null;
   m.innerHTML=(!['beranda','belajar','latihan','progres','peringkat','karakter'].includes(CUR)&&!ADMIN()?'<button type="button" class="backlink" data-lms="back">← Kembali</button>':'')+f();
   if(kv!==null&&$$('lms-nama'))$$('lms-nama').value=kv;
@@ -11088,17 +11136,52 @@ function alertMsg(t){const m=$$('lms-main');if(m)m.insertAdjacentHTML('afterbegi
 
 
 /* ---- Latihan Soal Baru (soal harian dari tim agent, lolos audit) ---- */
-let QM={docs:{},sel:null,qs:null,i:0,ans:[],ord:[]};
+let QM={docs:{},sel:null,qs:null,i:0,ans:[],ord:[],cat:'kosa'};
 const QMN={kotoba:['語','Kotoba'],kanji:['漢','Kanji'],susun:['並','Susun Kalimat'],kerja:['動','Kata Kerja'],sifat:['形','Kata Sifat'],hyougen:['句','Ungkapan (Hyougen)'],partikel:['助','Partikel'],arti:['訳','Arti Kalimat'],semakna:['同','Kalimat Semakna']};
 const QMC=['①','②','③','④'];
 function qmInit(dbx){try{dbx.tree('qbank/menu').onSnapshot(s=>{const o={};s.docs.forEach(x=>{const d=x.data();if(d&&Array.isArray(d.items))o[x.id]=d.items.filter(q=>q&&q.o&&q.o.length>=2&&typeof q.a==='number')});QM.docs=o;if((CUR==='latihan'||(CUR==='menu'&&!QM.qs)))renderPage()},()=>{})}catch(e){}}
 const qmShuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function qmStart(m){const all=QM.docs[m]||[];if(all.length<3)return;QM.sel=m;QM.qs=qmShuf(all).slice(0,12);QM.i=0;QM.ans=[];QM.ord=QM.qs.map(q=>qmShuf(q.o.map((_,i)=>i)))}
+/* ---- kategori Latihan + layar petunjuk ---- */
+const LATCAT={kosa:['語','Kosakata dan Kanji','Latih arti, bacaan, dan kanji dari buku Irodori.'],tata:['文','Tata Bahasa dan Kalimat','Pola kalimat, partikel, susun kalimat, dan ungkapan.'],kata:['動','Kata Kerja dan Kata Sifat','Perubahan bentuk kata kerja dan latihan kata sifat.']};
+const PETS={
+ klatK:{t:'Latihan Kotoba',ic:'語',what:'Soal pilihan ganda kosakata dari buku Irodori yang kamu pilih.',steps:['Pilih buku dan bab sumber soal.','Baca kata atau arti, pilih jawaban yang paling tepat.','Cek pembahasan, lalu lanjut ke soal berikutnya.'],info:['Tanpa batas waktu','Skor tercatat di Rapor Diri'],tip:'Yang salah akan muncul lagi di Ulang Kartu Kata.'},
+ klatJ:{t:'Latihan Kanji',ic:'漢',what:'Soal baca dan tulis kanji dari buku Irodori yang kamu pilih.',steps:['Pilih buku dan bab sumber soal.','Pilih bacaan atau kanji yang tepat.','Baca pembahasan sebelum lanjut.'],info:['Tanpa batas waktu','Skor tercatat di Rapor Diri'],tip:'Hafalkan dulu lewat Kanji Kata Irodori kalau masih sering salah.'},
+ bunlat:{t:'Latihan Bunpou',ic:'文',what:'Soal pola kalimat yang diambil dari Kartu Bunpou.',steps:['Baca kalimat, cari pola yang cocok.','Pilih jawaban, lalu lihat penjelasan polanya.','Pola yang salah ditandai supaya bisa diulang.'],info:['Tanpa batas waktu','Skor tercatat di Rapor Diri'],tip:'Buka Kartu Bunpou dulu kalau polanya belum kebayang.'},
+ verb:{t:'Ubah Kata Kerja',ic:'動',what:'Mengubah kata kerja ke bentuk yang diminta: masu, te, ta, nai, dan seterusnya.',steps:['Pilih bentuk yang mau dilatih (atau campur).','Lihat kata kerja, pilih bentuk yang benar.','Bentuk yang sering salah masuk catatan kelemahanmu.'],info:['Tanpa batas waktu','Akurasi per bentuk tercatat di Rapor Diri'],tip:'Mulai dari satu bentuk dulu, baru campur.'},
+ qm:{t:'Soal Baru',ic:'新',what:'12 soal acak dari bank soal tim AI yang sudah lolos audit.',steps:['Baca soal, pilih satu jawaban.','Pembahasan muncul langsung setelah menjawab.','Di akhir kamu lihat skor dan akurasi.'],info:['12 soal per sesi','Tanpa batas waktu'],tip:'Kerjakan pelan. Skor tidak dikurangi kalau kamu baca pembahasannya.'},
+ ujian:{t:'Ujian',ic:'試',what:'Latihan bergaya JFT asli dengan waktu berjalan.',steps:['Pilih paket ujian yang tersedia.','Kerjakan bagian demi bagian: Moji-goi, Kaiwa-hyougen, Choukai, Dokkai.','Setelah selesai, hasil dan pembahasan muncul.'],info:['Ada batas waktu','Hasil masuk Rapor Diri'],tip:'Siapkan headset untuk bagian Choukai dan jangan keluar dari halaman saat ujian.'}
+};
+let PT=null;
+function petBtn(key,o,ic,t,sub,on,cls){
+  const attr=on?`data-lms="pet" data-pk="${key}" data-o="${esc(JSON.stringify(o))}"`:'';
+  return `<button type="button" class="lat${on?'':' off'} ${cls||''}" ${on?attr:'disabled'}><i aria-hidden="true">${ic}</i><b>${t}</b><span>${sub}</span></button>`;
+}
+function petunjukHTML(){
+  if(!PT)return `<section class="card"><p>Belum ada latihan yang dipilih.</p><div class="actions"><button class="btn" data-lms="go" data-r="latihan">Ke menu Latihan</button></div></section>`;
+  const p=PETS[PT.k]||PETS.qm,t=PT.title||p.t;
+  return `<h1 class="pgt">Petunjuk pengerjaan</h1><section class="card petunjuk"><div class="lms-step"><div class="t"><h2>${esc(t)}</h2><div class="small muted">${p.what}</div></div><b class="dn" aria-hidden="true">${p.ic}</b></div>
+  <h3>Cara mengerjakan</h3><ol>${p.steps.map(x=>`<li>${x}</li>`).join('')}</ol>
+  <ul class="info">${p.info.map(x=>`<li>${x}</li>`).join('')}</ul><p class="small muted">${p.tip}</p>
+  <div class="actions"><button class="btn big" data-lms="petgo">Mulai</button><button class="btn ghost" data-lms="petback">Kembali</button></div></section>`;
+}
+const LATBACK=c=>`<div class="actions"><button class="btn ghost sm" data-lms="go" data-r="latihan">‹ Menu Latihan</button></div>`;
+function latCatHTML(c){
+  const d=me(),n=k=>(QM.docs[k]||[]).length;
+  const avg=y=>{const x=d.at.filter(a=>a.y===y);return x.length?'Rata-rata '+Math.round(d.ka.mean(x.map(a=>d.ka.pct(a.ok,a.n))))+'%':'Belum dicoba'};
+  const qm=k=>petBtn('qm',{lms:'qmpick',m:k,title:QMN[k][1]},QMN[k][0],'Soal Baru: '+QMN[k][1],n(k)>=3?n(k)+' soal tersedia':'Belum ada soal',n(k)>=3);
+  const vs=GAME.verbStats();
+  let body='';
+  if(c==='kosa')body=petBtn('klatK',{lms:'klat',y:'K'},'語','Latihan Kotoba',avg('K'),true)+petBtn('klatJ',{lms:'klat',y:'J'},'漢','Latihan Kanji',avg('J'),true)+qm('kotoba')+qm('kanji');
+  else if(c==='tata')body=petBtn('bunlat',{lms:'go',r:'bunlat'},'文','Latihan Bunpou','Soal dari pola di Kartu Bunpou',true)+qm('partikel')+qm('susun')+qm('hyougen')+qm('arti')+qm('semakna');
+  else body=petBtn('verb',{lms:'go',r:'verb'},'動','Ubah Kata Kerja',vs.n?'Akurasi '+Math.round(vs.ok/vs.n*100)+'%':'Perubahan bentuk kata kerja',true)+qm('kerja')+qm('sifat');
+  const tabs=Object.keys(LATCAT).map(k=>`<button type="button" class="chipb${k===c?' on':''}" data-lms="qmcat" data-c="${k}" aria-pressed="${k===c}">${LATCAT[k][1]}</button>`).join('');
+  return `<h1 class="pgt">${LATCAT[c][1]}</h1>${LATBACK()}<div class="chips" style="margin:8px 0">${tabs}</div><p class="muted small">${LATCAT[c][2]} Sebelum mulai, kamu akan lihat petunjuk pengerjaan.</p><div class="lgrid">${body}</div>`;
+}
 function menuHTML(){
   const back='';
   if(!QM.sel||!QM.qs){
-    const rows=Object.keys(QMN).map(k=>{const n=(QM.docs[k]||[]).length;return `<button type="button" class="lat${n>=3?'':' off'}" ${n>=3?'data-lms="qmpick" data-m="'+k+'"':'disabled'}><i aria-hidden="true">${QMN[k][0]}</i><b>${QMN[k][1]}</b><span>${n>=3?n+' soal tersedia':'Belum ada soal'}</span></button>`}).join('');
-    return `${back}<section class="card hero slim"><div class="big">新</div><h2>Latihan Soal Baru</h2><p class="hl">Soal segar dari tim AI, sudah diperiksa tim audit. Tiap sesi 12 soal, diacak dari bank.</p></section><div class="lgrid">${rows}</div>`;
+    return `${back}${latCatHTML(QM.cat||'kosa')}`;
   }
   const n=QM.qs.length;
   if(QM.i>=n){
@@ -11134,18 +11217,16 @@ function latihanHTML(){
    card('語','Kosakata Irodori','Kartu per buku, bab, dan jenis kata · plus partikel','data-lms="go" data-r="kosa"',true)+
    card('辞','Kamus Irodori','Cari kata · saring buku, bab, jenis kata','data-lms="go" data-r="kamus"',true)+
    card('復','Ulang Kartu Kata',due?due+' kartu siap diulang':'Kartu hafalan harian','data-lms="kartu"',true))}
-  ${sec('Latihan','Soal singkat untuk mengasah. Skor tersimpan di Rapor Diri.',
-   card('語','Latihan Kotoba',avg('K'),'data-lms="klat" data-y="K"',true)+
-   card('漢','Latihan Kanji',avg('J'),'data-lms="klat" data-y="J"',true)+
-   card('文','Latihan Bunpou','Soal dari pola di Kartu Bunpou','data-lms="go" data-r="bunlat"',true)+
-   card('動','Ubah Kata Kerja',vs.n?'Akurasi '+Math.round(vs.ok/vs.n*100)+'%':'Perubahan bentuk kata kerja','data-lms="go" data-r="verb"',true)+
-   card('新','Latihan Soal Baru',nq?nq+' soal segar dari tim AI':'Segera hadir','data-lms="go" data-r="menu"',nq>0))}
+  ${sec('Latihan','Pilih kategori. Di dalamnya ada latihan sesuai topik, skor tersimpan di Rapor Diri.',
+   card('語','Kosakata dan Kanji','Kotoba · Kanji','data-lms="qmcat" data-c="kosa"',true)+
+   card('文','Tata Bahasa dan Kalimat','Bunpou · Partikel · Susun kalimat','data-lms="qmcat" data-c="tata"',true)+
+   card('動','Kata Kerja dan Sifat',vs.n?'Akurasi kata kerja '+Math.round(vs.ok/vs.n*100)+'%':'Ubah bentuk kata kerja','data-lms="qmcat" data-c="kata"',true))}
   ${sec('Ujian','Latihan seperti ujian JFT asli, ada waktunya.',
-   card('試','Latihan Bab',d.best?'Skor terbaik '+d.best.est:'Ujian per bab (sesuai materi)','data-lms="jft"',true)+
-   card('総','Simulasi JFT',sm?'Gabungan Bab 13–18 dan seluruh buku':'Segera hadir','data-lms="jft"',!!sm))}
+   petBtn('ujian',{lms:'jft'},'試','Latihan Bab',d.best?'Skor terbaik '+d.best.est:'Ujian per bab (sesuai materi)',true)+
+   petBtn('ujian',{lms:'jft'},'総','Simulasi JFT',sm?'Gabungan Bab 13–18 dan seluruh buku':'Segera hadir',!!sm))}
   ${sec('Pantau','Lihat kelemahanmu dan apa yang perlu diulang.',
    card('報','Rapor Diri','Kelemahan dan rencana','data-lms="go" data-r="progres"',true))}
-  <p class="muted small lat-note">Latihan Kotoba dan Kanji: kamu bisa pilih buku dan bab sendiri sebagai sumber soal.</p>`;
+`;
 }
 
 /* ---- Rapor Diri + Rencana Tindak Lanjut ---- */
@@ -11412,6 +11493,10 @@ document.addEventListener('click',e=>{
   else if(a==='jft')go('jft');
   else if(a==='go'){go(b.dataset.r)}
   else if(a==='mis'){const m=b.dataset.m;if(m==='kartu'){go('kotoba');K().api.quickCards()}else if(m==='tes'){go('kotoba');K().api.startDaily('H2')}else if(m==='h1'){K().api.startDaily('H1');go('kotoba')}else if(m==='batsu'){K().api.startDaily('B',batsuN(me().miss));go('kotoba')}else if(m==='verb'){GAME.verbQuick();go('verb')}else if(m==='bab')go('jft')}
+  else if(a==='qmcat'){QM.cat=b.dataset.c;QM.sel=null;QM.qs=null;go('menu');renderPage()}
+  else if(a==='pet'){let o={};try{o=JSON.parse(b.dataset.o)}catch(e){}PT={k:b.dataset.pk,o,title:o.title};go('petunjuk');renderPage();window.scrollTo(0,0)}
+  else if(a==='petback'){history.back()}
+  else if(a==='petgo'){if(!PT)return;const o=PT.o,t=document.createElement('button');t.hidden=true;t.dataset.lms=o.lms;Object.keys(o).forEach(k=>{if(k!=='lms'&&k!=='title')t.dataset[k]=o[k]});document.body.appendChild(t);PT=null;t.click();t.remove()}
   else if(a==='qmpick'){qmStart(b.dataset.m);go('menu');renderPage()}
   else if(a==='qmmenu'){QM.sel=null;QM.qs=null;renderPage()}
   else if(a==='qmans'){if(QM.qs&&QM.ans[QM.i]===undefined){QM.ans[QM.i]=+b.dataset.k;renderPage()}}
