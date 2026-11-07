@@ -705,7 +705,7 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261107-0533"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261107-0601"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -10309,8 +10309,8 @@ function pickVoice(){try{const v=speechSynthesis.getVoices().filter(x=>/^ja/i.te
 if(CAN_SAY){pickVoice();try{speechSynthesis.addEventListener('voiceschanged',pickVoice)}catch(e){}}
 function speak(t){if(!CAN_SAY||!t)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=0.85;if(VOICE)u.voice=VOICE;speechSynthesis.speak(u)}catch(e){}}
 function card(d){
-  const ex=d.ex.map(e=>`<li>${esc(e[0])} ${CAN_SAY?`<button type="button" class="btn sm ghost" data-say="${esc(say(e[0]))}" aria-label="Dengarkan ${esc(e[0])}" style="padding:0 8px;min-height:28px">🔊</button>`:''} <span class="muted">${esc(e[1])}</span></li>`).join('');
-  return `<section class="card" style="display:flex;gap:14px;align-items:flex-start"><div style="font-size:56px;line-height:1;min-width:64px;text-align:center" lang="ja">${esc(d.k)}</div><div style="flex:1;min-width:0"><div><b>${esc(d.m)}</b> <span class="muted small">· ${esc(d.s)} goresan · kelas ${esc(d.g)}</span></div><div class="small" style="margin-top:4px"><b>Kun</b> ${esc(d.kun||'-')} &nbsp; <b>On</b> ${esc(d.on||'-')}</div><ul class="small" style="margin:6px 0 0;padding-left:18px">${ex}</ul></div></section>`;
+  const ex=d.ex.map(e=>`<li>${esc(e[0])} ${CAN_SAY?`<button type="button" class="btn sm ghost" data-say="${esc(say(e[0]))}" aria-label="Dengarkan ${esc(e[0])}" style="padding:0 10px;min-height:36px;min-width:40px">🔊</button>`:''} <span class="muted">${esc(e[1])}</span></li>`).join('');
+  return `<section class="card"><div style="display:flex;gap:14px;align-items:flex-start"><div style="font-size:56px;line-height:1;min-width:64px;text-align:center" lang="ja">${esc(d.k)}</div><div style="flex:1;min-width:0"><div><b>${esc(d.m)}</b> <span class="muted small">· ${esc(d.s)} goresan · kelas ${esc(d.g)}</span></div><div class="small" style="margin-top:4px"><b>Kun</b> ${esc(d.kun||'-')} &nbsp; <b>On</b> ${esc(d.on||'-')}</div><ul class="small" style="margin:6px 0 0;padding-left:18px">${ex}</ul></div></div></section>`;
 }
 function list(q){
   const r=search(q);
