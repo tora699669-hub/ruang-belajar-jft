@@ -715,7 +715,7 @@ u.tgt{text-decoration:underline 3px var(--red,#d92d20);text-underline-offset:5px
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261107-0916"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261107-0957"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -4600,9 +4600,9 @@ Object.keys(ALLPK).forEach(k=>{let i=0;ALLPK[k].sections.forEach(s=>s.items.forE
 /* ===== Ujian dinamis dari Supabase (qbank/exam/*) ===== */
 const DYNSEC={SV:{id:'M',title:'Moji-goi',jp:'文字・語彙'},CE:{id:'K',title:'Kaiwa-hyougen',jp:'会話・表現'},LC:{id:'C',title:'Choukai',jp:'聴解'},RC:{id:'D',title:'Dokkai',jp:'読解'}};
 const DYNTIP={M:'Pilih bacaan, kanji, atau kata yang paling tepat.',K:'Pilih ungkapan yang paling pas dengan situasinya.',C:'Putar audio, lalu jawab. Tiap audio hanya bisa diputar 2 kali.',D:'Baca teks dengan teliti, lalu pilih jawaban yang sesuai isi teks.'};
-const DYNORDER=['UB14','UB15','UB16','UB17','UB18','UB13','UG','UBUKU'];
-const DYNBAB={UB13:13,UB14:14,UB15:15,UB16:16,UB17:17,UB18:18,UG:19,UBUKU:20};
-const DYNTOPIC={UB13:'Fasilitas umum',UB14:'Layanan sehari-hari',UB15:'Bab 15',UB16:'Bab 16',UB17:'Bab 17',UB18:'Bab 18',UG:'Gabungan Bab 13–18',UBUKU:'Seluruh buku A2.2 (Bab 1–18)'};
+const DYNORDER=['UB14','UB15','UB16','UB17','UB18','UB13','UG','UG2','UBUKU'];
+const DYNBAB={UB13:13,UB14:14,UB15:15,UB16:16,UB17:17,UB18:18,UG:19,UG2:19,UBUKU:20};
+const DYNTOPIC={UB13:'Fasilitas umum',UB14:'Layanan sehari-hari',UB15:'Bab 15',UB16:'Bab 16',UB17:'Bab 17',UB18:'Bab 18',UG:'Gabungan Bab 13–18',UG2:'Gabungan Bab 13–18',UBUKU:'Seluruh buku A2.2 (Bab 1–18)'};
 function dynConv(it,sec,idx){
   const base={id:it.id,tag:it.tag||it.kat||'Lain-lain',o:(it.o||[]).slice(0,4),a:it.a,w:(it.w||[]).slice(0,4)};
   const fix=s=>String(s||'').replace(/_{2,}/g,'（　）');
@@ -4654,7 +4654,7 @@ function dynLoad(docs){
     if(PACKS[id]&&PACKS[id].__sig===sig)return;
     p.__sig=sig;PACKS[id]=p;ALLPK[id]=p;
     if(!PACKORDER.includes(id)){PACKORDER.push(id);PACKORDER.sort((a,b)=>{const ia=DYNORDER.indexOf(a),ib=DYNORDER.indexOf(b);const ka=ia<0?-1:ia+100,kb=ib<0?-1:ib+100;return ka-kb||PACKORDER.indexOf(a)-PACKORDER.indexOf(b)})}
-    BABINFO[p.bab]=BABINFO[p.bab]||{jp:id==='UG'?'総合テスト':id==='UBUKU'?'総復習':'第'+p.bab+'課',topic:DYNTOPIC[id]||id};
+    BABINFO[p.bab]=BABINFO[p.bab]||{jp:/^UG/.test(id)?'総合テスト':id==='UBUKU'?'総復習':'第'+p.bab+'課',topic:DYNTOPIC[id]||id};
     let i=0;p.sections.forEach(s=>s.items.forEach(q=>{QMAP[q.id]={...q,sec:s.id,pk:id,tag:q.tag};i++}));
     ch++});
   return ch;
