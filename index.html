@@ -965,8 +965,36 @@ body.dw-lock{overflow:hidden}
 
 /* kotak Kota JFT di beranda */
 .pwbox{height:min(78vh,700px,calc(100svh - 170px));min-height:440px;margin:-6px -4px 18px;border-radius:14px;border:2px solid #2b2f3a;box-shadow:4px 5px 0 rgba(43,47,58,.25)}
-@media(max-width:640px){.pwbox{height:calc(100svh - 240px);min-height:430px;margin:-8px -10px 14px;border-radius:10px}}
+@media(max-width:640px){.pwbox{height:min(62svh,calc(100svh - 300px));min-height:380px;margin:-8px -10px 14px;border-radius:10px}}
 @media (orientation:landscape) and (max-height:560px){.pwbox{height:calc(100svh - 20px);min-height:300px}}
+
+/* peringkat detail + Pemalas */
+.lbl .rn small.rd{display:block;margin-top:2px;line-height:1.35}
+.lbl li.lazy{opacity:.82}.tier.lazy{display:inline-block;margin:2px 6px 0 0;padding:1px 8px;border-radius:99px;background:#e7e2f0;color:#5b4d7a;font-size:11px;font-weight:800}
+.lbl li{grid-template-columns:28px 40px minmax(0,1fr) auto}
+.lbme{margin-bottom:10px}.lbm-g{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}.lbm-g b{display:block;font:700 18px var(--f-hd)}.lbm-g small{color:var(--muted);font-size:11px}
+@media(max-width:380px){.lbm-g{grid-template-columns:repeat(2,1fr)}}
+
+/* simulasi JFT A2 */
+.sim-hero{display:flex;gap:14px;align-items:center}.sim-big{font:700 44px var(--f-hd);width:72px;height:72px;display:grid;place-items:center;border-radius:20px;background:var(--accent-soft);flex:none}
+.sim-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.sim-sec{border:2px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:6px;background:var(--bg)}.sim-sec.ok{border-color:#58cc02}.sim-sec.mid{border-color:#ffc800}.sim-sec.bad{border-color:#ff6b6b}
+.sim-h b{display:block;font-size:17px}.sim-h small{color:var(--muted)}.sim-p{display:flex;justify-content:space-between;align-items:baseline}.sim-p b{font:700 22px var(--f-hd)}
+.simul{padding-left:18px;display:grid;gap:4px;margin:8px 0}
+tr.now td{background:var(--accent-soft)}
+
+/* panel guru rapi */
+.gtabbar{position:sticky;top:0;z-index:5;margin:6px -4px 12px;padding:8px 4px;background:var(--bg);overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.gtabbar::-webkit-scrollbar{display:none}.gtabbar .chipb{flex:none;min-height:40px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kpi{border:2px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center;background:var(--bg)}.kpi b{display:block;font:700 24px var(--f-hd)}.kpi span{font-size:12px;color:var(--muted)}.kpi.ok{border-color:#58cc02}.kpi.bad{border-color:#ff6b6b}.kpi.mid{border-color:#ffc800}
+@media(min-width:760px){.kpis{grid-template-columns:repeat(6,1fr)}}
+.attg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.att{border:2px solid var(--line);border-radius:14px;padding:10px 12px}.att h3{margin:0 0 6px;font-size:15px}.att h3 small{color:var(--muted)}.att ul{margin:0;padding-left:18px;display:grid;gap:3px}.att li small{color:var(--muted)}
+/* nyaman di HP: tap cepat, target sentuh cukup besar, gulir mulus */
+html{-webkit-text-size-adjust:100%;scroll-behavior:auto}
+button,a,[data-lms],[data-g],[data-act],select,summary,label{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media(pointer:coarse){.chipb,.btn,.tab,.row-btn,.lat{min-height:44px}.btn.sm{min-height:40px}}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+body.pw-lock{overflow:hidden;touch-action:none}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 /* ===== Kota JFT (gaya Messenger) ===== */
 .pw{position:relative;overflow:hidden;background:#a8ddd5;font-family:Nunito,system-ui,sans-serif;color:#2b2f3a;-webkit-user-select:none;user-select:none;isolation:isolate}
 .pw *{box-sizing:border-box}.pw button{font:inherit;cursor:pointer;color:inherit}
@@ -1054,6 +1082,10 @@ body.pw-lock{overflow:hidden}
  .pw-card{left:auto;right:120px;transform:translate(0,200%);margin-left:0;bottom:10px;width:min(340px,calc(100% - 260px));padding:8px}.pw-card.on{transform:translate(0,0)}.pw-ch p{font-size:12px;margin-bottom:5px}.pw-a,.pw-a2{padding:7px 9px;font-size:15px}
  .pw-emo{left:10px;transform:none}}
 @media (prefers-reduced-motion:reduce){.pw-it.r-g::after{animation:none}.pw-bub,.pw-box{animation:none}.pw-card{transition:none}}
+
+/* v40: halaman bisa digulir saat planet tampil di beranda; joystick penuh hanya di layar penuh */
+.pw:not(.pw-full) .pw-cv{touch-action:pan-y}
+.pw.pw-full .pw-cv{touch-action:none}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -1066,7 +1098,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261107-2125"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261110-1239"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -4953,7 +4985,7 @@ const DYNSEC={SV:{id:'M',title:'Moji-goi',jp:'文字・語彙'},CE:{id:'K',title
 const DYNTIP={M:'Pilih bacaan, kanji, atau kata yang paling tepat.',K:'Pilih ungkapan yang paling pas dengan situasinya.',C:'Putar audio, lalu jawab. Tiap audio hanya bisa diputar 2 kali.',D:'Baca teks dengan teliti, lalu pilih jawaban yang sesuai isi teks.'};
 const DYNORDER=['UB14','UB15','UB16','UB17','UB18','UB13','UG','UG2','UBUKU'];
 const DYNBAB={UB13:13,UB14:14,UB15:15,UB16:16,UB17:17,UB18:18,UG:19,UG2:19,UBUKU:20};
-const DYNTOPIC={UB13:'Fasilitas umum',UB14:'Layanan sehari-hari',UB15:'Bab 15',UB16:'Bab 16',UB17:'Bab 17',UB18:'Bab 18',UG:'Gabungan Bab 13–18',UG2:'Gabungan Bab 13–18',UBUKU:'Seluruh buku A2.2 (Bab 1–18)'};
+const DYNTOPIC={UB13:'Fasilitas umum',UB14:'Layanan sehari-hari',UB15:'Bab 15',UB16:'Bab 16',UB17:'Bab 17',UB18:'Bab 18',UG:'Fukushuu Bab 13–18',UG2:'Fukushuu Bab 13–18',UBUKU:'Seluruh buku A2.2 (Bab 1–18)'};
 function dynConv(it,sec,idx){
   const base={id:it.id,tag:it.tag||it.kat||'Lain-lain',o:(it.o||[]).slice(0,4),a:it.a,w:(it.w||[]).slice(0,4)};
   const fix=s=>String(s||'').replace(/_{2,}/g,'（　）');
@@ -4995,7 +5027,7 @@ function dynBuild(id,d){
     const items=[];arr.forEach(it=>{if(it&&((it.o&&it.o.length>=2)||(it.sub&&it.sub.length&&it.sub.every(s=>s&&s.o&&s.o.length>=2))))dynConv(it,k,0).forEach(q=>items.push(q))});
     if(items.length){const m=DYNSEC[k];secs.push({id:m.id,title:m.title,jp:m.jp,tip:DYNTIP[m.id],items});n+=items.length}});
   if(!secs.length)return null;
-  return {bab:DYNBAB[id]||19,t:'D',dyn:1,label:(d.judul||'Ujian Setara JFT'),sub:(()=>{const have=secs.map(x=>x.title),miss=['Moji-goi','Kaiwa-hyougen','Choukai','Dokkai'].filter(t=>!have.some(h=>String(h).indexOf(t)>=0));return 'Isi: '+have.join(', ')+(miss.length?' · '+miss.join(', ')+' menyusul':' · lengkap')})(),name:d.judul||('Ujian '+id),sections:secs,lim:(d.menit||Math.round(n*1.25))*60};
+  return {bab:DYNBAB[id]||19,t:'D',dyn:1,label:String(d.judul||'Ujian Setara JFT').replace(/(ujian\s+)?gabungan/ig,(m,u)=>(u?u:'')+'Fukushuu'),sub:(()=>{const have=secs.map(x=>x.title),miss=['Moji-goi','Kaiwa-hyougen','Choukai','Dokkai'].filter(t=>!have.some(h=>String(h).indexOf(t)>=0));return 'Isi: '+have.join(', ')+(miss.length?' · '+miss.join(', ')+' menyusul':' · lengkap')})(),name:d.judul||('Ujian '+id),sections:secs,lim:(d.menit||Math.round(n*1.25))*60};
 }
 function dynLoad(docs){
   let ch=0;
@@ -5005,7 +5037,7 @@ function dynLoad(docs){
     if(PACKS[id]&&PACKS[id].__sig===sig)return;
     p.__sig=sig;PACKS[id]=p;ALLPK[id]=p;
     if(!PACKORDER.includes(id)){PACKORDER.push(id);PACKORDER.sort((a,b)=>{const ia=DYNORDER.indexOf(a),ib=DYNORDER.indexOf(b);const ka=ia<0?-1:ia+100,kb=ib<0?-1:ib+100;return ka-kb||PACKORDER.indexOf(a)-PACKORDER.indexOf(b)})}
-    BABINFO[p.bab]=BABINFO[p.bab]||{jp:/^UG/.test(id)?'総合テスト':id==='UBUKU'?'総復習':'第'+p.bab+'課',topic:DYNTOPIC[id]||id};
+    BABINFO[p.bab]=BABINFO[p.bab]||{jp:/^UG/.test(id)?'復習テスト':id==='UBUKU'?'総復習':'第'+p.bab+'課',topic:DYNTOPIC[id]||id};
     let i=0;p.sections.forEach(s=>s.items.forEach(q=>{QMAP[q.id]={...q,sec:s.id,pk:id,tag:q.tag};i++}));
     ch++});
   return ch;
@@ -5231,7 +5263,7 @@ function ujianMenu(top){
 function bookTabs(){return `<div class="chips" style="margin:6px 0 12px">${Object.keys(BOOKS).map(k=>`<button type="button" class="chipb${k===jbook?' on':''}" data-act="jbook" data-bk="${k}" aria-pressed="${k===jbook}">${BOOKS[k][1]}</button>`).join('')}</div><p class="muted small">${BOOKS[jbook][0]}</p>`}
 function ujianList(top){
   const m=MODES[jmode]?jmode:'bab';let body='';
-  if(m==='sim')body=soonCard('総','Simulasi Ujian JFT','Segera hadir. Soalnya campuran dari semua buku Irodori: bunpou, kosakata, kanji, partikel, kata sifat, kata kerja, dan lainnya.');
+  if(m==='sim')body='<div class="babks"><button type="button" class="babk" data-lms="go" data-r="simulasi"><span class="n">総</span><span class="t"><b>Simulasi JFT A2</b><small>Format asli, kesiapan per bagian, dan jalur 6 minggu menuju 21 Desember.</small></span></button></div>';
   else{
     if(m!=='sim')body=bookTabs();
     if(m==='bab'){
@@ -8043,6 +8075,12 @@ const SETS=[
 ];
 const TITLES=[[1,'Murid Baru'],[3,'Pelajar Rajin'],[5,'Pendekar Hiragana'],[8,'Pemburu Kanji'],[12,'Samurai Bunpou'],[16,'Ninja Choukai'],[21,'Master Akimichi'],[30,'Legenda JFT']];
 const titleOf=L=>TITLES.filter(t=>L>=t[0]).pop()[1];
+/* Pemalas: tidak aktif lebih dari 8 jam (stats.seen, cadangan upd). Murid yang belum pernah terekam tidak diberi title. */
+const LAZY_MS=8*36e5;
+const seenOf=x=>(x&&x.stats&&x.stats.seen)||(x&&x.upd)||0;
+const isLazy=x=>{const t=seenOf(x);return !!t&&!x.sensei&&Date.now()-t>LAZY_MS};
+const agoTxt=t=>{if(!t)return 'belum tercatat';const m=Math.max(0,Math.round((Date.now()-t)/6e4));if(m<12)return 'baru saja';if(m<60)return m+' menit lalu';const h=Math.round(m/60);if(h<24)return h+' jam lalu';return Math.round(h/24)+' hari lalu'};
+const titleFor=x=>isLazy(x)?'Pemalas':titleOf((x.stats&&x.stats.lv)||1);
 const dkey=(t)=>{const d=new Date(t||Date.now());return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 
 /* ---------- penghargaan ---------- */
@@ -8164,7 +8202,7 @@ async function init(o){
   try{DB.doc('game/'+ME.id).onSnapshot(s=>{if(s.exists){G=cfgOf(s.data());lsS('lms:game:'+ME.id,G)}ready=true;onChange()},()=>{})}catch(e){}
   try{DB.doc('grant/'+ME.id).onSnapshot(s=>{GR=s.exists?s.data():null;onChange()},()=>{})}catch(e){}
   if(!ME.sensei){try{DB.tree('grant/'+ME.id).onSnapshot(s=>{LOGS[ME.id]=s.docs.map(x=>Object.assign({id:x.id},x.data()));onChange()},()=>{})}catch(e){}}
-  try{DB.collection('game').onSnapshot(s=>{ALL=s.docs.map(x=>({id:x.id,...x.data()}));onChange()},()=>{})}catch(e){}
+  try{DB.collection('game').onSnapshot(s=>{ALL=s.docs.map(x=>({id:x.id,...x.data()}));onChange('all')},()=>{})}catch(e){}
   try{DB.doc('config/hadiah').onSnapshot(s=>{HAD=s.exists?s.data():{};onChange()},()=>{})}catch(e){}
   if(ME.sensei){try{DB.tree('grant').onSnapshot(s=>{const base={},lg={};s.docs.forEach(x=>{const q=x.id.split('/');if(q.length===1)base[q[0]]=x.data();else if(q.length===2)(lg[q[0]]=lg[q[0]]||[]).push(Object.assign({id:q[1]},x.data()))});GRALL=base;LOGS=lg;GR=base[ME.id]||GR;onChange()},()=>{})}catch(e){}}
  }
@@ -8192,9 +8230,10 @@ function statsOf(d,realName){
  const m=y=>{const x=d.at.filter(a=>a.y===y);return x.length?{v:Math.round(d.ka.mean(x.map(a=>d.ka.pct(a.ok,a.n)))),n:x.length}:{v:0,n:0}};
  const pk={};d.jt.forEach(a=>{const k=a.paket||'A';if(!pk[k]||a.benar>pk[k])pk[k]=a.benar});
  const K=m('K'),J=m('J');
- const vv=vst();return {exp:d.xp,lv:d.lv.L,streak:d.streak,kotoba:K.v,nk:K.n,kanji:J.v,nj:J.n,verb:vv.n?Math.round(vv.ok/vv.n*100):0,nv:vv.n,pk,dd:d.lastFull||'',bt:!!d.batsu,mis:d.done||0,real:realName||''};
+ const vv=vst();return {exp:d.xp,lv:d.lv.L,streak:d.streak,kotoba:K.v,nk:K.n,kanji:J.v,nj:J.n,verb:vv.n?Math.round(vv.ok/vv.n*100):0,nv:vv.n,pk,dd:d.lastFull||'',bt:!!d.batsu,mis:d.done||0,real:realName||'',seen:Math.floor(Date.now()/6e5)*6e5};
 }
 function loginTick(){G=G||blank();const k=dkey();if(!(G.logins||[]).includes(k)){G.logins=[...(G.logins||[]),k].slice(-400);return true}return false}
+setInterval(()=>{try{if(!document.hidden&&!ME.sensei&&window.LMS_ME)pushStats(window.LMS_ME(),window.LMS_NAME())}catch(e){}},3e5);
 function pushStats(d,realName){
  if(!DB||!ME.id||!ready)return;if(loginTick()||needSave){needSave=false;save()}wallet(d);if(needSave){needSave=false;save()}const st=statsOf(d,realName);const k=JSON.stringify(st);if(k===lastPush)return;
  clearTimeout(pushT);pushT=setTimeout(()=>{lastPush=k;G=Object.assign(G||blank(),{stats:st,real:st.real,sensei:!!ME.sensei,upd:Date.now()});save()},1200);
@@ -8437,7 +8476,7 @@ function karakterHTML(d){
   else{
    const xs=ITEMS.filter(x=>x.slot===shopSlot&&(shopOwn?own.has(x.id):x.price>0)&&okBody(x,g));
    body=(shopOwn?'':`<section class="card"><h2>Set hemat</h2><div class="sets">${sets}</div></section>`)+`<section class="card">${chips}<div class="shop">${xs.map(card).join('')||'<p class="muted">'+(shopOwn?'Belum punya di kategori ini.':'Belum ada.')+'</p>'}</div>
-  <p class="muted small">Ketuk gambar untuk mencoba. 💎 Permata hanya dari Sensei dan hadiah peringkat.</p></section>`;
+  <p class="muted small">Ketuk gambar untuk mencoba. 💎 Permata hanya dari Sensei.</p></section>`;
   }
  }else{
   const cl=new Set(g.claimed||[]);
@@ -8484,16 +8523,19 @@ function peringkatHTML(d){
  const tabs=`<nav class="tabs gtabs lbt">${BOARDS.map(b=>`<button class="tab" data-g="lb" data-v="${b[0]}" aria-current="${lbTab===b[0]}">${b[1]}</button>`).join('')}</nav>`;
  const rs=ranked(B[0]);const meIdx=rs.findIndex(r=>r.x.id===ME.id);
  const pod=rs.slice(0,3);const order=[1,0,2].filter(i=>pod[i]);
- const podium=pod.length?`<div class="podium">${order.map(i=>{const r=pod[i];return `<div class="pod p${i+1}"><div class="pav">${avatarSVG(r.x,i===0?96:76)}</div><div class="crown">${['🥇','🥈','🥉'][i]}</div><b>${esc(nickOf(r.x))}</b><small>${esc(r.x.real||'')}</small><span class="pv">${r.v}${B[0]==='kanji'||B[0]==='kotoba'||B[0]==='bunpou'?'%':''}</span><div class="blk">${i+1}</div></div>`}).join('')}</div>`:'';
+ const podium=pod.length?`<div class="podium">${order.map(i=>{const r=pod[i];return `<div class="pod p${i+1}"><div class="pav">${avatarSVG(r.x,i===0?96:76)}</div><div class="crown">${['🥇','🥈','🥉'][i]}</div><b>${esc(nickOf(r.x))}${isLazy(r.x)?' 😴':''}</b><small>${esc(r.x.real||'')}</small><span class="pv">${r.v}${B[0]==='kanji'||B[0]==='kotoba'||B[0]==='bunpou'?'%':''}</span><div class="blk">${i+1}</div></div>`}).join('')}</div>`:'';
  const tierOf=v=>B[0][0]!=='p'?'':v>=23?'<span class="tier t1">金 Emas</span>':v>=21?'<span class="tier t2">銀 Perak</span>':'<span class="tier t3">銅 Perunggu</span>';
- const one=(r,i)=>`<li class="${r.x.id===ME.id?'me':''}"><span class="rk">${i+1}</span><span class="ra">${avatarSVG(r.x,34)}</span><span class="rn"><b>${esc(nickOf(r.x))}</b><small>${esc(r.x.real||'')} · Lv ${r.x.stats.lv||1} · ${esc(titleOf(r.x.stats.lv||1))}</small>${tierOf(r.v)}</span><span class="rv">${r.v}${B[0]==='kanji'||B[0]==='kotoba'||B[0]==='bunpou'?'%':''}</span>${i<5?`<span class="rp">🪙${PRIZE[i][0]}${PRIZE[i][1]?' 💎'+PRIZE[i][1]:''}</span>`:''}</li>`;
+ const pc=(B[0]==='kanji'||B[0]==='kotoba'||B[0]==='bunpou')?'%':'';
+ const one=(r,i)=>{const st=r.x.stats||{};const lz=isLazy(r.x);return `<li class="${r.x.id===ME.id?'me':''}${lz?' lazy':''}"><span class="rk">${i+1}</span><span class="ra">${avatarSVG(r.x,34)}</span><span class="rn"><b>${esc(nickOf(r.x))}</b><small>${esc(r.x.real||'')} · Lv ${st.lv||1} · ${esc(titleFor(r.x))}</small>${lz?'<span class="tier lazy">😴 Pemalas</span>':''}${tierOf(r.v)}<small class="rd">${st.exp||0} EXP · 🔥${st.streak||0} hari · kanji ${st.nj?st.kanji+'%':'-'} · kotoba ${st.nk?st.kotoba+'%':'-'} · aktif ${agoTxt(seenOf(r.x))}</small></span><span class="rv">${r.v}${pc}</span>${i<5?`<span class="rp">Top ${i+1}</span>`:''}</li>`};
  const TOP=Infinity,show=rs;
  const rows=show.map(one).join('')+'';
- const given=HAD[B[0]];
- return `<h1 class="pgt">Peringkat</h1>${tabs}
+ const avg=rs.length?Math.round(rs.reduce((a,r)=>a+r.v,0)/rs.length):0;
+ const mine=meIdx>=0?rs[meIdx]:null;
+ const posisi=mine?`<section class="card lbme"><h2>Posisimu: #${meIdx+1} dari ${rs.length}</h2><div class="lbm-g"><div><b>${mine.v}${pc}</b><small>nilaimu</small></div><div><b>${avg}${pc}</b><small>rata-rata papan</small></div><div><b>${meIdx>0?(rs[meIdx-1].v-mine.v)+pc:'-'}</b><small>${meIdx>0?'ke #'+meIdx:'kamu di puncak'}</small></div><div><b>${meIdx<rs.length-1?(mine.v-rs[meIdx+1].v)+pc:'-'}</b><small>unggul dari #${meIdx+2}</small></div></div></section>`:`<section class="card lbme"><h2>Kamu belum masuk papan ini</h2><p class="muted small">${B[0][0]==='p'?'Kerjakan ujian dan capai minimal 20/25 benar.':'Kerjakan latihan supaya namamu muncul.'}</p></section>`;
+ return `<h1 class="pgt">Peringkat</h1>${tabs}${ME.sensei?'':posisi}
   <section class="card lb">${podium||'<p class="muted">Belum ada yang masuk papan ini. Jadilah yang pertama!</p>'}
   ${rs.length?`<ol class="lbl">${rows}</ol>`:''}
-  <p class="muted small">${B[0][0]==='p'?'Hanya yang lulus (minimal 20/25) masuk papan ujian: 金 Emas 23+, 銀 Perak 21–22, 銅 Perunggu 20. ':''}Papan ini terbuka untuk seluruh kelas dan Sensei, tapi yang tampil hanya 10 besar. Hadiah peringkat 1 sampai 5 dibagikan Sensei.${given?' Terakhir dibagikan '+new Date(given).toLocaleDateString('id-ID')+'.':''} ${meIdx<0?'Kerjakan latihan supaya namamu muncul.':''}</p></section>`;
+  <p class="muted small">${B[0][0]==='p'?'Hanya yang lulus (minimal 20/25) masuk papan ujian: 金 Emas 23+, 銀 Perak 21–22, 銅 Perunggu 20. ':''}Semua murid yang sudah punya nilai tampil di sini. Title 😴 Pemalas muncul kalau tidak aktif lebih dari 8 jam. Hadiah peringkat dibagikan Sensei langsung.</p></section>`;
 }
 
 /* ---------- panel Sensei ---------- */
@@ -8502,10 +8544,10 @@ function senseiHTML(){
  if(!ME.sensei)return '';
  const xs=ALL.filter(x=>!x.sensei).sort((a,b)=>((b.stats||{}).exp||0)-((a.stats||{}).exp||0));
  const rows=xs.map(x=>{const e=ext(x.id,GRALL[x.id]);const st=x.stats||{};const koin=koinOf(x,e),pm=e.p-(x.spentP||0);const ls=(LOGS[x.id]||[]).slice().sort((a,b)=>a.ts-b.ts).pop();const lt=ls?`<div class="small muted">Terakhir ${ls.p?(ls.p>0?'+':'')+ls.p+' 💎':''}${ls.k?' '+(ls.k>0?'+':'')+ls.k+' 🪙':''} · ${new Date(ls.ts).toLocaleDateString('id-ID',{day:'numeric',month:'short'})}</div>`:'';
-  return `<tr><td class="wrap-t"><div class="srow"><span>${avatarSVG(x,34)}</span><span><b>${esc(x.real||'(belum isi nama)')}</b><small class="muted"> ${esc(x.nick||'')}</small></span></div></td><td>Lv ${st.lv||1}<div class="small muted">${st.exp||0} EXP</div></td><td>🪙 ${koin}<br>💎 ${pm}${lt}</td><td><button class="btn sm" data-g="give" data-u="${esc(x.id)}" data-p="1">+1 💎</button> <button class="btn sm ghost" data-g="give" data-u="${esc(x.id)}" data-p="2">+2 💎</button> <button class="btn sm ghost" data-g="give" data-u="${esc(x.id)}" data-p="-1" title="Koreksi: tarik 1 Permata">−1</button></td></tr>`}).join('');
- const hb=BOARDS.map(b=>`<button class="btn sm ghost" data-g="prize" data-v="${b[0]}">Bagikan hadiah ${esc(b[1])}${HAD[b[0]]?' (sudah '+new Date(HAD[b[0]]).toLocaleDateString('id-ID')+')':''}</button>`).join(' ');
- return `<section class="card"><h2>Permata dan hadiah</h2>${msg?`<div class="status">${esc(msg)}</div>`:''}
-  <div class="actions">${hb}</div><p class="muted small">Hadiah: peringkat 1 = 🪙60 💎3, 2 = 🪙40 💎2, 3 = 🪙30 💎1, 4 = 🪙20 💎1, 5 = 🪙10. Koin dari belajar: 1 Koin tiap 5 EXP, maksimal 60 Koin per hari.</p>
+  return `<tr><td class="wrap-t"><div class="srow"><span>${avatarSVG(x,34)}</span><span><b>${esc(x.real||'(belum isi nama)')}</b><small class="muted"> ${esc(x.nick||'')}</small>${isLazy(x)?' <span class="tier lazy">😴 Pemalas</span>':''}<div class="small muted">Aktif ${agoTxt(seenOf(x))}</div></span></div></td><td>Lv ${st.lv||1}<div class="small muted">${st.exp||0} EXP</div></td><td>🪙 ${koin}<br>💎 ${pm}${lt}</td><td><button class="btn sm" data-g="give" data-u="${esc(x.id)}" data-p="1">+1 💎</button> <button class="btn sm ghost" data-g="give" data-u="${esc(x.id)}" data-p="2">+2 💎</button> <button class="btn sm ghost" data-g="give" data-u="${esc(x.id)}" data-p="-1" title="Koreksi: tarik 1 Permata">−1</button></td></tr>`}).join('');
+ const hb='';
+ return `<section class="card"><h2>Dompet murid</h2>${msg?`<div class="status">${esc(msg)}</div>`:''}
+  <p class="muted small">Hadiah peringkat dibagikan Sensei secara langsung, tidak lewat aplikasi. Koin dari belajar: 1 Koin tiap 5 EXP, maksimal 60 Koin per hari. Permata di bawah untuk koreksi atau bonus manual.</p>
   ${xs.length?`<div class="tw"><table><thead><tr><th>Murid</th><th>Level</th><th>Dompet</th><th>Beri Permata</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="muted">Belum ada murid yang membuka aplikasi versi game.</p>'}</section>`;
 }
 async function grant(uid,add,why,pre){
@@ -8577,12 +8619,12 @@ document.addEventListener('click',async e=>{
   if(p<0&&cur+p<0){msg='Saldo Permata murid ini hanya '+cur+', tidak bisa dikurangi.';sfx('bad')}
   else if(p>0&&wk+p>=5&&!armed[gk]){armed[gk]=1;setTimeout(()=>delete armed[gk],6000);msg='Murid ini sudah dapat '+wk+' 💎 dari kamu dalam 7 hari terakhir. Tekan sekali lagi kalau tetap mau menambah.';sfx('bad')}
   else{delete armed[gk];giving=true;b.disabled=true;msg='Mengirim...';onChange();try{await grant(u,{p},p<0?'Koreksi Sensei':'Dari Sensei');const nw=ext(u,GRALL[u]).p-(x.spentP||0);msg=(p<0?'Permata dikurangi':'Permata terkirim')+' untuk '+(x.real||x.nick||'murid')+'. Saldo sekarang: '+nw+' 💎';sfx('coin')}catch(err){msg='Gagal mengirim: '+errMsg(err);sfx('bad')}giving=false}}
- else if(a==='prize'&&ME.sensei&&DB){const k=b.dataset.v;const rs=ranked(k).slice(0,5);if(!rs.length){msg='Papan ini masih kosong.'}else if(HAD[k]&&!confirmAgain(b)){msg='Hadiah papan ini sudah pernah dibagikan. Tekan sekali lagi untuk membagikan ulang.';}else{try{for(let i=0;i<rs.length;i++)await grant(rs[i].x.id,{k:PRIZE[i][0],p:PRIZE[i][1]},'Hadiah peringkat '+(i+1)+' '+k,'prize');HAD=Object.assign({},HAD,{[k]:Date.now()});await DB.doc('config/hadiah').set(HAD);msg='Hadiah dibagikan ke '+rs.length+' murid.';sfx('ok')}catch(err){msg='Gagal membagikan: '+errMsg(err)}}}
+ else if(false&&a==='prize'&&ME.sensei&&DB){const k=b.dataset.v;const rs=ranked(k).slice(0,5);if(!rs.length){msg='Papan ini masih kosong.'}else if(HAD[k]&&!confirmAgain(b)){msg='Hadiah papan ini sudah pernah dibagikan. Tekan sekali lagi untuk membagikan ulang.';}else{try{for(let i=0;i<rs.length;i++)await grant(rs[i].x.id,{k:PRIZE[i][0],p:PRIZE[i][1]},'Hadiah peringkat '+(i+1)+' '+k,'prize');HAD=Object.assign({},HAD,{[k]:Date.now()});await DB.doc('config/hadiah').set(HAD);msg='Hadiah dibagikan ke '+rs.length+' murid.';sfx('ok')}catch(err){msg='Gagal membagikan: '+errMsg(err)}}}
  onChange();
 });
 const armed={};function confirmAgain(b){const k=b.dataset.v;if(armed[k]){delete armed[k];return true}armed[k]=1;setTimeout(()=>delete armed[k],6000);return false}
 
-return {buyX,ownedX:()=>((G&&G.owned)||[]).filter(k=>typeof k==='string'&&k.slice(0,3)==='x3:').map(k=>k.slice(3)),look3:()=>(G&&G.look3)||null,setLook3:l=>{if(!G)return;G.look3=Object.assign({},l);clearTimeout(L3T);L3T=setTimeout(()=>{save()},900)},verbQ:(f)=>{const F=VLEV.campur[3];const ff=f||F[rnd(F.length)];const q=vq(VERBS[rnd(VERBS.length)],ff);return Object.assign(q,{label:FORMS[ff]||ff})},init,mount3d,verbHTML,verbQuick:(lv)=>{V.lv=(lv&&VLEV[lv])?lv:'campur';vstart()},verbXp:()=>vst().xp,verbDays:()=>new Set((G&&G.vd)||[]),verbStats:vst,VFORMS:FORMS,VCATS:VLEV,titleOf,loginDays:()=>new Set((G&&G.logins)||[]),avatarSVG,heroHTML,karakterHTML,peringkatHTML,senseiHTML,komentar,pushStats,wallet,sfx,ITEMS,ACH,get state(){return {G,GR,ALL}}};
+return {kelas:()=>ALL.filter(x=>!x.sensei).map(x=>{const st=x.stats||{};return {id:x.id,real:x.real||'',nick:x.nick||'',lv:st.lv||1,exp:st.exp||0,streak:st.streak||0,bt:!!st.bt,mis:st.mis||0,seen:seenOf(x),lazy:isLazy(x)}}),agoTxt,fullDays:()=>new Set((G&&G.fd)||[]),markFull:k=>{if(!G||!k)return;if((G.fd||[]).includes(k))return;G.fd=[...(G.fd||[]),k].slice(-120);needSave=true},synced:()=>!!ready,buyX,ownedX:()=>((G&&G.owned)||[]).filter(k=>typeof k==='string'&&k.slice(0,3)==='x3:').map(k=>k.slice(3)),look3:()=>(G&&G.look3)||null,setLook3:l=>{if(!G)return;G.look3=Object.assign({},l);clearTimeout(L3T);L3T=setTimeout(()=>{save()},900)},verbQ:(f)=>{const F=VLEV.campur[3];const ff=f||F[rnd(F.length)];const q=vq(VERBS[rnd(VERBS.length)],ff);return Object.assign(q,{label:FORMS[ff]||ff})},init,mount3d,verbHTML,verbQuick:(lv)=>{V.lv=(lv&&VLEV[lv])?lv:'campur';vstart()},verbXp:()=>vst().xp,verbDays:()=>new Set((G&&G.vd)||[]),verbStats:vst,VFORMS:FORMS,VCATS:VLEV,titleOf,loginDays:()=>new Set((G&&G.logins)||[]),avatarSVG,heroHTML,karakterHTML,peringkatHTML,senseiHTML,komentar,pushStats,wallet,sfx,ITEMS,ACH,get state(){return {G,GR,ALL}}};
 })();
 
 </script>
@@ -12293,7 +12335,8 @@ const DFS=`precision highp float;vec4 pack(float d){vec4 e=vec4(1.,255.,65025.,1
 function prog(gl,vs,fs){const p=gl.createProgram();[[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]].forEach(([t,s])=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));gl.attachShader(p,sh)});gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
   const u={};const n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);for(let i=0;i<n;i++){const a=gl.getActiveUniform(p,i);u[a.name]=gl.getUniformLocation(p,a.name)}return {p,u,aP:gl.getAttribLocation(p,'aP'),aN:gl.getAttribLocation(p,'aN')}}
 function Renderer(cv,opt){opt=opt||{};
-  const gl=cv.getContext('webgl',{antialias:opt.aa!==false,alpha:true,premultipliedAlpha:true,powerPreference:'high-performance',preserveDrawingBuffer:!!opt.keep})||cv.getContext('experimental-webgl');if(!gl)throw new Error('WebGL tidak tersedia');
+  const coarse=typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches;const gl=cv.getContext('webgl',{antialias:opt.aa!==false&&!coarse,alpha:true,premultipliedAlpha:true,powerPreference:'default',preserveDrawingBuffer:!!opt.keep})||cv.getContext('experimental-webgl');if(!gl)throw new Error('WebGL tidak tersedia');
+  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();try{opt.onLost&&opt.onLost()}catch(_){}},false);
   const P=prog(gl,VS,FS),D=prog(gl,DVS,DFS);
   const cache=new Map();
   function up(g){let b=cache.get(g);if(b)return b;b={v:gl.createBuffer(),n:gl.createBuffer(),i:gl.createBuffer(),c:g.idx.length};gl.bindBuffer(gl.ARRAY_BUFFER,b.v);gl.bufferData(gl.ARRAY_BUFFER,g.pos,gl.STATIC_DRAW);gl.bindBuffer(gl.ARRAY_BUFFER,b.n);gl.bufferData(gl.ARRAY_BUFFER,g.nor,gl.STATIC_DRAW);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,b.i);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,g.idx,gl.STATIC_DRAW);cache.set(g,b);return b}
@@ -12640,7 +12683,7 @@ const UIHTML=`<canvas class="pw-sky"></canvas><canvas class="pw-cv" tabindex="0"
 <button type="button" class="pw-quest" data-pw="quest"><span class="pw-qi" aria-hidden="true">✉</span><span class="pw-qt"></span><span class="pw-qa" aria-hidden="true">↑</span></button>
 <div class="pw-side"><button type="button" class="pw-rb" data-pw="map" aria-label="Peta kota">🗺️</button><button type="button" class="pw-rb" data-pw="shop" aria-label="Toko dan lemari">👕</button><button type="button" class="pw-rb" data-pw="foto" aria-label="Foto">📸</button><button type="button" class="pw-rb" data-pw="chat" aria-label="Stiker chat">💬</button><button type="button" class="pw-rb" data-pw="snd" aria-label="Musik">🎵</button><button type="button" class="pw-rb" data-pw="full" aria-label="Layar penuh">⛶</button></div>
 <div class="pw-emo" role="group" aria-label="Emote"><button type="button" data-e="wave" aria-label="Lambai">👋</button><button type="button" data-e="peace" aria-label="Peace">✌️</button><button type="button" data-e="bow" aria-label="Ojigi">🙇</button><button type="button" data-e="party" aria-label="Pesta">🎉</button><button type="button" data-e="think" aria-label="Mikir">🤔</button><button type="button" data-e="pose" aria-label="Pose favorit">✨</button></div>
-<div class="pw-joy"><i></i></div><div class="pw-hint">Seret layar untuk jalan · ketuk orang atau gedung</div>
+<div class="pw-joy"><i></i></div><div class="pw-hint">Ketuk tanah untuk jalan · ketuk orang atau gedung · ⛶ untuk joystick</div>
 <div class="pw-card" role="dialog"><div class="pw-ch"><span class="pw-ck"></span><div><h3 class="pw-ct"></h3><p class="pw-cd"></p></div><button type="button" class="pw-cx" data-pw="cardx" aria-label="Tutup">✕</button></div><div class="pw-ca"></div></div>
 <div class="pw-ov" hidden></div><div class="pw-toast" role="status"></div>
 <div class="pw-shop" hidden><div class="pw-spv"><div class="pw-sbar"><h2>Toko</h2><span class="pw-wal"></span><button type="button" class="pw-sx" data-pw="shopx" aria-label="Tutup toko">✕</button></div><canvas class="pw-scv" aria-label="Pratinjau karakter"></canvas></div><div class="pw-spane"><div class="pw-stabs" role="tablist"></div><div class="pw-sgrid"></div><div class="pw-sbuy"></div></div></div>`;
@@ -12648,7 +12691,7 @@ let S=null;
 /* ================= mount ================= */
 function mount(root,hooks){stop();hooks=hooks||{};
  root.classList.add('pw');root.innerHTML=UIHTML;const q=c=>root.querySelector(c);
- let RD;try{RD=Renderer(q('.pw-cv'),{shadow:true,shSize:matchMedia('(pointer:coarse)').matches?1024:2048,keep:true})}catch(e){root.innerHTML='<div class="pw-err">Perangkat ini belum mendukung grafis 3D (WebGL). Pakai mode klasik ya.</div>';hooks.fail&&hooks.fail(e);return false}
+ let RD;try{RD=Renderer(q('.pw-cv'),{shadow:true,shSize:matchMedia('(pointer:coarse)').matches?1024:2048,keep:true,onLost:()=>{try{stop()}catch(e){}hooks.fail&&hooks.fail(new Error('webgl-lost'))}})}catch(e){root.innerHTML='<div class="pw-err">Perangkat ini belum mendukung grafis 3D (WebGL). Pakai mode klasik ya.</div>';hooks.fail&&hooks.fail(e);return false}
  const K=KOTA.create();const RAD=K.RAD;
  S={root,q,hooks,RD,K,RAD,alive:true,t0:performance.now(),yaw:0,camYaw:0,vel:[0,0],keys:{},acts:[],rem:{},bub:[],emo:[],parts:[],near:null};
  Object.assign(RD.env,{fog:H('#a8ddd5'),shade:H('#a2b7c6'),ld:V.nrm([-.45,.78,.42])});
@@ -13024,14 +13067,14 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const J=()=>LMS.mods.jft,K=()=>LMS.mods.ktk;
-const ROUTES=[['beranda','家','Beranda'],['latihan','試','Latihan'],['jft','試','Ujian'],['verb','動','Bunpou'],['harian','日','Misi Harian'],['menu','新','Latihan Soal Baru'],['petunjuk','案','Petunjuk'],['kotoba','語','Kotoba'],['kamus','辞','Kamus Irodori'],['kwajib','必','Kanji Kata Irodori'],['bunfc','文','Kartu Bunpou'],['bunlat','文','Latihan Bunpou'],['kosa','語','Kosakata Irodori'],['progres','進','Rapor'],['peringkat','冠','Peringkat'],['karakter','人','Karakter'],['game','遊','Taman Bermain'],['guru','師','Guru'],['bantuan','助','Bantuan']];
+const ROUTES=[['beranda','家','Beranda'],['latihan','試','Latihan'],['jft','試','Ujian'],['simulasi','総','Simulasi JFT A2'],['verb','動','Bunpou'],['harian','日','Misi Harian'],['menu','新','Latihan Soal Baru'],['petunjuk','案','Petunjuk'],['kotoba','語','Kotoba'],['kamus','辞','Kamus Irodori'],['kwajib','必','Kanji Kata Irodori'],['bunfc','文','Kartu Bunpou'],['bunlat','文','Latihan Bunpou'],['kosa','語','Kosakata Irodori'],['progres','進','Rapor'],['peringkat','冠','Peringkat'],['karakter','人','Karakter'],['game','遊','Taman Bermain'],['guru','師','Guru'],['bantuan','助','Bantuan']];
 const slug=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,30)||'tanpa-nama';
 const HARI=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const PLAN=['Ulangi yang salah dari tes minggu ini (Tugas harian, langkah 1).','Tes kotoba bab fokus, 20 soal.','Tes kanji bab fokus, 20 soal.','Ulang kata lemah (Tugas harian, langkah 1), lalu kerjakan tugas kelas dari guru.','Tes gabungan bab, 20 soal.','Latihan soal JFT Bab 13 (menu JFT).','Tes gabungan 30 soal, lalu kirim kode hasil ke guru.'];
 const STU=()=>{try{return sessionStorage.getItem('lms:asstudent')==='1'}catch(e){return false}};
 const ADMIN=()=>!!(window.lmsHosted&&OWNER&&!STU());
 let PREVR='',OWNER=false,DB=null,RESJ=[],RESK=[],CUR='',openG=null,gNote='';
-let LIVE={},PLOGS={},RESET={},GT='live',GSEL='',gDelAsk='',ACT_BATSU=false;
+let LIVE={},PLOGS={},RESET={},GT='ringkas',GSEL='',gDelAsk='',ACT_BATSU=false;
 const fmtDate=ts=>new Date(ts).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 
 /* ---- nama murid dipakai bersama oleh semua modul ---- */
@@ -13047,7 +13090,7 @@ function renderTop(){
 function renderNav(){
   document.body.classList.toggle('lms-admin',ADMIN());
   if(ADMIN()){$$('lms-nav').innerHTML='<div class="lms-nav-in"><button type="button" data-lms="nav" data-r="guru" aria-current="true"><i aria-hidden="true">師</i>Panel Guru</button><button type="button" data-lms="viewas" aria-current="false"><i aria-hidden="true">生</i>Mode Murid</button></div>';return}
-  $$('lms-nav').innerHTML='<div class="lms-nav-in">'+ROUTES.filter(r=>r[0]!=='bantuan'&&r[0]!=='game'&&r[0]!=='kotoba'&&r[0]!=='jft'&&r[0]!=='verb'&&r[0]!=='harian'&&r[0]!=='menu'&&r[0]!=='petunjuk'&&r[0]!=='kamus'&&r[0]!=='bunfc'&&r[0]!=='bunlat'&&r[0]!=='kwajib'&&r[0]!=='kosa'&&r[0]!=='progres'&&(r[0]!=='guru'||(OWNER&&!(window.lmsHosted&&STU())))).map(r=>`<button type="button" data-lms="nav" data-r="${r[0]}" aria-current="${CUR===r[0]||(r[0]==='belajar'&&CUR==='kotoba')||(r[0]==='latihan'&&(CUR==='petunjuk'||CUR==='menu'||CUR==='jft'||CUR==='verb'||CUR==='bunfc'||CUR==='bunlat'||CUR==='kwajib'||CUR==='kosa'||CUR==='kamus'||CUR==='flash'))}"><i aria-hidden="true">${r[1]}</i>${r[2]}</button>`).join('')+'</div>';
+  $$('lms-nav').innerHTML='<div class="lms-nav-in">'+ROUTES.filter(r=>r[0]!=='simulasi'&&r[0]!=='bantuan'&&r[0]!=='game'&&r[0]!=='kotoba'&&r[0]!=='jft'&&r[0]!=='verb'&&r[0]!=='harian'&&r[0]!=='menu'&&r[0]!=='petunjuk'&&r[0]!=='kamus'&&r[0]!=='bunfc'&&r[0]!=='bunlat'&&r[0]!=='kwajib'&&r[0]!=='kosa'&&r[0]!=='progres'&&(r[0]!=='guru'||(OWNER&&!(window.lmsHosted&&STU())))).map(r=>`<button type="button" data-lms="nav" data-r="${r[0]}" aria-current="${CUR===r[0]||(r[0]==='belajar'&&CUR==='kotoba')||(r[0]==='latihan'&&(CUR==='petunjuk'||CUR==='menu'||CUR==='jft'||CUR==='verb'||CUR==='bunfc'||CUR==='bunlat'||CUR==='kwajib'||CUR==='kosa'||CUR==='kamus'||CUR==='flash'))}"><i aria-hidden="true">${r[1]}</i>${r[2]}</button>`).join('')+'</div>';
 }
 function show(r){
   if(CUR&&CUR!==r)PREVR=CUR;CUR=r;if(r!=='game')try{ASOBI.leave()}catch(e){}if(r!=='beranda'){try{DUNIA.stop()}catch(e){}try{PLANET.stop()}catch(e){}}if(r!=='kotoba')ACT_BATSU=false;try{PANTAU.note()}catch(e){}const isJ=r==='jft',isK=r==='kotoba';
@@ -13055,19 +13098,26 @@ function show(r){
   $$('jft-wrap').hidden=!isJ;$$('ktk-wrap').hidden=!isK;$$('lms-main').hidden=isJ||isK;
   ['jft','ktk'].forEach(n=>{if(LMS.active!==n)['hd','app','dlg'].forEach(p=>{const e=$$(n+'-'+p);if(e)e.innerHTML=''});const b=$$(n+'-bar');if(b&&LMS.active!==n)b.hidden=true});
   if(!isJ&&!isK)document.body.classList.remove('exam');
-  syncName();renderTop();renderNav();
+  LASTR='';LASTHB='';syncName();renderTop();renderNav();
   if(isJ)J().mount();else if(isK)K().mount();else renderPage();
   window.scrollTo(0,0);
 }
+let LASTH='',LASTR='',LASTHB='',LASTI=0,SOFTT=0;
+/* anti-kedip: render ulang dari sinkronisasi ditunda saat jari sedang menyentuh/menggulir, dan dilewati bila isi sama */
+['pointerdown','touchstart','touchmove','wheel','keydown'].forEach(ev=>addEventListener(ev,()=>{LASTI=Date.now()},{passive:true,capture:true}));
+addEventListener('scroll',()=>{LASTI=Date.now()},{passive:true});
+function softRender(){clearTimeout(SOFTT);const w=Date.now()-LASTI;if(w<900){SOFTT=setTimeout(softRender,900-w+60);return}renderPage()}
 function renderPage(){
   const m=$$('lms-main');if(!m||CUR==='jft'||CUR==='kotoba')return;
-  const f={beranda:berandaHTML,belajar:belajarHTML,latihan:latihanHTML,verb:()=>GAME.verbHTML(),harian:harianHTML,menu:menuHTML,petunjuk:petunjukHTML,progres:progresHTML,guru:guruHTML,bantuan:bantuanHTML,kamus:()=>window.KAMUS?KAMUS.html():'',bunfc:()=>window.FLASH?FLASH.bunfc():'',bunlat:()=>window.FLASH?FLASH.bunlat():'',flash:()=>window.FLASH?FLASH.kwajib():'',kwajib:()=>window.FLASH?FLASH.kwajib():'',kosa:()=>window.FLASH?FLASH.kosa():'',peringkat:()=>GAME.peringkatHTML(me()),karakter:()=>GAME.karakterHTML(me()),game:()=>window.ASOBI?ASOBI.html():''}[CUR]||berandaHTML;
-  if(CUR==='beranda'&&$$('bh-rest')&&((window.PLANET&&PLANET.active&&$$('pwbox'))||(window.DUNIA&&DUNIA.active&&$$('dw')))){const kn=$$('lms-nama'),kv2=kn?kn.value:null,kf=kn&&document.activeElement===kn;$$('bh-rest').innerHTML=berandaRest();const kn2=$$('lms-nama');if(kn2&&kv2!==null){kn2.value=kv2;if(kf)kn2.focus()}try{GAME.mount3d()}catch(e){}try{DUNIA.refresh()}catch(e){}try{PLANET.refresh()}catch(e){}try{if(LMS.account&&LMS.account.id&&!ADMIN())GAME.pushStats(me(),getName())}catch(e){}return}
+  const f={beranda:berandaHTML,belajar:belajarHTML,latihan:latihanHTML,simulasi:simulasiHTML,verb:()=>GAME.verbHTML(),harian:harianHTML,menu:menuHTML,petunjuk:petunjukHTML,progres:progresHTML,guru:guruHTML,bantuan:bantuanHTML,kamus:()=>window.KAMUS?KAMUS.html():'',bunfc:()=>window.FLASH?FLASH.bunfc():'',bunlat:()=>window.FLASH?FLASH.bunlat():'',flash:()=>window.FLASH?FLASH.kwajib():'',kwajib:()=>window.FLASH?FLASH.kwajib():'',kosa:()=>window.FLASH?FLASH.kosa():'',peringkat:()=>GAME.peringkatHTML(me()),karakter:()=>GAME.karakterHTML(me()),game:()=>window.ASOBI?ASOBI.html():''}[CUR]||berandaHTML;
+  if(CUR==='beranda'&&$$('bh-rest')&&((window.PLANET&&PLANET.active&&$$('pwbox'))||(window.DUNIA&&DUNIA.active&&$$('dw')))){const hb=berandaRest();if(hb===LASTHB){try{PLANET.refresh()}catch(e){}return}LASTHB=hb;const kn=$$('lms-nama'),kv2=kn?kn.value:null,kf=kn&&document.activeElement===kn;$$('bh-rest').innerHTML=hb;const kn2=$$('lms-nama');if(kn2&&kv2!==null){kn2.value=kv2;if(kf)kn2.focus()}try{GAME.mount3d()}catch(e){}try{DUNIA.refresh()}catch(e){}try{PLANET.refresh()}catch(e){}try{if(LMS.account&&LMS.account.id&&!ADMIN())GAME.pushStats(me(),getName())}catch(e){}return}
   const keep=$$('lms-nama');const kv=keep?keep.value:null;const gk=$$('g-nick'),gkv=gk&&document.activeElement===gk?gk.value:null;
-  m.innerHTML=(!['beranda','belajar','latihan','progres','peringkat','karakter'].includes(CUR)&&!(CUR==='menu'&&!(QM.qs&&QM.sel))&&!ADMIN()?'<button type="button" class="backlink" data-lms="back">← Kembali</button>':'')+f();
+  const h=(!['beranda','belajar','latihan','progres','peringkat','karakter'].includes(CUR)&&!(CUR==='menu'&&!(QM.qs&&QM.sel))&&!ADMIN()?'<button type="button" class="backlink" data-lms="back">← Kembali</button>':'')+f();
+  const same=CUR===LASTR;if(same&&h===LASTH)return;const sy=window.scrollY;LASTR=CUR;LASTH=h;LASTHB='';
+  m.innerHTML=h;
   if(kv!==null&&$$('lms-nama'))$$('lms-nama').value=kv;
   if(gkv!==null&&$$('g-nick')){$$('g-nick').value=gkv;$$('g-nick').focus()}
-  m.classList.remove('pg-in');void m.offsetWidth;m.classList.add('pg-in');
+  if(!same){m.classList.remove('pg-in');void m.offsetWidth;m.classList.add('pg-in')}else if(sy>0)window.scrollTo(0,sy);
   try{GAME.mount3d()}catch(e){}
   try{if(CUR==='beranda'){if($$('pwbox'))pwMount();else if(window.DUNIA)DUNIA.mount()}if(CUR==='game'&&window.ASOBI)ASOBI.mount()}catch(e){console.warn(e)}
   try{if(LMS.account&&LMS.account.id&&!ADMIN())GAME.pushStats(me(),getName())}catch(e){}
@@ -13092,7 +13142,9 @@ function me(){
   const testDay=k=>at.some(a=>ka.dkey(a.ts)===k&&a.n>=10&&a.g!=='B');
   const plog=lsGet('lms:plog')||[];const pld=new Set(plog.map(x=>ka.dkey(x.t)));
   const vdAny=new Set([...vd,...pld]);
-  const full=k=>kd.has(k)&&testDay(k)&&vdAny.has(k);
+  /* hari lengkap juga dicatat ke akun (G.fd) supaya tidak hilang saat data lokal terhapus, ganti HP, atau Safari membersihkan penyimpanan */
+  const fdSet=GAME.fullDays();
+  const full=k=>fdSet.has(k)||(kd.has(k)&&testDay(k)&&vdAny.has(k));
   const dn=Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5);
   const VKEYS=['sopan','te','ta','nai','jisho','pot','pas','cau','vol','ba','imp'];
   const qmOk=k=>((QM.docs[k]||[]).length>=3);
@@ -13107,17 +13159,22 @@ function me(){
   const days=new Set([...ka.activeDays(),...vd]);
   let streak=0;{let t=Date.now();if(!full(ka.dkey(t)))t-=864e5;while(full(ka.dkey(t))&&streak<999){streak++;t-=864e5}}
   let lastFull='';{let t=Date.now();for(let i=0;i<60;i++){if(full(ka.dkey(t))){lastFull=ka.dkey(t);break}t-=864e5}}
-  const yk=ka.dkey(Date.now()-864e5);const firsts=[...days,...GAME.loginDays()].sort();const first=firsts[0]||today;
+  const yk=ka.dkey(Date.now()-864e5);const firsts=[...days,...GAME.loginDays()].sort();const first0=firsts[0]||today;
+  /* amnesti v40: batsu lama yang mungkin salah karena data lokal hilang dihapus; hitungan batsu baru mulai dari hari ini */
+  const AMNESTI='2026-11-10';const first=first0>AMNESTI?first0:AMNESTI;
   /* batsu: utang dimulai saat kemarin bolong, lunas bila lulus batsu (>=80%). Selama utang aktif tidak ada EXP/Koin. */
   const bpass=a=>a.g==='B'&&ka.pct(a.ok,a.n)>=80;
+  const dataOk=GAME.synced()||(performance.now()>6000);
   const frz=[];let debt=null,miss=0;
   {const keys=[];for(let i=59;i>=0;i--)keys.push(ka.dkey(Date.now()-i*864e5));
    for(let i=1;i<keys.length;i++){const k=keys[i],pk=keys[i-1];
      if(!debt&&pk>=first&&!full(pk))debt={s:new Date(k+'T00:00:00').getTime(),i};
      if(debt){const clr=at.filter(x=>bpass(x)&&ka.dkey(x.ts)===k&&x.ts>=debt.s).sort((p,q)=>p.ts-q.ts)[0];if(clr){frz.push([debt.s,clr.ts]);debt=null}}}
-   if(debt){frz.push([debt.s,Infinity]);miss=keys.length-1-debt.i+1}}
+   if(debt&&dataOk){frz.push([debt.s,Infinity]);miss=keys.length-1-debt.i+1}else debt=null}
   const batsuDone=at.some(a=>bpass(a)&&ka.dkey(a.ts)===today);
-  const batsu=!!debt;BATSU_ON=batsu;
+  /* jangan tampilkan batsu sebelum data akun selesai dimuat (hindari batsu palsu sesaat di awal) */
+  if(full(today))try{GAME.markFull(today)}catch(e){}
+  const batsu=!!debt&&dataOk;BATSU_ON=batsu;
   const isFrz=ts=>frz.some(r=>ts>=r[0]&&ts<=r[1]);
   /* kartu hafalan yang diulang saat batsu tidak menambah EXP */
   let srsFz=0;{const n=ka.srsReviews(),f=lsGet('lms:frz')||{lost:0,act:null};
@@ -13190,7 +13247,7 @@ function pwMount(){const el=$$('pwbox');if(!el||!window.PLANET)return;if(PLANET.
   save:async(n,b)=>{try{const dl=await claude.use('downloads');if(dl){await dl.save({filename:n,data:b});return}}catch(e){}const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click()},
   fail:()=>{window.PLANET_OK=false;renderPage()}});
  if(ok&&window.__pwShop){window.__pwShop=false;setTimeout(()=>PLANET.openShop(),300)}}
-window.DUNIA_RERENDER=()=>{if(CUR==='beranda'){try{DUNIA.stop()}catch(e){}const m=$$('lms-main');if(m)m.innerHTML='';renderPage()}};
+window.DUNIA_RERENDER=()=>{if(CUR==='beranda'){LASTR='';LASTHB='';try{DUNIA.stop()}catch(e){}const m=$$('lms-main');if(m)m.innerHTML='';renderPage()}};
 function berandaRest(){
   const d=me(),nama=getName(),dl=d.ka.daysLeft(),over=Date.now()>new Date(2026,11,21,23,59,59);
   const nameIn=nama?'':`<div class="row"><label class="fld" style="color:inherit">Isi namamu dulu<input type="text" id="lms-nama" autocomplete="name" placeholder="Contoh: Siti Rahma" value="${window.lmsHosted&&LMS.account&&LMS.account.name&&!/@/.test(LMS.account.name)?esc(LMS.account.name):''}"></label><button class="btn" data-lms="savename" type="button">Simpan nama</button></div>`;
@@ -13388,6 +13445,7 @@ function latihanHTML(){
   const vs=GAME.verbStats();
   return `<h1 class="pgt">Latihan</h1>
   <div class="lgrid">${card(d.batsu?'罰':'日',d.batsu?'Batsu menunggu':'Misi Harian (wajib)',d.batsu?'Kerjakan hukuman dulu, ya':d.done+' dari 3 selesai · beruntun '+d.streak+' hari','data-lms="go" data-r="harian"',true,'feat')}
+  ${card('総','Simulasi JFT A2',d.best?'Skor terbaik '+d.best.est+' · target 200':'Format asli, jalur 6 minggu, saran latihan','data-lms="go" data-r="simulasi"',true,'feat')}
   ${rem?card('補','Tugas Remedial','Dibuka Sensei, kerjakan ya','data-lms="jft"',true,'warnc'):''}</div>
   ${sec('Hafalan','Kartu bisa dibalik, ditandai hafal atau belum, dan diulang per status. Pilih buku lalu pelajarannya.',
    card('必','Kanji Kata Irodori',fn.kata+' kata · A1, A2.1, A2.2','data-lms="go" data-r="kwajib"',true)+
@@ -13395,7 +13453,7 @@ function latihanHTML(){
    card('語','Kosakata Irodori','Kartu per buku, bab, dan jenis kata · plus partikel','data-lms="go" data-r="kosa"',true)+
    card('辞','Kamus Irodori','Cari kata · saring buku, bab, jenis kata','data-lms="go" data-r="kamus"',true)+
    card('復','Ulang Kartu Kata',due?due+' kartu siap diulang':'Kartu hafalan harian','data-lms="kartu"',true))}
-  ${sec('Latihan','Pilih kategori. Di dalamnya ada latihan sesuai topik, skor tersimpan di Rapor Diri.',
+  ${sec('Latihan per bagian JFT','Moji-goi (kosakata dan kanji), Kaiwa-hyougen (tata bahasa dan ungkapan). Skor tersimpan di Rapor Diri.',
    card('語','Kosakata dan Kanji','Kotoba · Kanji','data-lms="qmcat" data-c="kosa"',true)+
    card('文','Tata Bahasa dan Kalimat','Bunpou · Partikel · Susun kalimat','data-lms="qmcat" data-c="tata"',true)+
    card('動','Kata Kerja dan Sifat',vs.n?'Akurasi kata kerja '+Math.round(vs.ok/vs.n*100)+'%':'Ubah bentuk kata kerja','data-lms="qmcat" data-c="kata"',true))}
@@ -13403,10 +13461,49 @@ function latihanHTML(){
    petBtn('ujian',{lms:'jmode',m:'bab',title:'Ujian Per Bab'},'基','Ujian Per Bab',d.best?'Skor terbaik '+d.best.est:'Pilih buku dan bab',true)+
    petBtn('ujian',{lms:'jmode',m:'fuku',title:'Ujian Fukushuu'},'復','Ujian Fukushuu','Ulasan per 6 bab',true)+
    petBtn('ujian',{lms:'jmode',m:'buku',title:'Ujian Satu Buku'},'全','Ujian Satu Buku','Seluruh bab dalam satu buku',true)+
-   petBtn('ujian',{lms:'jmode',m:'sim',title:'Simulasi Ujian JFT'},'総','Simulasi Ujian JFT','Campuran semua buku · segera hadir',true))}
+   card('総','Simulasi JFT A2','Panduan dan jalur menuju lulus','data-lms="go" data-r="simulasi"',true))}
   ${sec('Pantau','Lihat kelemahanmu dan apa yang perlu diulang.',
    card('報','Rapor Diri','Kelemahan dan rencana','data-lms="go" data-r="progres"',true))}
 `;
+}
+
+/* ---- Simulasi JFT A2: panduan format, kesiapan per bagian, dan jalur menuju 21 Desember ---- */
+function simulasiHTML(){
+  const d=me(),ka=d.ka,dl=ka.daysLeft();
+  const at=d.jt.filter(a=>!a.rm&&a.sec).slice(-5);
+  const SEC=[['M','文字・語彙','Moji-goi','Kosakata dan kanji','Cocokkan bacaan kanji dan arti kata dengan konteks kalimat.','data-lms="qmcat" data-c="kosa"','Latih kosakata dan kanji'],
+   ['K','会話・表現','Kaiwa-hyougen','Tata bahasa dan ungkapan','Hafal ungkapan situasi sehari-hari: minta izin, menolak sopan, berterima kasih.','data-lms="qmcat" data-c="tata"','Latih bunpou dan ungkapan'],
+   ['C','聴解','Choukai','Mendengar','Dengar dua kali. Catat angka, jam, dan tempat. Shadowing 10 menit sehari.','data-lms="jmode" data-m="bab"','Latih lewat ujian per bab'],
+   ['D','読解','Dokkai','Membaca','Baca pertanyaan dulu, lalu cari kata kunci: tanggal, harga, larangan.','data-lms="jmode" data-m="bab"','Latih lewat ujian per bab']];
+  const agg=id=>{let c=0,n=0;at.forEach(a=>{const x=a.sec&&a.sec[id];if(x&&x[1]){c+=x[0];n+=x[1]}});return n?Math.round(c/n*100):null};
+  const rows=SEC.map(x=>{const p=agg(x[0]);const st=p==null?'Belum ada data':p>=80?'Aman':p>=65?'Perlu dipoles':'Prioritas';const cl=p==null?'':p>=80?'ok':p>=65?'mid':'bad';
+   return `<div class="sim-sec ${cl}"><div class="sim-h"><b>${x[1]}</b><small>${x[2]} · ${x[3]}</small></div><div class="sim-p"><b>${p==null?'-':p+'%'}</b><span>${st}</span></div><div class="xpbar"><span style="width:${p||0}%"></span></div><p class="small muted">${x[4]}</p><button type="button" class="btn sm ghost" ${x[5]}>${x[6]}</button></div>`}).join('');
+  const weak=SEC.map(x=>[x,agg(x[0])]).filter(z=>z[1]!=null).sort((a,b)=>a[1]-b[1])[0];
+  const best=d.best?d.best.est:null,last3=d.jt.slice(-3).map(a=>a.est),avg3=last3.length?Math.round(last3.reduce((a,b)=>a+b,0)/last3.length):null;
+  const need=best==null?'':best>=200?'Skor terbaikmu sudah di atas 200. Jaga konsisten di simulasi berikutnya.':'Kurang '+(200-best)+' poin dari target 200.';
+  const W=[['10–16 Nov','Fondasi','Kartu 10 kata tiap hari, ujian per bab 13 dan 14. Rapikan kata kerja bentuk sopan, te, ta.'],
+   ['17–23 Nov','Bab 15–16','Ujian per bab 15 dan 16. Drill partikel dan kata kerja. Mulai Choukai 3 kali seminggu, 15 menit.'],
+   ['24–30 Nov','Bab 17–18','Ujian per bab 17 dan 18. Fokus Kaiwa-hyougen dan Dokkai pendek (pengumuman, jadwal, tabel).'],
+   ['1–7 Des','Fukushuu','Ujian Fukushuu Bab 13–18. Ulang semua kata yang salah, targetkan tiap bagian di atas 70%.'],
+   ['8–14 Des','Simulasi penuh','Dua simulasi penuh (tengah dan akhir pekan). Remedial hanya untuk bagian di bawah 70%.'],
+   ['15–21 Des','Penajaman','Satu simulasi Senin. Setelah itu ringan: kartu dan kata lemah. Tidur cukup 2 malam sebelum ujian.']];
+  const now=new Date(),cut=[new Date(2026,10,17),new Date(2026,10,24),new Date(2026,11,1),new Date(2026,11,8),new Date(2026,11,15)];
+  let wi=0;cut.forEach((c,i)=>{if(now>=c)wi=i+1});
+  const plan=W.map((w,i)=>`<tr class="${i===wi?'now':''}"><td><b>${w[0]}</b>${i===wi?' <span class="tier t1">minggu ini</span>':''}</td><td>${w[1]}</td><td class="wrap-t">${w[2]}</td></tr>`).join('');
+  return `<h1 class="pgt">Simulasi JFT A2</h1>
+  <section class="card sim-hero"><div class="sim-big">総</div><div><b>${dl>0?dl+' hari menuju ujian 21 Desember':'Hari ujian sudah lewat'}</b><p class="small muted">${best==null?'Belum ada simulasi. Mulai dari ujian per bab, lalu naik ke Fukushuu dan simulasi penuh.':'Skor terbaik '+best+(avg3?' · rata-rata 3 terakhir '+avg3:'')+'. '+need}</p></div></section>
+  <section class="card"><h2>Format ujian asli</h2><div class="facts"><div><b>±50</b><span>soal</span></div><div><b>60</b><span>menit</span></div><div><b>200</b><span>skor lulus A2</span></div></div>
+  <ul class="small simul"><li>Empat bagian, masing-masing sekitar 12 soal: Moji-goi, Kaiwa-hyougen, Choukai, Dokkai.</li><li>Skor 10–250 hasil penyetaraan, bukan jumlah benar. Aman targetkan sekitar 80% benar atau lebih.</li><li>Setelah pindah ke bagian berikutnya, kamu tidak bisa kembali. Jawab semua soal, jangan ada yang kosong.</li><li>Rentang skor: A2 200–250, A2.1 175–199, A1 145–174.</li></ul>
+  <div class="actions"><button type="button" class="btn" data-lms="jmode" data-m="buku">Mulai Ujian Satu Buku</button> <button type="button" class="btn ghost" data-lms="jmode" data-m="fuku">Ujian Fukushuu</button> <button type="button" class="btn ghost" data-lms="jmode" data-m="bab">Ujian per bab</button></div>
+  <p class="muted small">Soal simulasi campuran lintas bab sedang disiapkan Sensei. Sementara itu Ujian Satu Buku dan Fukushuu paling mirip format asli.</p></section>
+  <section class="card"><h2>Kesiapan per bagian</h2><p class="muted small">${at.length?'Dihitung dari '+at.length+' ujian terakhirmu. ':'Muncul setelah kamu menyelesaikan ujian. '}${weak&&weak[1]<80?'Prioritas sekarang: <b>'+weak[0][2]+'</b> ('+weak[1]+'%).':''}</p><div class="sim-grid">${rows}</div></section>
+  <section class="card"><h2>Jalur 6 minggu</h2><div class="tw"><table><thead><tr><th>Minggu</th><th>Fokus</th><th>Yang dikerjakan</th></tr></thead><tbody>${plan}</tbody></table></div></section>
+  <section class="card"><h2>Kebiasaan harian (20 menit)</h2><ul class="small simul"><li>5 menit: ulang 10 kartu kata (Misi Harian).</li><li>8 menit: tes 10 soal kotoba atau kanji.</li><li>7 menit: drill kategori hari ini, atau Choukai.</li><li>Kata yang salah ditulis ulang tangan sekali. Itu yang paling lama nempel.</li></ul>
+  <h2 style="margin-top:14px">Strategi hari ujian</h2><ul class="small simul"><li>Sekitar 1 menit per soal. Ragu lebih dari 1 menit, tandai pilihan terbaik lalu lanjut.</li><li>Choukai: baca pilihan jawaban sebelum audio diputar.</li><li>Dokkai: baca pertanyaan dulu, lalu cari kata kuncinya di teks.</li><li>Datang lebih awal, bawa tanda pengenal, dan matikan semua notifikasi HP sebelum mulai.</li></ul></section>
+  <section class="card"><h2>Cara menilai latihan 40 soal</h2><p class="muted small">Ini patokan belajar internal, bukan skor resmi JFT-Basic. Skor resmi berskala 10–250 hasil equating.</p>
+  <div class="tw"><table><thead><tr><th>Benar dari 40</th><th>Evaluasi</th></tr></thead><tbody><tr><td>36–40</td><td>Sangat baik</td></tr><tr><td>32–35</td><td>Baik</td></tr><tr><td>28–31</td><td>Cukup</td></tr><tr><td>20–27</td><td>Perlu latihan lagi</td></tr><tr><td>&lt; 20</td><td>Mulai lagi dari materi dasar</td></tr></tbody></table></div></section>
+  <section class="card"><h2>Tips lolos di percobaan pertama</h2><ul class="small simul"><li><b>Jangan cuma hafal kata.</b> Hafal beserta kalimatnya, misalnya 駅 dan 駅はどこですか。</li><li><b>Kuasai partikel:</b> は が を に で と から まで の. Satu partikel salah bisa mengubah arti.</li><li><b>Baca tiap hari:</b> pengumuman, pesan LINE, jadwal kerja, jadwal kereta, menu, instruksi sederhana.</li><li><b>Choukai (audio maksimal 2 kali):</b> 1) dengar tanpa teks, 2) dengar sambil baca transkrip, 3) catat kata yang belum paham, 4) dengar lagi.</li><li><b>Tangkap informasi, jangan terjemahkan semua:</b> Siapa, di mana, kapan, berapa, apa yang terjadi. Contoh 明日の朝7時に駅で会いましょう → besok pagi, jam 7, stasiun.</li></ul></section>
+  <p class="muted small">Referensi: format resmi di <a href="https://www.jpf.go.jp/jft-basic/e/about/" target="_blank" rel="noopener">Japan Foundation</a>; latihan tambahan di <a href="https://minnanihongo.id/" target="_blank" rel="noopener">minnanihongo.id</a>.</p>`;
 }
 
 /* ---- Rapor Diri + Rencana Tindak Lanjut ---- */
@@ -13710,12 +13807,36 @@ function classChart(rows){
 function guruHTML(){
   if(!OWNER)return guruHTML0();
   const rows=guruRows();
-  const tabs=[['live','Live'],['murid','Per murid'],['kelas','Rekap kelas'],...(window.lmsHosted?[['hadiah','Hadiah']]:[])].map(t=>`<button type="button" class="chipb${GT===t[0]?' on':''}" data-lms="gtab" data-t="${t[0]}" aria-pressed="${GT===t[0]}">${t[1]}</button>`).join('');
-  const top=`<div class="tora-head"><span class="tora-kj" aria-hidden="true">師</span><div><h1 class="pgt">Panel Tora 先生</h1><p class="small muted">Pantau murid, nilai, dan hadiah dari satu tempat.</p></div></div><div class="chips" style="margin:6px 0 12px">${tabs}</div>`;
+  const tabs=[['ringkas','Ringkasan'],['live','Live'],['murid','Per murid'],['kelas','Rekap kelas'],...(window.lmsHosted?[['hadiah','Dompet']]:[])].map(t=>`<button type="button" class="chipb${GT===t[0]?' on':''}" data-lms="gtab" data-t="${t[0]}" aria-pressed="${GT===t[0]}">${t[1]}</button>`).join('');
+  const top=`<div class="tora-head"><span class="tora-kj" aria-hidden="true">師</span><div><h1 class="pgt">Panel Tora 先生</h1><p class="small muted">Pantau murid, nilai, dan dompet kelas dari satu tempat.</p></div></div><div class="chips gtabbar" role="tablist" aria-label="Bagian panel">${tabs}</div>`;
+  if(GT==='ringkas')return top+ringkasHTML(rows);
   if(GT==='hadiah')return top+GAME.senseiHTML();
   if(GT==='live')return top+`<section class="card"><h2>Peta kelas</h2><p class="small muted">Posisi murid di Dunia Akimichi sesuai yang sedang mereka kerjakan sekarang.</p>${PANTAU.peta?PANTAU.peta(rows):''}</section><section class="card"><h2>Pantau langsung</h2>${PANTAU.liveHTML(rows)}</section>`;
   if(GT==='murid')return top+muridHTML(rows);
   return top+`<section class="card"><h2>Tabel kelas</h2><p class="small muted">Satu baris per murid. Unduh sebagai CSV untuk dibuka di Excel.</p>${kelasTable(rows)}<div class="actions"><button class="btn" type="button" data-lms="gcsvall">Unduh semua detail (CSV)</button></div><h3>Grafik kelas</h3>${classChart(rows)}</section>`+guruHTML0();
+}
+
+/* ---- Ringkasan panel Tora 先生: angka kunci + daftar yang perlu perhatian ---- */
+function ringkasHTML(rows){
+  const kl=window.GAME&&GAME.kelas?GAME.kelas():[];const today=K().api.dkey();
+  const dayStart=new Date().setHours(0,0,0,0);
+  const on=rows.filter(r=>r.st==='on').length;
+  const aktif=kl.filter(x=>x.seen>=dayStart).length;
+  const m3=kl.filter(x=>x.mis>=3&&x.seen>=dayStart).length;
+  const bt=kl.filter(x=>x.bt),lz=kl.filter(x=>x.lazy);
+  const bm=buildMap();const kr=bm.filter(r=>r.st==='kritis'),pd=bm.filter(r=>r.st==='perlu dorongan');
+  const tile=(v,l,c)=>`<div class="kpi ${c||''}"><b>${v}</b><span>${l}</span></div>`;
+  const nm=x=>esc(x.real||x.nick||'(tanpa nama)');
+  const list=(t,arr,f,empty)=>`<div class="att"><h3>${t} <small>${arr.length}</small></h3>${arr.length?`<ul>${arr.map(f).join('')}</ul>`:`<p class="small muted">${empty}</p>`}</div>`;
+  const dl=K().api.daysLeft();
+  return `<section class="card"><h2>Ringkasan hari ini</h2><p class="small muted">${dl>0?dl+' hari menuju ujian 21 Desember. ':''}Diperbarui otomatis dari data murid.</p>
+   <div class="kpis">${tile(kl.length||bm.length,'murid')}${tile(on,'online sekarang','ok')}${tile(aktif,'aktif hari ini')}${tile(m3,'misi 3 dari 3')}${tile(bt.length,'batsu aktif',bt.length?'bad':'')}${tile(lz.length,'pemalas (>8 jam)',lz.length?'mid':'')}</div></section>
+  <section class="card"><h2>Perlu perhatian</h2><div class="attg">
+   ${list('Batsu aktif',bt,x=>`<li>${nm(x)}</li>`,'Tidak ada.')}
+   ${list('Pemalas',lz,x=>`<li>${nm(x)} <small>${window.GAME.agoTxt(x.seen)}</small></li>`,'Semua aktif dalam 8 jam terakhir.')}
+   ${list('Kritis',kr,r=>`<li>${esc(r.nama)} <small>${esc(r.topik||'')}</small></li>`,'Tidak ada.')}
+   ${list('Perlu dorongan',pd,r=>`<li>${esc(r.nama)}</li>`,'Tidak ada.')}</div>
+   <div class="actions"><button type="button" class="btn sm" data-lms="gtab" data-t="live">Lihat live</button> <button type="button" class="btn sm ghost" data-lms="gtab" data-t="kelas">Rekap kelas</button> <button type="button" class="btn sm ghost" data-lms="gtab" data-t="hadiah">Dompet murid</button></div></section>`;
 }
 function muridHTML(rows){
   if(!rows.length)return `<section class="card"><p class="muted">Belum ada murid akun yang terbaca.</p></section>`;
@@ -13833,14 +13954,14 @@ async function start(){
   try{await Promise.all([J().ready,K().ready])}catch(e){}
   try{const u=await claude.use('user');OWNER=!!(u&&u.isOwner&&u.isOwner());try{const m=await u.me();let cw=null;try{cw=await u.can('data.write')}catch(e){}LMS.account={id:(m&&m.id)||null,name:(m&&m.name)||'',canWrite:cw}}catch(e){}}catch(e){}
   setTimeout(()=>{try{if(window.LOBI&&window.lmsHosted&&!ADMIN())LOBI.start()}catch(e){}},1500);
-  try{GAME.init({id:LMS.account&&LMS.account.id,name:getName(),sensei:OWNER,onChange:()=>{if(['beranda','peringkat','karakter','guru','verb','harian'].includes(CUR))renderPage()}})}catch(e){}
+  try{GAME.init({id:LMS.account&&LMS.account.id,name:getName(),sensei:OWNER,onChange:(w)=>{if(w==='all'&&!['peringkat','guru'].includes(CUR))return;if(['beranda','peringkat','karakter','guru','verb','harian'].includes(CUR))softRender()}})}catch(e){}
   if(OWNER){
     try{DB=await claude.use('db')}catch(e){DB=null}
     if(DB){
-      try{DB.collection('results').onSnapshot(s=>{RESJ=s.docs.map(d=>({id:d.id,...d.data()}));if(CUR==='guru')renderPage()},()=>{})}catch(e){}
+      try{DB.collection('results').onSnapshot(s=>{RESJ=s.docs.map(d=>({id:d.id,...d.data()}));if(CUR==='guru')softRender()},()=>{})}catch(e){}
       [['laporan',x=>AIL=x],['pengingat',x=>AIP=x],['mingguan',x=>AIM=x],['audit',x=>AIA=x]].forEach(([id,f])=>{try{DB.doc('ai/'+id).onSnapshot(x=>{f(x.exists?x.data():null);if(CUR==='guru'&&!aiBusy)renderPage()},()=>{})}catch(e){}});
-      try{DB.doc('ai/briefing').onSnapshot(x=>{AIB=x.exists?x.data():null;if(CUR==='guru'&&!aiBusy)renderPage()},()=>{})}catch(e){}
-      try{DB.collection('ktk').onSnapshot(s=>{RESK=s.docs.map(d=>({id:d.id,...d.data()}));if(CUR==='guru')renderPage()},()=>{})}catch(e){}
+      try{DB.doc('ai/briefing').onSnapshot(x=>{AIB=x.exists?x.data():null;if(CUR==='guru'&&!aiBusy)softRender()},()=>{})}catch(e){}
+      try{DB.collection('ktk').onSnapshot(s=>{RESK=s.docs.map(d=>({id:d.id,...d.data()}));if(CUR==='guru')softRender()},()=>{})}catch(e){}
     }
   }
   try{const dbx=DB||await claude.use('db');
@@ -13849,11 +13970,11 @@ async function start(){
       try{dbx.doc('config/reset-'+LMS.account.id).onSnapshot(x=>{const at=x.exists?(+x.data().at||0):0;if(at&&at>(lsGet('lms:resetAt')||0)){applyReset(at)}},()=>{})}catch(e){}
     }
     if(dbx&&OWNER){
-      try{dbx.tree('data/users').onSnapshot(sn=>{const L={},P={};sn.docs.forEach(x=>{const m=/^([0-9a-f-]{36})\/(live|plog)$/.exec(x.id);if(!m)return;(m[2]==='live'?L:P)[m[1]]=x.data()});LIVE=L;PLOGS=P;if(CUR==='guru'&&GT!=='hadiah')renderPage()},()=>{})}catch(e){}
-      try{dbx.collection('config').onSnapshot(sn=>{const R={};sn.docs.forEach(x=>{if(/^reset-/.test(x.id))R[x.id.slice(6)]=+(x.data()||{}).at||0});RESET=R;if(CUR==='guru')renderPage()},()=>{})}catch(e){}
-      setInterval(()=>{if(CUR==='guru'&&GT==='live'&&!document.hidden)renderPage()},15000);
+      try{dbx.tree('data/users').onSnapshot(sn=>{const L={},P={};sn.docs.forEach(x=>{const m=/^([0-9a-f-]{36})\/(live|plog)$/.exec(x.id);if(!m)return;(m[2]==='live'?L:P)[m[1]]=x.data()});LIVE=L;PLOGS=P;if(CUR==='guru'&&GT!=='hadiah')softRender()},()=>{})}catch(e){}
+      try{dbx.collection('config').onSnapshot(sn=>{const R={};sn.docs.forEach(x=>{if(/^reset-/.test(x.id))R[x.id.slice(6)]=+(x.data()||{}).at||0});RESET=R;if(CUR==='guru')softRender()},()=>{})}catch(e){}
+      setInterval(()=>{if(CUR==='guru'&&GT==='live'&&!document.hidden)softRender()},15000);
     }
-    if(dbx)qmInit(dbx);if(dbx)dbx.doc('config/tantangan').onSnapshot(x=>{TANT=x.exists?x.data():null;if(CUR==='beranda'||CUR==='guru')renderPage()},()=>{})}catch(e){}
+    if(dbx)qmInit(dbx);if(dbx)dbx.doc('config/tantangan').onSnapshot(x=>{TANT=x.exists?x.data():null;if(CUR==='beranda'||CUR==='guru')softRender()},()=>{})}catch(e){}
   renderTop();
   if(ADMIN()&&CUR!=='guru'&&CUR!=='bantuan'){location.hash='guru';route();return}
   const ex=examRoute();
