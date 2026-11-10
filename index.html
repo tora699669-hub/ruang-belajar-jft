@@ -995,6 +995,10 @@ button,a,[data-lms],[data-g],[data-act],select,summary,label{touch-action:manipu
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 body.pw-lock{overflow:hidden;touch-action:none}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* v42: sembunyikan game, jalur */
+.pwbar{display:flex;justify-content:flex-end;margin:0 0 6px}
+.pwoff{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pwoff p{margin:2px 0 0}
 /* ===== Kota JFT (gaya Messenger) ===== */
 .pw{position:relative;overflow:hidden;background:#a8ddd5;font-family:Nunito,system-ui,sans-serif;color:#2b2f3a;-webkit-user-select:none;user-select:none;isolation:isolate}
 .pw *{box-sizing:border-box}.pw button{font:inherit;cursor:pointer;color:inherit}
@@ -1098,7 +1102,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261110-1239"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261110-1300"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -13090,9 +13094,13 @@ function renderTop(){
 function renderNav(){
   document.body.classList.toggle('lms-admin',ADMIN());
   if(ADMIN()){$$('lms-nav').innerHTML='<div class="lms-nav-in"><button type="button" data-lms="nav" data-r="guru" aria-current="true"><i aria-hidden="true">師</i>Panel Guru</button><button type="button" data-lms="viewas" aria-current="false"><i aria-hidden="true">生</i>Mode Murid</button></div>';return}
+  if(BATSU_ON){$$('lms-nav').innerHTML='<div class="lms-nav-in"><button type="button" data-lms="nav" data-r="harian" aria-current="true"><i aria-hidden="true">罰</i>Batsu</button></div>';return}
   $$('lms-nav').innerHTML='<div class="lms-nav-in">'+ROUTES.filter(r=>r[0]!=='simulasi'&&r[0]!=='bantuan'&&r[0]!=='game'&&r[0]!=='kotoba'&&r[0]!=='jft'&&r[0]!=='verb'&&r[0]!=='harian'&&r[0]!=='menu'&&r[0]!=='petunjuk'&&r[0]!=='kamus'&&r[0]!=='bunfc'&&r[0]!=='bunlat'&&r[0]!=='kwajib'&&r[0]!=='kosa'&&r[0]!=='progres'&&(r[0]!=='guru'||(OWNER&&!(window.lmsHosted&&STU())))).map(r=>`<button type="button" data-lms="nav" data-r="${r[0]}" aria-current="${CUR===r[0]||(r[0]==='belajar'&&CUR==='kotoba')||(r[0]==='latihan'&&(CUR==='petunjuk'||CUR==='menu'||CUR==='jft'||CUR==='verb'||CUR==='bunfc'||CUR==='bunlat'||CUR==='kwajib'||CUR==='kosa'||CUR==='kamus'||CUR==='flash'))}"><i aria-hidden="true">${r[1]}</i>${r[2]}</button>`).join('')+'</div>';
 }
+const BATSU_OK=['harian','kotoba','bantuan'];
+function batsuBlock(r){if(ADMIN())return false;try{me()}catch(e){}if(!BATSU_ON)return false;if(examRoute())return false;if(r==='kotoba'&&(ACT_BATSU||K().inQuiz()))return false;return !BATSU_OK.includes(r)||r==='kotoba'}
 function show(r){
+  if(batsuBlock(r)){r='harian';if(location.hash!=='#harian'){location.hash='harian';return}}
   if(CUR&&CUR!==r)PREVR=CUR;CUR=r;if(r!=='game')try{ASOBI.leave()}catch(e){}if(r!=='beranda'){try{DUNIA.stop()}catch(e){}try{PLANET.stop()}catch(e){}}if(r!=='kotoba')ACT_BATSU=false;try{PANTAU.note()}catch(e){}const isJ=r==='jft',isK=r==='kotoba';
   LMS.active=isJ?'jft':isK?'ktk':null;
   $$('jft-wrap').hidden=!isJ;$$('ktk-wrap').hidden=!isK;$$('lms-main').hidden=isJ||isK;
@@ -13224,7 +13232,8 @@ function acctHTML(){
 
 /* ---- Beranda ---- */
 function pwOK(){if(window.PLANET_OK!==undefined)return window.PLANET_OK;let ok=false;try{const c=document.createElement('canvas');ok=!!(window.PLANET&&(c.getContext('webgl')||c.getContext('experimental-webgl')))}catch(e){}window.PLANET_OK=ok;return ok}
-function berandaHTML(){let w='';if(!ADMIN()){if(lsGet('lms:dunia')===0)w=window.DUNIA?DUNIA.html():'';else if(pwOK())w='<section class="pwbox" id="pwbox" aria-label="Kota JFT"></section>';else if(window.DUNIA)w=DUNIA.html()}return w+'<div id="bh-rest">'+berandaRest()+'</div>'}
+function berandaHTML(){let w='';if(!ADMIN()&&lsGet('lms:pwhide')===1)return '<section class="card pwoff"><div><b>Kota JFT disembunyikan</b><p class="small muted">Biar fokus belajar. Kamu bisa menampilkannya lagi kapan saja.</p></div><button type="button" class="btn sm" data-lms="pwtoggle">Tampilkan game</button></section><div id="bh-rest">'+berandaRest()+'</div>';
+ if(!ADMIN()){if(lsGet('lms:dunia')===0)w=window.DUNIA?DUNIA.html():'';else if(pwOK())w='<section class="pwbox" id="pwbox" aria-label="Kota JFT"></section>';else if(window.DUNIA)w=DUNIA.html()}return (w?'<div class="pwbar"><button type="button" class="btn sm ghost" data-lms="pwtoggle">Sembunyikan game</button></div>':'')+w+'<div id="bh-rest">'+berandaRest()+'</div>'}
 const ZACT={alun:()=>[['Misi harian','data-lms="nav" data-r="harian"'],['Bantuan dan panduan','data-lms="nav" data-r="bantuan"']],
  pos:d=>{const nx=d.ms.find(m=>!m.done);return [...(nx?[['▶ '+nx.t,`data-lms="mis" data-m="${nx.id}" data-k="${nx.k||''}" data-f="${nx.f||''}"`]]:[]),['Buka misi harian','data-lms="nav" data-r="harian"']]},
  taman:()=>[['Tes kotoba dan kanji','data-lms="nav" data-r="kotoba"'],['Kartu hafalan','data-lms="kartu"'],['Kosakata Irodori','data-lms="nav" data-r="kosa"'],['Kanji kata Irodori','data-lms="nav" data-r="kwajib"']],
@@ -13447,6 +13456,13 @@ function latihanHTML(){
   <div class="lgrid">${card(d.batsu?'罰':'日',d.batsu?'Batsu menunggu':'Misi Harian (wajib)',d.batsu?'Kerjakan hukuman dulu, ya':d.done+' dari 3 selesai · beruntun '+d.streak+' hari','data-lms="go" data-r="harian"',true,'feat')}
   ${card('総','Simulasi JFT A2',d.best?'Skor terbaik '+d.best.est+' · target 200':'Format asli, jalur 6 minggu, saran latihan','data-lms="go" data-r="simulasi"',true,'feat')}
   ${rem?card('補','Tugas Remedial','Dibuka Sensei, kerjakan ya','data-lms="jft"',true,'warnc'):''}</div>
+  ${sec('Peta latihan JFT A2 (diisi bertahap)','Menu sudah disiapkan sesuai bagian ujian. Yang abu-abu sedang diisi Sensei, urutannya mengikuti jalur belajar.',
+   card('聴','Choukai: dialog dan pengumuman','Audio, dengar dua kali, latih tangkap informasi','',false)+
+   card('聴','Choukai: toko dan tempat umum','Konbini, stasiun, apotek, loket','',false)+
+   card('読','Dokkai: pesan dan pengumuman','Pesan LINE, surat, pemberitahuan sekolah','',false)+
+   card('表','Dokkai: jadwal, tabel, menu, brosur','Cari informasi dari tabel dan gambar','',false)+
+   card('時','Simulasi waktu 60 menit','50 soal campuran, tidak bisa kembali ke bagian sebelumnya','',false)+
+   card('弱','Remedial bagian lemah','Latihan otomatis dari bagian yang paling rendah','',false))}
   ${sec('Hafalan','Kartu bisa dibalik, ditandai hafal atau belum, dan diulang per status. Pilih buku lalu pelajarannya.',
    card('必','Kanji Kata Irodori',fn.kata+' kata · A1, A2.1, A2.2','data-lms="go" data-r="kwajib"',true)+
    card('文','Kartu Bunpou',fn.bunpou+' pola · arti, rumus, contoh','data-lms="go" data-r="bunfc"',true)+
@@ -13487,6 +13503,13 @@ function simulasiHTML(){
    ['1–7 Des','Fukushuu','Ujian Fukushuu Bab 13–18. Ulang semua kata yang salah, targetkan tiap bagian di atas 70%.'],
    ['8–14 Des','Simulasi penuh','Dua simulasi penuh (tengah dan akhir pekan). Remedial hanya untuk bagian di bawah 70%.'],
    ['15–21 Des','Penajaman','Satu simulasi Senin. Setelah itu ringan: kartu dan kata lemah. Tidur cukup 2 malam sebelum ujian.']];
+  const okB=b=>d.jt.some(a=>a.bab===b&&d.ja.passed(a)),kk=ka.CFG().kkm;
+  const stg=[['1. Fondasi harian','Selalu terbuka. Misi harian 3 dari 3',d.streak>=1?'ok':'jalan'],
+   ...[13,14,15,16,17,18].map((b,i)=>['Ujian Bab '+b,i?'Lulus Bab '+(b-1):'Terbuka',okB(b)?'ok':(i===0||okB(b-1))?'jalan':'kunci']),
+   ['Ujian Fukushuu','Lulus Bab 18',okB(19)?'ok':okB(18)?'jalan':'kunci'],
+   ['Ujian Satu Buku','Lulus Fukushuu',okB(20)?'ok':okB(19)?'jalan':'kunci'],
+   ['Simulasi penuh skor 200+','Lulus Satu Buku',(best!=null&&best>=200&&okB(20))?'ok':okB(20)?'jalan':'kunci']];
+  const JAL=stg.map(x=>`<tr><td><b>${x[0]}</b></td><td class="wrap-t">${x[1]}</td><td>${x[2]==='ok'?'<span class="tier t1">Lulus</span>':x[2]==='jalan'?'<span class="tier t2">Sedang dikerjakan</span>':'<span class="muted">&#128274; Terkunci</span>'}</td></tr>`).join('');
   const now=new Date(),cut=[new Date(2026,10,17),new Date(2026,10,24),new Date(2026,11,1),new Date(2026,11,8),new Date(2026,11,15)];
   let wi=0;cut.forEach((c,i)=>{if(now>=c)wi=i+1});
   const plan=W.map((w,i)=>`<tr class="${i===wi?'now':''}"><td><b>${w[0]}</b>${i===wi?' <span class="tier t1">minggu ini</span>':''}</td><td>${w[1]}</td><td class="wrap-t">${w[2]}</td></tr>`).join('');
@@ -13497,6 +13520,7 @@ function simulasiHTML(){
   <div class="actions"><button type="button" class="btn" data-lms="jmode" data-m="buku">Mulai Ujian Satu Buku</button> <button type="button" class="btn ghost" data-lms="jmode" data-m="fuku">Ujian Fukushuu</button> <button type="button" class="btn ghost" data-lms="jmode" data-m="bab">Ujian per bab</button></div>
   <p class="muted small">Soal simulasi campuran lintas bab sedang disiapkan Sensei. Sementara itu Ujian Satu Buku dan Fukushuu paling mirip format asli.</p></section>
   <section class="card"><h2>Kesiapan per bagian</h2><p class="muted small">${at.length?'Dihitung dari '+at.length+' ujian terakhirmu. ':'Muncul setelah kamu menyelesaikan ujian. '}${weak&&weak[1]<80?'Prioritas sekarang: <b>'+weak[0][2]+'</b> ('+weak[1]+'%).':''}</p><div class="sim-grid">${rows}</div></section>
+  <section class="card"><h2>Jalur lulus (dikunci bertahap)</h2><p class="muted small">Paket berikutnya terbuka setelah paket sebelumnya lulus. Ini supaya belajarnya runtut, bukan loncat-loncat.</p><div class="tw"><table><thead><tr><th>Tahap</th><th>Syarat buka</th><th>Status</th></tr></thead><tbody>${JAL}</tbody></table></div></section>
   <section class="card"><h2>Jalur 6 minggu</h2><div class="tw"><table><thead><tr><th>Minggu</th><th>Fokus</th><th>Yang dikerjakan</th></tr></thead><tbody>${plan}</tbody></table></div></section>
   <section class="card"><h2>Kebiasaan harian (20 menit)</h2><ul class="small simul"><li>5 menit: ulang 10 kartu kata (Misi Harian).</li><li>8 menit: tes 10 soal kotoba atau kanji.</li><li>7 menit: drill kategori hari ini, atau Choukai.</li><li>Kata yang salah ditulis ulang tangan sekali. Itu yang paling lama nempel.</li></ul>
   <h2 style="margin-top:14px">Strategi hari ujian</h2><ul class="small simul"><li>Sekitar 1 menit per soal. Ragu lebih dari 1 menit, tandai pilihan terbaik lalu lanjut.</li><li>Choukai: baca pilihan jawaban sebelum audio diputar.</li><li>Dokkai: baca pertanyaan dulu, lalu cari kata kuncinya di teks.</li><li>Datang lebih awal, bawa tanda pengenal, dan matikan semua notifikasi HP sebelum mulai.</li></ul></section>
@@ -13928,6 +13952,7 @@ document.addEventListener('click',e=>{
   else if(a==='kpre'){K().preset({kstep:3,b:b.dataset.b,l:+b.dataset.l,type:b.dataset.y,cum:false});go('kotoba')}
   else if(a==='kdaily'){K().preset({});K().go('daily');go('kotoba')}
   else if(a==='kresume'){K().resume();go('kotoba')}
+  else if(a==='pwtoggle'){lsSet('lms:pwhide',lsGet('lms:pwhide')===1?0:1);try{PLANET.stop()}catch(e){}try{DUNIA.stop()}catch(e){}LASTR='';LASTH='';renderPage()}
   else if(a==='kartu'){K().go('kartu');go('kotoba')}
   else if(a==='aigo')aiRun();
   else if(a==='focusname'){const e=$$('lms-nama');if(e){e.scrollIntoView({block:'center'});e.focus()}}
@@ -13973,6 +13998,7 @@ async function start(){
       try{dbx.tree('data/users').onSnapshot(sn=>{const L={},P={};sn.docs.forEach(x=>{const m=/^([0-9a-f-]{36})\/(live|plog)$/.exec(x.id);if(!m)return;(m[2]==='live'?L:P)[m[1]]=x.data()});LIVE=L;PLOGS=P;if(CUR==='guru'&&GT!=='hadiah')softRender()},()=>{})}catch(e){}
       try{dbx.collection('config').onSnapshot(sn=>{const R={};sn.docs.forEach(x=>{if(/^reset-/.test(x.id))R[x.id.slice(6)]=+(x.data()||{}).at||0});RESET=R;if(CUR==='guru')softRender()},()=>{})}catch(e){}
       setInterval(()=>{if(CUR==='guru'&&GT==='live'&&!document.hidden)softRender()},15000);
+      setInterval(()=>{if(!document.hidden&&batsuBlock(CUR)){renderNav();go('harian')}},8000);
     }
     if(dbx)qmInit(dbx);if(dbx)dbx.doc('config/tantangan').onSnapshot(x=>{TANT=x.exists?x.data():null;if(CUR==='beranda'||CUR==='guru')softRender()},()=>{})}catch(e){}
   renderTop();
