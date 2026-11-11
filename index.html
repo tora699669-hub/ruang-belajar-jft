@@ -1262,7 +1262,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261111-0617"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261111-1247"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -8249,6 +8249,8 @@ const dkey=(t)=>{const d=new Date(t||Date.now());return d.getFullYear()+'-'+Stri
 
 /* ---------- penghargaan ---------- */
 const xpx=()=>{const e=(G&&G.xe)||{};return (+(G&&G.xb)||0)+Object.values(e).reduce((t,v)=>t+(+v||0),0)};
+/* Ulang paket yang sama di hari yang sama: EXP penuh hanya bila nilai naik. Ulangan biasa tetap dapat 30% (maks 3x per hari) supaya latihan berulang tidak terasa nol. */
+function addXpR(key,pts){let g=addXp(key,pts);if(g>0)return g;if(!G||!(pts>0)||(window.lmsFrozen&&window.lmsFrozen()))return 0;for(let i=1;i<=3;i++){const k=key+'#'+i;if(!((G.xe||{})[k+'|'+dkey()]))return addXp(k,Math.max(3,Math.round(pts*.3)))}return 0}
 let XT=0;function addXp(key,pts){if(!G||!key||!(pts>0))return 0;if(window.lmsFrozen&&window.lmsFrozen())return 0;G.xe=G.xe||{};const k=key+'|'+dkey();const old=+G.xe[k]||0;const gain=pts-old;if(gain<=0)return 0;G.xe[k]=pts;const ks=Object.keys(G.xe);if(ks.length>300){ks.sort((a,b)=>a.split('|')[1]<b.split('|')[1]?-1:1).slice(0,100).forEach(x=>{G.xb=(+G.xb||0)+G.xe[x];delete G.xe[x]})}needSave=true;clearTimeout(XT);XT=setTimeout(()=>{try{save()}catch(e){}},800);return gain}
 const vst=()=>Object.assign({n:0,ok:0,sess:0,perfect:0,best:0,xp:0,form:{},hist:[]},(G&&G.verb)||{});
 const A=(id,ic,name,why,k,ok,o)=>Object.assign({id,ic,name,why,k,ok},o||{});
@@ -8365,7 +8367,7 @@ async function init(o){
  ME=Object.assign(ME,o||{});onChange=o.onChange||onChange;G=local();
  try{DB=await claude.use('db')}catch(e){DB=null}
  if(DB&&ME.id){
-  try{DB.doc('game/'+ME.id).onSnapshot(s=>{if(s.exists){G=cfgOf(s.data());lsS('lms:game:'+ME.id,G)}ready=true;onChange()},()=>{})}catch(e){}
+  try{DB.doc('game/'+ME.id).onSnapshot(s=>{if(s.exists){const old=G;G=cfgOf(s.data());if(old&&old.xe){G.xe=G.xe||{};for(const k in old.xe){if((+old.xe[k]||0)>(+G.xe[k]||0)){G.xe[k]=old.xe[k];needSave=true}}}/* EXP lokal yang belum tersimpan tidak boleh tertimpa data server */lsS('lms:game:'+ME.id,G)}ready=true;onChange()},()=>{})}catch(e){}
   try{DB.doc('grant/'+ME.id).onSnapshot(s=>{GR=s.exists?s.data():null;onChange()},()=>{})}catch(e){}
   if(!ME.sensei){try{DB.tree('grant/'+ME.id).onSnapshot(s=>{LOGS[ME.id]=s.docs.map(x=>Object.assign({id:x.id},x.data()));onChange()},()=>{})}catch(e){}}
   try{DB.collection('game').onSnapshot(s=>{ALL=s.docs.map(x=>({id:x.id,...x.data()}));onChange('all')},()=>{})}catch(e){}
@@ -8790,7 +8792,7 @@ document.addEventListener('click',async e=>{
 });
 const armed={};function confirmAgain(b){const k=b.dataset.v;if(armed[k]){delete armed[k];return true}armed[k]=1;setTimeout(()=>delete armed[k],6000);return false}
 
-return {myId:()=>ME.sensei?null:ME.id,packRank:k=>ALL.filter(x=>!x.sensei&&x.stats&&x.stats.cp&&x.stats.cp[k]!=null).map(x=>({id:x.id,nick:nickOf(x),real:x.real||'',v:x.stats.cp[k]})),kelas:()=>ALL.filter(x=>!x.sensei).map(x=>{const st=x.stats||{};return {id:x.id,real:x.real||'',nick:x.nick||'',lv:st.lv||1,exp:st.exp||0,streak:st.streak||0,bt:!!st.bt,mis:st.mis||0,cb:st.cb||0,cbp:st.cbp||0,sm:st.sm||0,smp:st.smp||0,ir:st.ir||0,bu:st.bu||0,seen:seenOf(x),lazy:isLazy(x)}}),agoTxt,fullDays:()=>new Set((G&&G.fd)||[]),markFull:k=>{if(!G||!k)return;if((G.fd||[]).includes(k))return;G.fd=[...(G.fd||[]),k].slice(-120);needSave=true},synced:()=>!!ready,buyX,ownedX:()=>((G&&G.owned)||[]).filter(k=>typeof k==='string'&&k.slice(0,3)==='x3:').map(k=>k.slice(3)),look3:()=>(G&&G.look3)||null,setLook3:l=>{if(!G)return;G.look3=Object.assign({},l);clearTimeout(L3T);L3T=setTimeout(()=>{save()},900)},verbQ:(f)=>{const F=VLEV.campur[3];const ff=f||F[rnd(F.length)];const q=vq(VERBS[rnd(VERBS.length)],ff);return Object.assign(q,{label:FORMS[ff]||ff})},init,mount3d,verbHTML,verbQuick:(lv)=>{V.lv=(lv&&VLEV[lv])?lv:'campur';vstart()},verbXp:()=>vst().xp,addXp,xpx,verbDays:()=>new Set((G&&G.vd)||[]),verbStats:vst,VFORMS:FORMS,VCATS:VLEV,titleOf,loginDays:()=>new Set((G&&G.logins)||[]),avatarSVG,heroHTML,karakterHTML,peringkatHTML,senseiHTML,komentar,pushStats,wallet,sfx,ITEMS,ACH,get state(){return {G,GR,ALL}}};
+return {addXpR,myId:()=>ME.sensei?null:ME.id,packRank:k=>ALL.filter(x=>!x.sensei&&x.stats&&x.stats.cp&&x.stats.cp[k]!=null).map(x=>({id:x.id,nick:nickOf(x),real:x.real||'',v:x.stats.cp[k]})),kelas:()=>ALL.filter(x=>!x.sensei).map(x=>{const st=x.stats||{};return {id:x.id,real:x.real||'',nick:x.nick||'',lv:st.lv||1,exp:st.exp||0,streak:st.streak||0,bt:!!st.bt,mis:st.mis||0,cb:st.cb||0,cbp:st.cbp||0,sm:st.sm||0,smp:st.smp||0,ir:st.ir||0,bu:st.bu||0,seen:seenOf(x),lazy:isLazy(x)}}),agoTxt,fullDays:()=>new Set((G&&G.fd)||[]),markFull:k=>{if(!G||!k)return;if((G.fd||[]).includes(k))return;G.fd=[...(G.fd||[]),k].slice(-120);needSave=true},synced:()=>!!ready,buyX,ownedX:()=>((G&&G.owned)||[]).filter(k=>typeof k==='string'&&k.slice(0,3)==='x3:').map(k=>k.slice(3)),look3:()=>(G&&G.look3)||null,setLook3:l=>{if(!G)return;G.look3=Object.assign({},l);clearTimeout(L3T);L3T=setTimeout(()=>{save()},900)},verbQ:(f)=>{const F=VLEV.campur[3];const ff=f||F[rnd(F.length)];const q=vq(VERBS[rnd(VERBS.length)],ff);return Object.assign(q,{label:FORMS[ff]||ff})},init,mount3d,verbHTML,verbQuick:(lv)=>{V.lv=(lv&&VLEV[lv])?lv:'campur';vstart()},verbXp:()=>vst().xp,addXp,xpx,verbDays:()=>new Set((G&&G.vd)||[]),verbStats:vst,VFORMS:FORMS,VCATS:VLEV,titleOf,loginDays:()=>new Set((G&&G.logins)||[]),avatarSVG,heroHTML,karakterHTML,peringkatHTML,senseiHTML,komentar,pushStats,wallet,sfx,ITEMS,ACH,get state(){return {G,GR,ALL}}};
 })();
 
 </script>
@@ -8875,7 +8877,7 @@ function finish(){
   const e=S.ex;if(!e)return;clearInterval(TM);
   const ok=e.ids.reduce((t,id,i)=>t+(byId[id].a===e.ans[i]?1:0),0);
   const s=ld();s.h.push({ts:Date.now(),set:e.set,label:e.label,n:e.ids.length,ok,ids:e.ids,ans:e.ans,fl:e.fl,sec:Math.min(e.lim,Math.floor((Date.now()-e.t0)/1000))});s.h=s.h.slice(-40);sv(s);
-  let gain=0;try{if(window.GAME&&GAME.addXp)gain=GAME.addXp('cbt:'+e.set,ok*3+10+(ok===e.ids.length?10:0))}catch(x){}
+  let gain=0;try{if(window.GAME&&GAME.addXp)gain=(GAME.addXpR||GAME.addXp)('cbt:'+e.set,ok*3+10+(ok===e.ids.length?10:0))}catch(x){}
   try{if(window.GAME&&GAME.pushStats&&window.LMS_ME)GAME.pushStats(window.LMS_ME(),window.LMS_NAME&&window.LMS_NAME())}catch(x){}
   S.rv={...e,ok,n:e.ids.length,gain};S.ex=null;S.v='result';S.flt='all';redraw(1)
 }
@@ -9290,7 +9292,7 @@ function start(id){
 function finish(){
   const l=byId[S.id],n=S.qs.length,ok=S.qs.filter(q=>q.pick===q.a).length;
   const s=ld();s.h.push({ts:Date.now(),id:S.id,ok,n});s.h=s.h.slice(-80);sv(s);
-  let gain=0;try{if(window.GAME&&GAME.addXp)gain=GAME.addXp('bun:'+S.id,ok*3+(ok===n?8:0)+4)}catch(e){}
+  let gain=0;try{if(window.GAME&&GAME.addXp)gain=(GAME.addXpR||GAME.addXp)('bun:'+S.id,ok*3+(ok===n?8:0)+4)}catch(e){}
   S.ok=ok;S.gain=gain;S.v='result';redraw(1)
 }
 function homeHTML(){
@@ -11946,13 +11948,17 @@ const KINDS={
 };
 
 /* ---------- state ---------- */
-const S={kind:'kwajib',cfg:{buku:'shokyu2',bab:'all',f:'all',acak:false,cat:'all'},deck:[],i:0,flip:false,quiz:null,q:{buku:'shokyu2',bab:'all',mode:'arti',n:10}};
+const S={kind:'kwajib',cfg:{buku:'shokyu2',bab:'all',f:'all',acak:false,cat:'all',jenis:'all',dir:(function(){try{const d=localStorage.getItem('lms:fcdir');return d==='id'||d==='mix'?d:'jp'}catch(e){return 'jp'}})()},deck:[],i:0,flip:false,quiz:null,q:{buku:'shokyu2',bab:'all',mode:'arti',n:10}};
 const root=()=>document.getElementById('fc-root');
 const isK=id=>!!KNOWN[id];
 
 const isPart=()=>S.kind==='kosa'&&S.cfg.cat==='partikel';
 function poolBase(){const K=KINDS[S.kind];if(isPart())return itemsPartikel();let a=K.items(S.cfg.buku);if(S.cfg.bab!=='all')a=a.filter(x=>x.bab===String(S.cfg.bab));return a}
-function pool(){let a=poolBase();if(S.kind==='kosa'&&S.cfg.cat!=='all'&&!isPart())a=a.filter(x=>x.cat===S.cfg.cat);return a}
+const hasKanji=t=>/[\u4e00-\u9fff々]/.test(String(t||''));
+function pool(){let a=poolBase();if(S.kind==='kosa'&&S.cfg.cat!=='all'&&!isPart())a=a.filter(x=>x.cat===S.cfg.cat);
+  if(S.kind==='kosa'&&!isPart()&&S.cfg.jenis!=='all')a=a.filter(x=>S.cfg.jenis==='kanji'?hasKanji(x.front):!hasKanji(x.front));return a}
+/* arah kartu per item: 'jp' = Jepang di depan, 'id' = Indonesia di depan; 'mix' bolak-balik stabil per kartu */
+function dirOf(it){const d=S.cfg.dir;if(d==='mix'){let h=2166136261;for(const c of String(it.id))h=Math.imul(h^c.charCodeAt(0),16777619);h^=h>>>15;h=Math.imul(h,2246822519);h^=h>>>13;return ((h>>>7)&1)?'id':'jp'}return d==='id'?'id':'jp'}
 function buildDeck(keepId){
   let a=pool();
   const tot=a.length;
@@ -11960,7 +11966,7 @@ function buildDeck(keepId){
   else if(S.cfg.f==='hafal')a=a.filter(x=>isK(x.id));
   if(S.cfg.acak){
     /* urutan acak stabil selama sesi: pakai urutan tersimpan */
-    if(!S.order||S.orderKey!==S.kind+S.cfg.buku+S.cfg.bab+S.cfg.cat){S.order=shuffle(pool().map(x=>x.id));S.orderKey=S.kind+S.cfg.buku+S.cfg.bab+S.cfg.cat}
+    if(!S.order||S.orderKey!==S.kind+S.cfg.buku+S.cfg.bab+S.cfg.cat+S.cfg.jenis){S.order=shuffle(pool().map(x=>x.id));S.orderKey=S.kind+S.cfg.buku+S.cfg.bab+S.cfg.cat+S.cfg.jenis}
     const pos={};S.order.forEach((id,i)=>pos[id]=i);a.sort((x,y)=>pos[x.id]-pos[y.id]);
   }
   S.deck=a;S.total=tot;
@@ -12019,21 +12025,25 @@ function playHTML(){
   const bukuRow=part?'':`<p class="fc-h">Buku</p><div class="fc-chips">${kosa?chip('cfg','buku','all','Semua buku',c.buku==='all'):''}${BOOKS.map(b=>chip('cfg','buku',b[0],b[1],c.buku===b[0],b[2])).join('')}</div>`;
   const babRow=part||(kosa&&c.buku==='all')?'':`<label class="fc-h" for="fc-bab" style="display:block">${K.babWord}</label>
   <select id="fc-bab" class="fc-sel" data-fc-sel="bab"><option value="all" ${c.bab==='all'?'selected':''}>Semua ${K.babWord.toLowerCase()} (${K.items(c.buku).length} kartu)</option>${babs.map(b=>`<option value="${b[0]}" ${String(c.bab)===b[0]?'selected':''}>${esc(K.babName(c.buku,b[0]))} · ${b[2]}/${b[1]} hafal</option>`).join('')}</select>`;
+  const jBase=kosa&&!part?K.items(c.buku).filter(x=>(c.bab==='all'||x.bab===String(c.bab))&&(c.cat==='all'||x.cat===c.cat)):[];
+  const nKj=jBase.filter(x=>hasKanji(x.front)).length;
+  const jenisRow=kosa&&!part?`<p class="fc-h">Jenis hafalan</p><div class="fc-chips">${chip('cfg','jenis','all','Semua',c.jenis==='all',jBase.length)}${chip('cfg','jenis','kosa','Kosakata (tanpa kanji)',c.jenis==='kosa',jBase.length-nKj)}${chip('cfg','jenis','kanji','Kanji (kata bertulis kanji)',c.jenis==='kanji',nKj)}</div>`:'';
+  const dirRow=`<p class="fc-h">Arah kartu</p><div class="fc-chips">${chip('cfg','dir','jp','日 → ID · Jepang dulu',c.dir==='jp')}${chip('cfg','dir','id','ID → 日 · Indonesia dulu',c.dir==='id')}${chip('cfg','dir','mix','🔁 Bolak-balik acak',c.dir==='mix')}</div>`;
   const head=`<h1 class="pgt">${K.judul}</h1><p class="muted small">${K.sub}</p>
-  ${bukuRow}${babRow}${catRow}
+  ${bukuRow}${babRow}${catRow}${jenisRow}${dirRow}
   <p class="fc-h">Tampilkan</p><div class="fc-chips">${[['all','Semua'],['belum','Belum hafal'],['hafal','Sudah hafal']].map(f=>chip('cfg','f',f[0],f[1],c.f===f[0],fcount(f[0]))).join('')}</div>`;
   if(!n){
     const msg=c.f==='belum'?'Semua kartu di sini sudah kamu tandai hafal. Mantap! Ganti ke "Sudah hafal" atau "Semua" kalau mau mengulang.':c.f==='hafal'?'Belum ada kartu yang kamu tandai hafal di pilihan ini.':'Belum ada kartu di pilihan ini.';
     return head+`<section class="card"><p>${msg}</p><div class="fc-act">${c.f!=='all'?`<button type="button" class="btn" data-fc="cfg" data-k="f" data-v="all">Tampilkan semua</button>`:''}</div></section>`;
   }
-  const ok=isK(it.id),big=lenCls(it.front);
+  const ok=isK(it.id),big=lenCls(it.front),dn=dirOf(it);
   return head+`<div class="fc-top2"><span class="fc-cnt" aria-live="polite">Kartu ${S.i+1} / ${n}</span><span class="small muted">${hafal} dari ${tot} hafal</span></div>
   <div class="fc-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${hafal}"><i style="width:${tot?Math.round(hafal/tot*100):0}%"></i></div>
   <div class="fc-card ${S.flip?'flip':''}" data-fc="flipcard"><div class="fc-in">
    <div class="fc-f ${ok?'ok':''}" ${S.flip?'aria-hidden="true"':''}>${ok?'<span class="fc-okmark">✓ Hafal</span>':''}
     <div style="position:absolute;top:12px;left:14px;display:flex;gap:6px;flex-wrap:wrap">${tagsHTML(it)}</div>
-    <div class="fc-big ${big}" lang="ja">${esc(it.front)}</div><div class="fc-hint">Ketuk kartu untuk lihat ${S.kind==='bunfc'?'arti dan rumus':'cara baca dan arti'}</div></div>
-   <div class="fc-b ${ok?'ok':''}" ${S.flip?'':'aria-hidden="true"'}>${ok?'<span class="fc-okmark">✓ Hafal</span>':''}<div style="font:800 15px var(--f-jp);margin-bottom:2px" lang="ja">${esc(it.front)}</div>${backHTML(it)}</div></div></div>
+    ${dn==='id'?`<div class="fc-big ${lenCls(it.arti)}" style="font-family:var(--f-ui)">${esc(it.arti)}</div><div class="fc-hint">Ketuk kartu: tebak tulisan dan cara baca Jepangnya</div>`:`<div class="fc-big ${big}" lang="ja">${esc(it.front)}</div><div class="fc-hint">Ketuk kartu untuk lihat ${S.kind==='bunfc'?'arti dan rumus':'cara baca dan arti'}</div>`}</div>
+   <div class="fc-b ${ok?'ok':''}" ${S.flip?'':'aria-hidden="true"'}>${ok?'<span class="fc-okmark">✓ Hafal</span>':''}${dn==='id'?`<div class="fc-big l3" lang="ja" style="text-align:center;margin-bottom:4px">${esc(it.front)}</div>`:`<div style="font:800 15px var(--f-jp);margin-bottom:2px" lang="ja">${esc(it.front)}</div>`}${backHTML(it)}</div></div></div>
   <div class="fc-nav"><button type="button" class="btn ghost" data-fc="prev" ${S.i?'':'disabled'} aria-label="Kartu sebelumnya">◀ Sebelum</button><button type="button" class="btn" data-fc="flip">Balik kartu</button><button type="button" class="btn ghost" data-fc="next" ${S.i+1<n?'':'disabled'} aria-label="Kartu berikutnya">Lanjut ▶</button></div>
   <div class="fc-tools"><button type="button" class="btn ${ok?'':'ghost'} ${ok?'on':''}" data-fc="mark" data-v="1" aria-pressed="${ok}">✓ Sudah hafal</button><button type="button" class="btn ghost ${!ok?'on':''}" data-fc="mark" data-v="0" aria-pressed="${!ok}">✗ Belum hafal</button>
    <button type="button" class="btn ghost ${c.acak?'on':''}" data-fc="acak" aria-pressed="${c.acak}">🔀 Acak ${c.acak?'(aktif)':''}</button><button type="button" class="btn ghost" data-fc="reset">↺ Reset hafalan</button></div>
@@ -12092,7 +12102,7 @@ document.addEventListener('click',e=>{
   if(t.getAttribute('data-fc')==='flipcard'&&e.target.closest('button'))return;
   const a=t.getAttribute('data-fc'),v=t.getAttribute('data-v'),k=t.getAttribute('data-k');
   const cur=S.deck[S.i];
-  if(a==='cfg'){S.cfg[k]=v;if(k==='buku'){S.cfg.bab='all'}if(k==='cat'){S.order=null}S.i=0;S.flip=false;return draw()}
+  if(a==='cfg'){S.cfg[k]=v;if(k==='buku'){S.cfg.bab='all'}if(k==='cat'||k==='jenis'){S.order=null}if(k==='dir'){try{localStorage.setItem('lms:fcdir',v)}catch(e){}}S.i=(k==='dir')?S.i:0;S.flip=false;return draw()}
   if(a==='flip'||a==='flipcard'){S.flip=!S.flip;return draw()}
   if(a==='next'){if(S.i+1<S.deck.length){S.i++;S.flip=false;draw()}return}
   if(a==='prev'){if(S.i>0){S.i--;S.flip=false;draw()}return}
@@ -12962,6 +12972,17 @@ window.LOBI=(function(){'use strict';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sfx=k=>{try{GAME.sfx(k)}catch(e){}};
 const STAMPS=['こんにちは！ Halo!','がんばって！ Semangat!','すごい！ Keren!','ありがとう！ Makasih!','よろしく！ Salam kenal!','いっしょに勉強しよう！ Belajar bareng yuk!','ドンマイ！ Gapapa!','またね！ Dadah!'];
+(function(){const st=document.createElement('style');st.textContent=`
+.lb-pu{display:flex;gap:8px;justify-content:center;margin:8px 0 2px;flex-wrap:wrap}
+.lb-pu button{min-height:44px;border:2px solid #2b2a3d;border-radius:14px;background:#fff;font:800 14px Nunito,sans-serif;padding:0 12px;cursor:pointer;color:#3c3c3c}
+.lb-pu button:disabled{opacity:.35;cursor:default}.lb-pu button.on{background:#ffd84d}
+.lb-cmb{min-height:26px;text-align:center;font:900 15px Nunito,sans-serif;color:#e8392f}
+.lb-opp{font:800 12px Nunito,sans-serif;text-align:center;color:#6b6880;min-height:18px}
+.lb-emo{display:flex;gap:6px;justify-content:center;margin-top:8px}.lb-emo button{border:0;background:#f1f1f1;border-radius:12px;min-height:40px;min-width:44px;font-size:20px;cursor:pointer}
+.lb-fl{position:absolute;right:16px;top:64px;font-size:34px;animation:lbfl 1.8s ease-out forwards;pointer-events:none}
+@keyframes lbfl{from{transform:translateY(0);opacity:1}to{transform:translateY(-60px);opacity:0}}
+.lb-o.gone{visibility:hidden}.lb-rw{background:#fff8d6;border:2px solid #2b2a3d;border-radius:14px;padding:8px 12px;margin:8px 0;font:800 15px Nunito,sans-serif}
+@media(prefers-reduced-motion:reduce){.lb-fl{animation:none;opacity:0}}`;document.head.appendChild(st)})();
 const L={me:null,up:false,players:{},events:[],meta:{},listeners:new Set()};
 const now=()=>Date.now();
 function emit(){L.listeners.forEach(f=>{try{f()}catch(e){}})}
@@ -12998,53 +13019,64 @@ const KN=()=>SOAL.KINDS;
 function ov(html){let d=document.getElementById('lb-ov');if(!d){d=document.createElement('div');d.id='lb-ov';d.className='lb-ov';document.body.appendChild(d)}d.innerHTML=html;d.hidden=false;return d}
 function ovClose(){const d=document.getElementById('lb-ov');if(d){d.hidden=true;d.innerHTML=''}}
 function pickKind(to){const p=L.players[to];if(!p)return;sfx('tap');
-  ov(`<div class="lb-card" role="dialog" aria-modal="true" aria-labelledby="lb-t"><button type="button" class="lb-x" data-lb="close" aria-label="Tutup">✕</button><div class="lb-vs"><span>${esc(nameOf())}</span><b>VS</b><span>${esc(p.nm)}</span></div><h3 id="lb-t">Duel apa?</h3><p class="lb-sub">7 soal, 10 detik per soal. Benar + cepat = poin besar.</p>
+  ov(`<div class="lb-card" role="dialog" aria-modal="true" aria-labelledby="lb-t"><button type="button" class="lb-x" data-lb="close" aria-label="Tutup">✕</button><div class="lb-vs"><span>${esc(nameOf())}</span><b>VS</b><span>${esc(p.nm)}</span></div><h3 id="lb-t">Duel apa?</h3><p class="lb-sub">7 soal, 10 detik per soal. Benar + cepat = poin besar. Jawab benar beruntun = combo (poin ×1,2 / ×1,5 / ×2). Ada 3 power-up sekali pakai. Menang dapat EXP.</p>
    <div class="lb-kinds">${KN().map(k=>`<button type="button" class="lb-k" data-lb="inv" data-to="${esc(to)}" data-k="${k[0]}"><i>${k[1]}</i>${k[2]}</button>`).join('')}</div></div>`)}
 function invite(to,kind){const p=L.players[to];if(!p)return;const qs=SOAL.gen(kind,7);if(qs.length<3){toastIn('Soalnya belum siap, coba jenis lain.');return}
-  const id=Math.random().toString(36).slice(2,10);D={id,role:'host',opp:{id:to,nm:p.nm},kind,qs,st:'wait',i:0,me:{s:0,i:0,done:false},op:{s:0,i:0,done:false}};
+  const id=Math.random().toString(36).slice(2,10);D={id,role:'host',opp:{id:to,nm:p.nm},kind,qs,st:'wait',i:0,extra:0,dbl:false,pu:{f:1,t:1,x:1},me:{s:0,i:0,done:false,c:0,best:0,right:0},op:{s:0,i:0,done:false,c:0}};
   send({t:'duel',k:'inv',to,id,kind,qs,nm:nameOf(),lv:lvOf()});sfx('tap');
   ov(`<div class="lb-card"><div class="lb-spin" aria-hidden="true">⚔️</div><h3>Menunggu ${esc(p.nm)}...</h3><p class="lb-sub">Tantangan ${esc(kindName(kind))} sudah dikirim.</p><button type="button" class="btn ghost" data-lb="cancel">Batal</button></div>`);
   clearTimeout(D.to);D.to=setTimeout(()=>{if(D&&D.st==='wait'){toastIn(p.nm+' belum menjawab tantangan.');D=null;ovClose()}},25000)}
 const kindName=k=>(KN().find(x=>x[0]===k)||[k,'',k])[2];
 function duelMsg(m,p){if(m.to!==L.me)return;
   if(m.k==='inv'){if(D||BUSY()){send({t:'duel',k:'busy',to:m.from,id:m.id});return}
-    D={id:m.id,role:'guest',opp:{id:m.from,nm:m.nm||(p&&p.nm)||'Teman'},kind:m.kind,qs:m.qs||[],st:'ask',i:0,me:{s:0,i:0,done:false},op:{s:0,i:0,done:false}};sfx('coin');
+    D={id:m.id,role:'guest',opp:{id:m.from,nm:m.nm||(p&&p.nm)||'Teman'},kind:m.kind,qs:m.qs||[],st:'ask',i:0,extra:0,dbl:false,pu:{f:1,t:1,x:1},me:{s:0,i:0,done:false,c:0,best:0,right:0},op:{s:0,i:0,done:false,c:0}};sfx('coin');
     ov(`<div class="lb-card lb-pop" role="alertdialog" aria-labelledby="lb-t"><div class="lb-spin" aria-hidden="true">⚔️</div><h3 id="lb-t">${esc(D.opp.nm)} menantangmu!</h3><p class="lb-sub">Duel <b>${esc(kindName(m.kind))}</b>, ${D.qs.length} soal.</p><div class="actions"><button type="button" class="btn big" data-lb="acc">Terima duel</button><button type="button" class="btn ghost" data-lb="no">Nanti dulu</button></div></div>`);
     clearTimeout(D.to);D.to=setTimeout(()=>{if(D&&D.st==='ask'){D=null;ovClose()}},22000);return}
   if(!D||m.id!==D.id)return;
   if(m.k==='acc'&&D.role==='host'){clearTimeout(D.to);begin(m.start)}
   else if(m.k==='no'||m.k==='busy'){toastIn(D.opp.nm+(m.k==='busy'?' lagi sibuk (ujian/latihan).':' belum mau duel sekarang.'));D=null;ovClose()}
-  else if(m.k==='ans'){D.op.s=m.s;D.op.i=m.i+1;bars()}
+  else if(m.k==='ans'){D.op.s=m.s;D.op.i=m.i+1;D.op.c=m.c||0;D.op.last=m.ok?'✓':'✗';bars()}
+  else if(m.k==='emo'){floatEmo(m.e)}
   else if(m.k==='end'){D.op.s=m.s;D.op.done=true;D.op.i=D.qs.length;bars();if(D.me.done)result()}
   else if(m.k==='quit'){toastIn(D.opp.nm+' keluar dari duel.');D.op.done=true;D.op.quit=true;if(D.me.done)result()}}
 function accept(){if(!D)return;const st=Date.now()+3200;send({t:'duel',k:'acc',to:D.opp.id,id:D.id,start:st});clearTimeout(D.to);begin(st)}
 function begin(at){D.st='cd';const go=()=>{const left=Math.ceil((at-Date.now())/1000);if(!D)return;if(left>0){ov(`<div class="lb-card lb-cd"><div class="lb-vs"><span>${esc(nameOf())}</span><b>VS</b><span>${esc(D.opp.nm)}</span></div><div class="lb-num">${left}</div><p class="lb-sub">${esc(kindName(D.kind))}</p></div>`);sfx('tap');setTimeout(go,Math.min(1000,at-Date.now()-(left-1)*1000))}else{D.st='play';ask()}};go()}
-function ask(){if(!D)return;if(D.i>=D.qs.length){finish();return}const q=D.qs[D.i];D.qt=performance.now();D.lock=false;
+function ask(){if(!D)return;if(D.i>=D.qs.length){finish();return}const q=D.qs[D.i];D.qt=performance.now();D.lock=false;D.extra=0;
   ov(`<div class="lb-duel"><div class="lb-top"><button type="button" class="lb-x" data-lb="quit" aria-label="Keluar duel">✕</button><div class="lb-bars"><div class="lb-pl me"><span>${esc(nameOf())}</span><div class="lb-b"><i id="lb-bme"></i></div><b id="lb-sme">${D.me.s}</b></div><div class="lb-pl op"><span>${esc(D.opp.nm)}</span><div class="lb-b"><i id="lb-bop"></i></div><b id="lb-sop">${D.op.s}</b></div></div></div>
-   <div class="lb-time"><i id="lb-tb"></i></div><div class="lb-q"><small>Soal ${D.i+1} dari ${D.qs.length}${q.s?' · '+esc(q.s):''}</small><div class="lb-p${q.big?' big':''}${q.long?' long':''}">${esc(q.p)}</div></div>
-   <div class="lb-opts">${q.o.map((o,i)=>`<button type="button" class="lb-o${q.jpo?' jp':''}" data-lb="ans" data-i="${i}"><kbd>${i+1}</kbd>${esc(o)}</button>`).join('')}</div></div>`);
-  bars();clearInterval(D.tm);D.tm=setInterval(()=>{if(!D){return}const el=(performance.now()-D.qt)/1000,left=10-el;const b=document.getElementById('lb-tb');if(b)b.style.transform=`scaleX(${Math.max(0,left/10)})`;if(left<=0){clearInterval(D.tm);answer(-1)}},60)}
-function bars(){if(!D)return;const n=D.qs.length||1;const a=document.getElementById('lb-bme'),b=document.getElementById('lb-bop');if(a)a.style.width=Math.round(D.me.i/n*100)+'%';if(b)b.style.width=Math.round(D.op.i/n*100)+'%';const c=document.getElementById('lb-sme'),d=document.getElementById('lb-sop');if(c)c.textContent=D.me.s;if(d)d.textContent=D.op.s}
+   <div class="lb-time"><i id="lb-tb"></i></div><div class="lb-opp" id="lb-opp"></div><div class="lb-q"><small>Soal ${D.i+1} dari ${D.qs.length}${q.s?' · '+esc(q.s):''}</small><div class="lb-p${q.big?' big':''}${q.long?' long':''}">${esc(q.p)}</div></div>
+   <div class="lb-opts">${q.o.map((o,i)=>`<button type="button" class="lb-o${q.jpo?' jp':''}" data-lb="ans" data-i="${i}"><kbd>${i+1}</kbd>${esc(o)}</button>`).join('')}</div>
+   <div class="lb-cmb" id="lb-cmb"></div>
+   <div class="lb-pu"><button type="button" data-lb="pu" data-k="f" ${D.pu.f?'':'disabled'}>✂️ 50:50</button><button type="button" data-lb="pu" data-k="t" ${D.pu.t?'':'disabled'}>⏱ +5 detik</button><button type="button" data-lb="pu" data-k="x" ${D.pu.x?'':'disabled'}>⚡ Poin ×2</button></div>
+   <div class="lb-emo">${['😎','🔥','😭','👏','😂'].map(e=>`<button type="button" data-lb="emo" data-e="${e}" aria-label="Kirim ${e}">${e}</button>`).join('')}</div></div>`);D.dbl=false;
+  bars();clearInterval(D.tm);D.tm=setInterval(()=>{if(!D){return}const el=(performance.now()-D.qt)/1000,tot=10+D.extra,left=tot-el;const b=document.getElementById('lb-tb');if(b)b.style.transform=`scaleX(${Math.max(0,left/tot)})`;if(left<=0){clearInterval(D.tm);answer(-1)}},60)}
+function bars(){if(!D)return;const n=D.qs.length||1;const a=document.getElementById('lb-bme'),b=document.getElementById('lb-bop');if(a)a.style.width=Math.round(D.me.i/n*100)+'%';if(b)b.style.width=Math.round(D.op.i/n*100)+'%';const c=document.getElementById('lb-sme'),d=document.getElementById('lb-sop');if(c)c.textContent=D.me.s;if(d)d.textContent=D.op.s;const cm=document.getElementById('lb-cmb');if(cm)cm.textContent=D.me.c>=2?'🔥 Combo '+D.me.c+' · poin ×'+mulOf(D.me.c)+(D.dbl?' · ⚡×2':''):(D.dbl?'⚡ Poin ×2 aktif':'');const op=document.getElementById('lb-opp');if(op)op.textContent=D.op.c>=2?D.opp.nm+' lagi combo '+D.op.c+' 🔥':(D.op.last?D.opp.nm+' baru jawab '+D.op.last:'')}
+const mulOf=c=>c>=5?2:c>=3?1.5:c>=2?1.2:1;
 function answer(i){if(!D||D.lock||D.st!=='play')return;D.lock=true;clearInterval(D.tm);const q=D.qs[D.i],ok=i===q.a,el=(performance.now()-D.qt)/1000;
   const bs=[...document.querySelectorAll('.lb-o')];if(bs[q.a])bs[q.a].classList.add('ok');if(!ok&&bs[i])bs[i].classList.add('no');
-  if(ok){D.me.s+=100+Math.round(Math.max(0,10-el)*5);sfx('ok')}else sfx('bad');D.me.i=D.i+1;bars();
-  send({t:'duel',k:'ans',to:D.opp.id,id:D.id,i:D.i,s:D.me.s,ok});
+  if(ok){D.me.c++;D.me.right++;D.me.best=Math.max(D.me.best,D.me.c);const base=100+Math.round(Math.max(0,10+D.extra-el)*5);D.me.s+=Math.round(base*mulOf(D.me.c)*(D.dbl?2:1));sfx('ok')}else{D.me.c=0;sfx('bad')}D.me.i=D.i+1;bars();
+  send({t:'duel',k:'ans',to:D.opp.id,id:D.id,i:D.i,s:D.me.s,ok,c:D.me.c});
   setTimeout(()=>{if(!D)return;D.i++;ask()},ok?650:1100)}
 function finish(){if(!D)return;D.me.done=true;D.st='done';send({t:'duel',k:'end',to:D.opp.id,id:D.id,s:D.me.s});
   if(D.op.done){result();return}
   ov(`<div class="lb-card"><div class="lb-spin" aria-hidden="true">⏳</div><h3>Kamu selesai! Skor ${D.me.s}</h3><p class="lb-sub">Menunggu ${esc(D.opp.nm)} menyelesaikan soal...</p><div class="lb-bars"><div class="lb-pl op"><span>${esc(D.opp.nm)}</span><div class="lb-b"><i id="lb-bop"></i></div><b id="lb-sop">${D.op.s}</b></div></div></div>`);bars();
   clearTimeout(D.to);D.to=setTimeout(()=>{if(D&&!D.op.done){D.op.quit=true;result()}},40000)}
-function result(){if(!D)return;clearTimeout(D.to);const w=D.me.s>D.op.s?'me':D.me.s<D.op.s?'op':'seri';sfx(w==='me'?'win':w==='op'?'fail':'ok');
+const REC=()=>{try{return Object.assign({w:0,l:0,d:0},JSON.parse(localStorage.getItem('lms:duelrec')||'{}'))}catch(e){return {w:0,l:0,d:0}}};
+function reward(w){let pts=w==='me'?30:w==='seri'?15:10;pts+=Math.min(15,(D.me.best||0)*3);let g=0;try{if(window.GAME&&GAME.addXp)for(let n=1;n<=5&&!g;n++)g=GAME.addXp('duel:'+n,pts)}catch(e){}
+  const r=REC();if(w==='me')r.w++;else if(w==='op')r.l++;else r.d++;try{localStorage.setItem('lms:duelrec',JSON.stringify(r))}catch(e){}
+  try{if(window.GAME&&GAME.pushStats&&window.LMS_ME)GAME.pushStats(window.LMS_ME(),window.LMS_NAME&&window.LMS_NAME())}catch(e){}
+  const fz=window.lmsFrozen&&window.lmsFrozen();return {g,r,fz}}
+function floatEmo(e){const c=document.querySelector('.lb-duel');if(!c)return;const f=document.createElement('div');f.className='lb-fl';f.textContent=e;c.appendChild(f);setTimeout(()=>f.remove(),1900)}
+function result(){if(!D)return;clearTimeout(D.to);const w=D.me.s>D.op.s?'me':D.me.s<D.op.s?'op':'seri';const rw=reward(w);sfx(w==='me'?'win':w==='op'?'fail':'ok');
   const conf=w==='me'?'<div class="as-conf" aria-hidden="true">'+Array.from({length:30},(_,i)=>`<i style="--x:${Math.random()*100}%;--d:${(Math.random()*.8).toFixed(2)}s;--c:${['#ffc800','#58cc02','#1cb0f6','#ff6b9d','#ce82ff'][i%5]}"></i>`).join('')+'</div>':'';
   ov(`<div class="lb-card lb-res ${w}">${conf}<div class="lb-big">${w==='me'?'勝ち！':w==='op'?'負け…':'引き分け'}</div><h3>${w==='me'?'Kamu menang!':w==='op'?esc(D.opp.nm)+' menang kali ini':'Seri! Sama kuat'}</h3>
    <div class="lb-score"><div><span>${esc(nameOf())}</span><b>${D.me.s}</b></div><div><span>${esc(D.opp.nm)}</span><b>${D.op.s}${D.op.quit?' (keluar)':''}</b></div></div>
-   <p class="lb-sub">Duel cuma buat seru-seruan, tidak mengubah nilai atau Koin.</p><div class="actions"><button type="button" class="btn big" data-lb="again">Duel lagi</button><button type="button" class="btn ghost" data-lb="close">Selesai</button></div></div>`);
-  L.last={opp:D.opp.id,kind:D.kind};L.events.push({t:'duelEnd',w});D=null}
+   <div class="lb-rw">${rw.g?'+'+rw.g+' EXP':rw.fz?'EXP ditahan selama batsu aktif':'Jatah EXP duel hari ini habis (maks 5 duel)'} · Combo terbaik ${D.me.best} · Benar ${D.me.right}/${D.qs.length}<br>Rekor duelmu: ${rw.r.w} menang · ${rw.r.l} kalah · ${rw.r.d} seri</div><p class="lb-sub">Duel tidak mengubah nilai ujian. EXP dibatasi 5 duel per hari.</p><div class="actions"><button type="button" class="btn big" data-lb="again">Rematch!</button><button type="button" class="btn" data-lb="pick" data-to="${esc(D.opp.id)}">Ganti jenis soal</button><button type="button" class="btn ghost" data-lb="close">Selesai</button></div></div>`);
+  L.last={opp:D.opp.id,kind:D.kind,nm:D.opp.nm};L.events.push({t:'duelEnd',w});D=null}
 /* ---------- daftar online ---------- */
 function listHTML(){const P=Object.values(L.players);
   return `<div class="lb-card lb-list" role="dialog" aria-modal="true" aria-labelledby="lb-lt"><button type="button" class="lb-x" data-lb="close" aria-label="Tutup">✕</button><h3 id="lb-lt">🟢 ${P.length+1} online sekarang</h3>
    <ul><li class="me"><b>${esc(nameOf())}</b><span>Kamu · Lv ${lvOf()}</span></li>${P.map(p=>`<li><b>${esc(p.nm||'Teman')}${p.sensei?' 先生':''}</b><span>Lv ${p.lv||1} · ${esc(whereName(p.w))}</span><div><button type="button" class="btn sm" data-lb="pick" data-to="${esc(p.id)}"${['jft','kotoba'].includes(p.w)?' disabled title="Lagi ujian/latihan"':''}>⚔️ Duel</button><button type="button" class="btn sm ghost" data-lb="hi" data-to="${esc(p.id)}">👋</button></div></li>`).join('')}</ul>
-   ${P.length?'':'<p class="lb-sub">Belum ada teman lain yang online. Ajak mereka masuk!</p>'}</div>`}
+   ${P.length?'<button type="button" class="btn big" data-lb="rand" style="margin-top:10px;width:100%">🎲 Cari lawan acak</button>':'<p class="lb-sub">Belum ada teman lain yang online. Ajak mereka masuk!</p>'}</div>`}
 const WN={beranda:'Di Dunia',latihan:'Menu latihan',jft:'Lagi ujian',kotoba:'Latihan kotoba',menu:'Latihan soal',verb:'Ubah kata kerja',game:'Taman Bermain',karakter:'Di toko',peringkat:'Lihat peringkat',harian:'Misi harian',progres:'Lihat rapor'};
 const whereName=w=>WN[w]||'Menjelajah';
 document.addEventListener('click',e=>{const b=e.target.closest('[data-lb]');if(!b)return;const a=b.dataset.lb;
@@ -13057,7 +13089,12 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-lb]');if(!
   else if(a==='no'){if(D)send({t:'duel',k:'no',to:D.opp.id,id:D.id});D=null;ovClose()}
   else if(a==='ans'){answer(+b.dataset.i)}
   else if(a==='quit'){if(D){send({t:'duel',k:'quit',to:D.opp.id,id:D.id});D=null}ovClose()}
-  else if(a==='again'){const l=L.last;ovClose();if(l&&L.players[l.opp])pickKind(l.opp);else toastIn('Lawanmu sudah offline.')}
+  else if(a==='again'){const l=L.last;ovClose();if(l&&L.players[l.opp])invite(l.opp,l.kind);else toastIn('Lawanmu sudah offline.')}
+  else if(a==='pu'){if(!D||D.st!=='play'||D.lock||!D.pu[b.dataset.k])return;const k=b.dataset.k;D.pu[k]=0;b.disabled=true;sfx('coin');
+    if(k==='f'){const q=D.qs[D.i];const bs=[...document.querySelectorAll('.lb-o')];const wrong=bs.map((x,i)=>i).filter(i=>i!==q.a).sort(()=>Math.random()-.5).slice(0,Math.max(0,bs.length-2));wrong.forEach(i=>{bs[i].classList.add('gone');bs[i].disabled=true})}
+    else if(k==='t'){D.extra+=5}else if(k==='x'){D.dbl=true}bars()}
+  else if(a==='emo'){if(D&&D.st==='play'){send({t:'duel',k:'emo',to:D.opp.id,id:D.id,e:b.dataset.e});floatEmo(b.dataset.e)}}
+  else if(a==='rand'){const P=Object.values(L.players).filter(p=>!['jft','kotoba'].includes(p.w));if(!P.length){toastIn('Belum ada teman yang bisa diajak duel.');return}ovClose();const p=P[Math.floor(Math.random()*P.length)];invite(p.id,'campur')}
   else if(a==='hi'){send({t:'emo',e:'wave',to:b.dataset.to});send({t:'chat',s:STAMPS[0]});toastIn('Sapaan terkirim 👋')}
   else if(a==='stamp'){const s=STAMPS[+b.dataset.i];send({t:'chat',s});L.events.push({t:'mychat',s});ovClose();sfx('tap')}});
 document.addEventListener('keydown',e=>{if(!D||D.st!=='play')return;const n=+e.key;if(n>=1&&n<=4)answer(n-1)});
