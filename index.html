@@ -1262,7 +1262,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261111-1312"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261111-1412"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -13011,6 +13011,7 @@ function onMsg(m){if(!m||!m.from||m.from===L.me)return;const p=L.players[m.from]
   else if(m.t==='emo'||m.t==='chat'){L.events.push({t:m.t,m});if(m.t==='chat')toastIn((p?p.nm:'Teman')+': '+m.s)}
   else if(m.t==='foto'){L.events.push({t:'foto',m});if(m.near)toastIn('📸 '+(p?p.nm:'Teman')+' memotretmu! Pose dong!')}
   else if(m.t==='duel')duelMsg(m,p);
+  else if(m.t==='tur'&&window.TUR)TUR.msg(m,p);
   emit()}
 function toastIn(t){let d=document.getElementById('lb-toast');if(!d){d=document.createElement('div');d.id='lb-toast';d.className='lb-toast';d.setAttribute('role','status');document.body.appendChild(d)}d.textContent=t;d.classList.add('on');clearTimeout(d._t);d._t=setTimeout(()=>d.classList.remove('on'),2600)}
 /* ---------- duel ---------- */
@@ -13076,7 +13077,7 @@ function result(){if(!D)return;clearTimeout(D.to);const w=D.me.s>D.op.s?'me':D.m
 function listHTML(){const P=Object.values(L.players);
   return `<div class="lb-card lb-list" role="dialog" aria-modal="true" aria-labelledby="lb-lt"><button type="button" class="lb-x" data-lb="close" aria-label="Tutup">✕</button><h3 id="lb-lt">🟢 ${P.length+1} online sekarang</h3>
    <ul><li class="me"><b>${esc(nameOf())}</b><span>Kamu · Lv ${lvOf()}</span></li>${P.map(p=>`<li><b>${esc(p.nm||'Teman')}${p.sensei?' 先生':''}</b><span>Lv ${p.lv||1} · ${esc(whereName(p.w))}</span><div><button type="button" class="btn sm" data-lb="pick" data-to="${esc(p.id)}"${['jft','kotoba'].includes(p.w)?' disabled title="Lagi ujian/latihan"':''}>⚔️ Duel</button><button type="button" class="btn sm ghost" data-lb="hi" data-to="${esc(p.id)}">👋</button></div></li>`).join('')}</ul>
-   ${P.length?'<button type="button" class="btn big" data-lb="rand" style="margin-top:10px;width:100%">🎲 Cari lawan acak</button>':'<p class="lb-sub">Belum ada teman lain yang online. Ajak mereka masuk!</p>'}</div>`}
+   ${'<button type="button" class="btn" data-tur="open" style="margin-top:10px;width:100%">🏆 Turnamen</button>'}${P.length?'<button type="button" class="btn big" data-lb="rand" style="margin-top:10px;width:100%">🎲 Cari lawan acak</button>':'<p class="lb-sub">Belum ada teman lain yang online. Ajak mereka masuk!</p>'}</div>`}
 const WN={beranda:'Di Dunia',latihan:'Menu latihan',jft:'Lagi ujian',kotoba:'Latihan kotoba',menu:'Latihan soal',verb:'Ubah kata kerja',game:'Taman Bermain',karakter:'Di toko',peringkat:'Lihat peringkat',harian:'Misi harian',progres:'Lihat rapor'};
 const whereName=w=>WN[w]||'Menjelajah';
 document.addEventListener('click',e=>{const b=e.target.closest('[data-lb]');if(!b)return;const a=b.dataset.lb;
@@ -13101,6 +13102,147 @@ document.addEventListener('keydown',e=>{if(!D||D.st!=='play')return;const n=+e.k
 function stampsHTML(){return `<div class="lb-card" role="dialog" aria-modal="true"><button type="button" class="lb-x" data-lb="close" aria-label="Tutup">✕</button><h3>Kirim stiker</h3><div class="lb-stamps">${STAMPS.map((s,i)=>`<button type="button" class="lb-st" data-lb="stamp" data-i="${i}">${esc(s)}</button>`).join('')}</div></div>`}
 return {start,send,on:f=>{L.listeners.add(f);return()=>L.listeners.delete(f)},get players(){return L.players},get me(){return L.me},get up(){return L.up},
   events:()=>L.events.splice(0),pick:pickKind,list:()=>ov(listHTML()),stamps:()=>ov(stampsHTML()),toast:toastIn,retrack:()=>L.retrack&&L.retrack(),get dueling(){return !!D},nameOf,lookOf};
+})();
+
+</script>
+<script>
+/* ===== Turnamen realtime JFT A2: ruang dengan kode, ronde bertema, ronde demi ronde peserta terbawah gugur. Pakai kanal lobi (tanpa menyimpan data). ===== */
+window.TUR=(function(){'use strict';
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sfx=k=>{try{GAME.sfx(k)}catch(e){}};
+const QT=12;/* detik per soal */
+const PRESETS={
+ jft:{name:'Paket JFT A2 · 4 ronde',desc:'Kosakata → Kanji wajib → Partikel dan susun kalimat → Kata kerja. Paling pas buat latihan ujian.',n:5,rounds:[['Ronde 1 · Kosakata','kosakata'],['Ronde 2 · Kanji wajib','kanji'],['Ronde 3 · Partikel dan susun kalimat','partikel'],['Final · Kata kerja','verb']]},
+ kilat:{name:'Kilat campur · 2 ronde',desc:'Soal campur dari semua materi, singkat dan seru.',n:6,rounds:[['Ronde 1 · Campur','campur'],['Final · Campur','campur']]},
+ kosa:{name:'Kosakata saja · 3 ronde',desc:'Fokus moji-goi: arti dan cara baca kosakata Irodori.',n:5,rounds:[['Ronde 1 · Kosakata','kosakata'],['Ronde 2 · Kosakata','kosakata'],['Final · Kosakata','kosakata']]},
+ kanji:{name:'Kanji saja · 3 ronde',desc:'Cara baca kanji wajib JFT A2.',n:5,rounds:[['Ronde 1 · Kanji','kanji'],['Ronde 2 · Kanji','kanji'],['Final · Kanji','kanji']]}
+};
+const now=()=>Date.now();
+let T=null,ROOMS={},opened=false;
+const ME=()=>window.LOBI&&LOBI.me;
+const NM=()=>LOBI.nameOf();
+const isSensei=()=>!!window.LMS_OWNER_VIEW;
+const send=p=>{if(window.LOBI)LOBI.send(Object.assign({t:'tur'},p))};
+function ov(h){let d=document.getElementById('tr-ov');if(!d){d=document.createElement('div');d.id='tr-ov';d.className='lb-ov';document.body.appendChild(d)}d.innerHTML=h;d.hidden=false}
+function ovClose(){const d=document.getElementById('tr-ov');if(d){d.hidden=true;d.innerHTML=''}}
+(function(){const st=document.createElement('style');st.textContent=`
+.tr-list{list-style:none;margin:8px 0;padding:0;display:grid;gap:8px;text-align:left}
+.tr-list li{display:flex;align-items:center;gap:8px;justify-content:space-between;border:2px solid #e5e5e5;border-radius:14px;padding:8px 12px;background:#fff;font:700 15px Nunito,sans-serif;color:#3c3c3c}
+.tr-list li.me{border-color:#58cc02;background:#f2ffe5}.tr-list li.out{opacity:.5;text-decoration:line-through}
+.tr-list li b{font-weight:900}.tr-code{font:900 34px Fredoka,Nunito,sans-serif;letter-spacing:6px;color:#e8392f;margin:2px 0}
+.tr-pre{display:grid;gap:8px;margin:8px 0;text-align:left}.tr-pre button{border:2px solid #2b2a3d;border-radius:14px;background:#fff;padding:10px 12px;text-align:left;cursor:pointer;font:700 14px Nunito,sans-serif;color:#3c3c3c;min-height:52px}
+.tr-pre button b{display:block;font:900 15px Nunito,sans-serif}.tr-pre button.rec{background:#fff8d6}
+.tr-med{font:900 26px Fredoka,Nunito,sans-serif;margin:4px 0}`;document.head.appendChild(st)})();
+
+/* ---------- ruang dan pencarian ---------- */
+function menuHTML(){
+  const R=Object.values(ROOMS).filter(r=>now()-r.t<15000);
+  return `<div class="lb-card" role="dialog" aria-modal="true" aria-labelledby="tr-t"><button type="button" class="lb-x" data-tur="close" aria-label="Tutup">✕</button><h3 id="tr-t">🏆 Turnamen</h3>
+  <p class="lb-sub">Beberapa murid main bareng, ronde demi ronde. Peserta terbawah gugur tiap ronde, juara dapat EXP paling banyak (maks 3 turnamen berhadiah per hari).</p>
+  <h4 style="margin:10px 0 4px;text-align:left">Turnamen yang dibuka</h4>
+  ${R.length?`<ul class="tr-list">${R.map(r=>`<li><span><b>${esc(r.nm)}</b><br><small>${esc(r.pre)} · ${r.n} peserta</small></span><button type="button" class="btn sm" data-tur="join" data-c="${esc(r.code)}">Gabung</button></li>`).join('')}</ul>`:'<p class="lb-sub">Belum ada turnamen yang dibuka. Buat sendiri di bawah, lalu ajak temanmu.</p>'}
+  <h4 style="margin:10px 0 4px;text-align:left">Buat turnamen</h4>
+  <div class="tr-pre">${Object.keys(PRESETS).map((k,i)=>`<button type="button" class="${i?'':'rec'}" data-tur="host" data-p="${k}"><b>${i?'':'⭐ '}${esc(PRESETS[k].name)}</b>${esc(PRESETS[k].desc)}</button>`).join('')}</div></div>`}
+function open(){if(!window.lmsRT||!window.LOBI){try{LOBI.toast('Turnamen hanya ada di versi online.')}catch(e){}return}
+  if(!ME()){try{LOBI.toast('Menyambung ke lobi… coba lagi sebentar.')}catch(e){}return}
+  if(T){render();return}ov(menuHTML());opened=true}
+function listen(){/* dipanggil dari lobi saat ada pesan turnamen */}
+function lobbyHTML(){
+  const P=Object.keys(T.pl);const host=T.role==='host';
+  return `<div class="lb-card" role="dialog" aria-modal="true"><button type="button" class="lb-x" data-tur="leave" aria-label="Keluar">✕</button><h3>${esc(PRESETS[T.pre].name)}</h3><p class="lb-sub">Kode ruang</p><div class="tr-code" aria-label="Kode ruang ${esc(T.code)}">${esc(T.code)}</div>
+  <p class="lb-sub">${host?'Teman yang buka daftar turnamen akan melihat ruangmu. Mulai kalau peserta sudah cukup (minimal 2).':'Menunggu '+esc(T.hostNm)+' memulai turnamen…'}</p>
+  <ul class="tr-list">${P.map(id=>`<li class="${id===ME()?'me':''}"><span><b>${esc(T.pl[id].nm)}</b>${id===T.host?' · tuan rumah':''}</span><small>Lv ${T.pl[id].lv||1}</small></li>`).join('')}</ul>
+  <div class="actions">${host?`<button type="button" class="btn big" data-tur="start" ${P.length<2?'disabled':''}>Mulai turnamen (${P.length})</button>`:''}<button type="button" class="btn ghost" data-tur="leave">Keluar</button></div></div>`}
+function render(){
+  if(!T){return}
+  if(T.st==='lobby')ov(lobbyHTML());
+  else if(T.st==='wait')ov(waitHTML());
+  else if(T.st==='med')ov(medHTML());
+  else if(T.st==='end')ov(endHTML());
+  else if(T.st==='spec')ov(specHTML())}
+function standings(){const ids=Object.keys(T.pl);return ids.map(id=>({id,nm:T.pl[id].nm,s:(T.live[id]&&T.live[id].s)||0,alive:!!T.alive[id],ok:(T.live[id]&&T.live[id].ok)||0})).sort((a,b)=>(b.alive-a.alive)||(b.s-a.s))}
+const rowsHTML=()=>`<ul class="tr-list">${standings().map((x,i)=>`<li class="${x.id===ME()?'me':''}${x.alive?'':' out'}"><span>${i+1}. <b>${esc(x.nm)}</b></span><b>${x.s}</b></li>`).join('')}</ul>`;
+const waitHTML=()=>`<div class="lb-card"><div class="lb-spin" aria-hidden="true">⏳</div><h3>Kamu selesai ${esc(T.rounds[T.r].name)}!</h3><p class="lb-sub">Menunggu peserta lain. Skor sementara:</p>${rowsHTML()}</div>`;
+const specHTML=()=>`<div class="lb-card"><button type="button" class="lb-x" data-tur="leave" aria-label="Keluar">✕</button><h3>${T.out?'Kamu gugur, tapi tonton terus!':'Mengawasi turnamen'}</h3><p class="lb-sub">${esc(T.rounds[Math.min(T.r,T.rounds.length-1)].name)} sedang berlangsung.</p>${rowsHTML()}</div>`;
+function medHTML(){return `<div class="lb-card"><div class="tr-med">${esc(T.rounds[T.r].name)} selesai</div>${T.elim&&T.elim.length?`<p class="lb-sub">Gugur: <b>${T.elim.map(id=>esc((T.pl[id]||{}).nm||'?')).join(', ')}</b></p>`:''}${rowsHTML()}<p class="lb-sub" id="tr-cd">Ronde berikutnya sebentar lagi…</p></div>`}
+function endHTML(){const rk=T.ranks||[];const my=rk.indexOf(ME())+1;const w=rk[0]===ME();
+  return `<div class="lb-card lb-res ${w?'me':'op'}">${w?'<div class="as-conf" aria-hidden="true">'+Array.from({length:30},(_,i)=>`<i style="--x:${Math.random()*100}%;--d:${(Math.random()*.8).toFixed(2)}s;--c:${['#ffc800','#58cc02','#1cb0f6','#ff6b9d','#ce82ff'][i%5]}"></i>`).join('')+'</div>':''}<div class="lb-big">${w?'🏆 JUARA!':my?'Peringkat '+my:'Turnamen selesai'}</div><h3>${w?'Kamu juara turnamen!':'Juaranya '+esc((T.pl[rk[0]]||{}).nm||'?')}</h3>
+  <ul class="tr-list">${rk.map((id,i)=>`<li class="${id===ME()?'me':''}"><span>${['🥇','🥈','🥉'][i]||(i+1)+'.'} <b>${esc((T.pl[id]||{}).nm||'?')}</b></span><b>${(T.final&&T.final[id]&&T.final[id].s)||0}</b></li>`).join('')}</ul>
+  ${T.rw?`<div class="lb-rw">${T.rw.g?'+'+T.rw.g+' EXP':T.rw.fz?'EXP ditahan selama batsu aktif':'Jatah EXP turnamen hari ini habis'} · Benar ${T.me.ok} soal</div>`:''}<div class="actions"><button type="button" class="btn ghost" data-tur="leave">Selesai</button></div></div>`}
+
+/* ---------- tuan rumah ---------- */
+function host(key){const P=PRESETS[key];if(!P)return;const code=String(Math.floor(1000+Math.random()*9000));
+  T={code,host:ME(),hostNm:NM(),role:'host',pre:key,st:'lobby',pl:{},live:{},alive:{},r:0,rounds:[],me:{s:0,ok:0},done:{},cum:{}};
+  if(!isSensei()){T.pl[ME()]={nm:NM(),lv:lv()}}else{T.pl[ME()]={nm:NM()+' 先生 (tuan rumah)',lv:99};T.mod=true}
+  T.beacon=setInterval(()=>{if(T&&T.role==='host'&&T.st==='lobby')send({k:'open',code:T.code,nm:NM(),pre:PRESETS[T.pre].name,n:Object.keys(T.pl).length})},4000);
+  send({k:'open',code:code,nm:NM(),pre:P.name,n:1});sfx('coin');render()}
+const lv=()=>{try{return LMS_ME().lv.L}catch(e){return 1}};
+function join(code){const r=ROOMS[code];if(!r)return;T={code,host:r.from,hostNm:r.nm,role:'guest',pre:Object.keys(PRESETS).find(k=>PRESETS[k].name===r.pre)||'jft',st:'lobby',pl:{},live:{},alive:{},r:0,rounds:[],me:{s:0,ok:0},done:{}};
+  send({k:'join',code,nm:NM(),lv:lv()});sfx('tap');render()}
+function start(){if(!T||T.role!=='host'||T.st!=='lobby')return;const ids=Object.keys(T.pl).filter(id=>!(T.mod&&id===ME()));if(ids.length<2&&!T.mod||ids.length<2){return}
+  const P=PRESETS[T.pre];const rounds=P.rounds.map(rd=>({name:rd[0],kind:rd[1],qs:(window.SOAL?SOAL.gen(rd[1],P.n):[])}));
+  if(rounds.some(r=>r.qs.length<3)){LOBI.toast('Soalnya belum siap, coba paket lain.');return}
+  clearInterval(T.beacon);const at=now()+4000;send({k:'go',code:T.code,rounds,at,ids});onGo({code:T.code,rounds,at,ids,from:ME()})}
+function onGo(m){T.rounds=m.rounds;T.alive={};m.ids.forEach(id=>T.alive[id]=true);T.st='play';T.r=0;T.cum={};T.done={};beginRound(m.at)}
+
+/* ---------- permainan ---------- */
+function beginRound(at){T.rs=0;T.live=T.live||{};
+  const go=()=>{if(!T)return;const left=Math.ceil((at-now())/1000);
+    if(left>0){ov(`<div class="lb-card lb-cd"><h3>${esc(T.rounds[T.r].name)}</h3><div class="lb-num">${left}</div><p class="lb-sub">${T.alive[ME()]?'Siap-siap!':'Kamu menonton ronde ini.'}</p></div>`);sfx('tap');setTimeout(go,Math.min(1000,Math.max(60,at-now()-(left-1)*1000)))}
+    else{if(T.alive[ME()]&&!T.mod){T.i=0;ask()}else{T.st='spec';render()}if(T.role==='host')hostWatch()}};go()}
+function ask(){if(!T)return;const R=T.rounds[T.r];if(T.i>=R.qs.length){finishRound();return}const q=R.qs[T.i];T.qt=performance.now();T.lock=false;
+  ov(`<div class="lb-duel"><div class="lb-top"><div class="lb-bars"><div class="lb-pl me"><span>${esc(R.name)}</span><div class="lb-b"><i style="width:${Math.round(T.i/R.qs.length*100)}%"></i></div><b id="tr-sc">${T.me.s}</b></div></div></div>
+  <div class="lb-time"><i id="tr-tb"></i></div><div class="lb-q"><small>Soal ${T.i+1} dari ${R.qs.length}${q.s?' · '+esc(q.s):''}</small><div class="lb-p${q.big?' big':''}">${esc(q.p)}</div></div>
+  <div class="lb-opts">${q.o.map((o,i)=>`<button type="button" class="lb-o${q.jpo?' jp':''}" data-tur="ans" data-i="${i}"><kbd>${i+1}</kbd>${esc(o)}</button>`).join('')}</div></div>`);
+  clearInterval(T.tm);T.tm=setInterval(()=>{if(!T)return;const left=QT-(performance.now()-T.qt)/1000;const b=document.getElementById('tr-tb');if(b)b.style.transform=`scaleX(${Math.max(0,left/QT)})`;if(left<=0){clearInterval(T.tm);answer(-1)}},60)}
+function answer(i){if(!T||T.lock||T.st!=='play')return;T.lock=true;clearInterval(T.tm);const q=T.rounds[T.r].qs[T.i],ok=i===q.a,el=(performance.now()-T.qt)/1000;
+  const bs=[...document.querySelectorAll('.lb-o')];if(bs[q.a])bs[q.a].classList.add('ok');if(!ok&&bs[i])bs[i].classList.add('no');
+  if(ok){T.me.s+=100+Math.round(Math.max(0,QT-el)*5);T.me.ok++;sfx('ok')}else sfx('bad');
+  send({k:'prog',code:T.code,r:T.r,i:T.i+1,s:T.me.s,ok:T.me.ok});setTimeout(()=>{if(!T)return;T.i++;ask()},ok?600:1000)}
+function finishRound(){T.st='wait';T.waitAt=now();send({k:'done',code:T.code,r:T.r,s:T.me.s,ok:T.me.ok});if(T.role==='host')onDone({from:ME(),r:T.r,s:T.me.s,ok:T.me.ok});render();
+  clearTimeout(T.wt);T.wt=setTimeout(()=>{if(T&&T.st==='wait'&&T.role!=='host'){LOBI.toast('Tuan rumah terputus. Turnamen dihentikan.');T.ranks=Object.keys(T.pl).sort((a,b)=>((T.live[b]||{}).s||0)-((T.live[a]||{}).s||0));T.final=T.live;T.st='end';render()}},110000)}
+
+/* ---------- tuan rumah mengatur ronde ---------- */
+function hostWatch(){clearTimeout(T.ht);T.ht=setTimeout(()=>{if(T&&T.role==='host'&&T.st!=='end')closeRound()},(QT*T.rounds[T.r].qs.length+30)*1000)}
+function onDone(m){if(!T||T.role!=='host'||m.r!==T.r)return;T.done[m.from]=true;T.cum[m.from]={s:m.s,ok:m.ok};T.live[m.from]=Object.assign(T.live[m.from]||{},{s:m.s,ok:m.ok});
+  const alive=Object.keys(T.alive).filter(id=>T.alive[id]&&!(T.mod&&id===ME()));if(alive.every(id=>T.done[id]))closeRound()}
+function closeRound(){if(!T||T.role!=='host')return;clearTimeout(T.ht);const r=T.r,last=r>=T.rounds.length-1;
+  const alive=Object.keys(T.alive).filter(id=>T.alive[id]).filter(id=>!(T.mod&&id===ME()));
+  const sc=id=>(T.cum[id]&&T.cum[id].s)||(T.live[id]&&T.live[id].s)||0;
+  let elim=[];if(!last&&alive.length>=3){const n=Math.min(alive.length-2,Math.max(1,Math.floor(alive.length*0.25)));elim=alive.slice().sort((a,b)=>sc(a)-sc(b)).slice(0,n)}
+  const st={};Object.keys(T.pl).forEach(id=>st[id]={s:sc(id),ok:(T.cum[id]&&T.cum[id].ok)||0});
+  if(last){const ord=Object.keys(T.pl).filter(id=>!(T.mod&&id===ME())).sort((a,b)=>(T.alive[b]-T.alive[a])||(sc(b)-sc(a)));
+    const elimOrder=(T.elimOrder||[]).slice().reverse();const rk=ord.filter(id=>T.alive[id]).concat(elimOrder.filter(id=>T.pl[id]));
+    send({k:'end',code:T.code,st,ranks:rk});onEnd({st,ranks:rk});return}
+  T.elimOrder=(T.elimOrder||[]).concat(elim);const at=now()+6500;send({k:'rnd',code:T.code,r,st,elim,at});onRnd({r,st,elim,at})}
+function onRnd(m){if(!T)return;clearTimeout(T.wt);clearInterval(T.tm);T.lock=true;Object.keys(m.st).forEach(id=>{T.live[id]=Object.assign(T.live[id]||{},m.st[id])});(m.elim||[]).forEach(id=>T.alive[id]=false);
+  T.out=!T.alive[ME()]&&!T.mod;T.st='med';T.elim=m.elim;render();T.r=m.r+1;T.done={};T.cum={};
+  const t0=m.at;const tick=()=>{if(!T||T.st!=='med')return;const left=Math.ceil((t0-now())/1000);const e=document.getElementById('tr-cd');if(e)e.textContent=left>0?'Ronde berikutnya '+left+' detik lagi…':'Mulai!';if(left>0)setTimeout(tick,500);else{T.st='play';beginRound(now()+1500)}};tick()}
+function onEnd(m){if(!T)return;clearTimeout(T.wt);clearTimeout(T.ht);T.final=m.st;T.ranks=m.ranks;Object.keys(m.st).forEach(id=>T.live[id]=Object.assign(T.live[id]||{},m.st[id]));T.st='end';
+  const my=(m.ranks||[]).indexOf(ME())+1;const joined=!!my;
+  if(joined&&!T.mod){let pts=my===1?60:my===2?40:my===3?30:15;pts+=Math.min(20,(T.me.ok||0)*2);let g=0;try{if(window.GAME&&GAME.addXp)for(let n=1;n<=3&&!g;n++)g=GAME.addXp('tur:'+n,pts)}catch(e){}
+    T.rw={g,fz:!!(window.lmsFrozen&&window.lmsFrozen())};try{if(GAME.pushStats&&window.LMS_ME)GAME.pushStats(window.LMS_ME(),window.LMS_NAME&&window.LMS_NAME())}catch(e){}sfx(my===1?'win':'ok')}
+  render()}
+function leave(){if(T){send({k:'leave',code:T.code});clearInterval(T.beacon);clearInterval(T.tm);clearTimeout(T.wt);clearTimeout(T.ht)}T=null;ovClose()}
+
+/* ---------- pesan masuk dari lobi ---------- */
+function msg(m){if(!m||!m.k)return;
+  if(m.k==='open'){const nw=!ROOMS[m.code],chg=!nw&&ROOMS[m.code].n!==m.n;if(nw)try{LOBI.toast('🏆 '+m.nm+' membuka turnamen! Buka menu Turnamen untuk gabung.')}catch(e){}ROOMS[m.code]=Object.assign({},m,{t:now()});{const o=document.getElementById('tr-ov');if((nw||chg)&&!T&&o&&!o.hidden&&o.querySelector('[data-tur=host]'))ov(menuHTML())}return}
+  if(!T||m.code!==T.code)return;
+  if(m.k==='join'&&T.role==='host'&&T.st==='lobby'){if(Object.keys(T.pl).length>=16)return;T.pl[m.from]={nm:String(m.nm||'Murid').slice(0,30),lv:m.lv||1};send({k:'ros',code:T.code,pl:T.pl,host:T.host});render()}
+  else if(m.k==='leave'){if(T.st==='lobby'&&T.role==='host'){delete T.pl[m.from];send({k:'ros',code:T.code,pl:T.pl,host:T.host});render()}else if(m.from===T.host&&T.role!=='host'&&T.st==='lobby'){LOBI.toast('Tuan rumah membatalkan turnamen.');T=null;ovClose()}else{T.done&&(T.done[m.from]=true);if(T.role==='host')onDone({from:m.from,r:T.r,s:(T.live[m.from]||{}).s||0,ok:(T.live[m.from]||{}).ok||0})}}
+  else if(m.k==='ros'&&T.role==='guest'){T.pl=m.pl;T.host=m.host||T.host;if(T.st==='lobby')render()}
+  else if(m.k==='go'&&T.role==='guest'&&T.st==='lobby'&&m.ids.indexOf(ME())>=0)onGo(m);
+  else if(m.k==='go'&&T.role==='guest'&&T.st==='lobby'){LOBI.toast('Turnamen sudah mulai tanpamu.');T=null;ovClose()}
+  else if(m.k==='prog'){T.live[m.from]=Object.assign(T.live[m.from]||{},{s:m.s,ok:m.ok});if(T.st==='wait'||T.st==='spec')render()}
+  else if(m.k==='done'&&T.role==='host')onDone(m);
+  else if(m.k==='rnd'&&T.role!=='host'&&m.r===T.r)onRnd(m);
+  else if(m.k==='end'&&T.role!=='host')onEnd(m)}
+
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tur]');if(!b)return;const a=b.dataset.tur;
+  if(a==='open')open();else if(a==='close')ovClose();else if(a==='host')host(b.dataset.p);else if(a==='join')join(b.dataset.c);else if(a==='start')start();else if(a==='leave')leave();else if(a==='ans')answer(+b.dataset.i)});
+document.addEventListener('keydown',e=>{if(!T||T.st!=='play')return;const n=+e.key;if(n>=1&&n<=4)answer(n-1)});
+return {open,msg,get active(){return !!T},get _t(){return T},PRESETS};
 })();
 
 </script>
