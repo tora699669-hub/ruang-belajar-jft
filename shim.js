@@ -16,11 +16,50 @@
   }
   let manualOut=false;
   const sb=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},global:{fetch:rfetch}});
-  const css='position:fixed;inset:0;z-index:9999;display:flex;padding:max(76px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:radial-gradient(120% 60% at 50% 115%,#58cc02 0 38%,transparent 38.5%),linear-gradient(#7fdcff,#3fbcff 55%,#1cb0f6);color:#2b2a3d;font-family:Nunito,var(--f-ui,system-ui,sans-serif)';
+  const css='position:fixed;inset:0;z-index:9999;display:flex;padding:max(76px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:linear-gradient(180deg,#ffe0ec 0%,#d4e9ff 42%,#8fd3ff 100%);background-size:100% 160%;animation:lgsky 14s ease-in-out infinite alternate;color:#2b2a3d;font-family:Nunito,var(--f-ui,system-ui,sans-serif)';
   let session=null,teacher=false,member=false,ready=null;
   function overlay(html){let d=document.getElementById('lms-login');if(!d){d=document.createElement('div');d.id='lms-login';d.setAttribute('style',css);document.body.appendChild(d)}d.innerHTML=html;d.hidden=false}
   function hideOverlay(){const d=document.getElementById('lms-login');if(d)d.remove()}
-  const card=(inner)=>`<style>@keyframes lgfl{to{transform:translateY(110vh) rotate(360deg)}}#lms-login i.pt{position:absolute;top:-20px;width:10px;height:7px;border-radius:50%;background:#ffb7cf;animation:lgfl linear infinite}@media(prefers-reduced-motion:reduce){#lms-login i.pt{display:none}}@media(max-height:520px){#lms-login{padding-top:16px!important}#lms-login svg,#ls-ph{display:none!important}#lms-login h1{font-size:22px!important}}#lms-login button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:48px}#lms-g{transition:transform .12s}#lms-g:active{transform:translateY(3px);box-shadow:0 1px 0 #2b2a3d!important}</style>${[8,22,37,51,66,79,91].map((x,i)=>`<i class="pt" style="left:${x}%;animation-duration:${7+i%3*2}s;animation-delay:-${i*1.3}s"></i>`).join('')}<div style="position:relative;margin:auto;max-width:380px;width:100%;flex:none;background:#fffdf6;border:3px solid #2b2a3d;border-radius:26px;padding:30px 24px 24px;box-shadow:0 8px 0 #2b2a3d,0 24px 50px rgba(0,0,0,.2);text-align:center"><svg viewBox="0 0 120 80" width="120" height="80" aria-hidden="true" style="display:block;margin:-62px auto 4px"><rect x="22" y="22" width="9" height="56" rx="3" fill="#e8392f"/><rect x="89" y="22" width="9" height="56" rx="3" fill="#e8392f"/><rect x="6" y="8" width="108" height="10" rx="5" fill="#2b2a3d"/><rect x="12" y="16" width="96" height="8" rx="3" fill="#e8392f"/><rect x="16" y="30" width="88" height="6" rx="3" fill="#b8281f"/><rect x="50" y="18" width="20" height="14" rx="2" fill="#fff3dc" stroke="#2b2a3d" stroke-width="2"/><text x="60" y="29" text-anchor="middle" font-size="10" font-weight="900" fill="#2b2a3d">学</text></svg><h1 style="margin:0;font:700 26px Fredoka,Nunito,sans-serif">Dunia Akimichi</h1><div style="font-weight:800;color:#6b6880;margin:2px 0 14px">Ruang Belajar JFT · Tora 先生 menunggumu</div>${inner}</div>`;
+  const card=(inner)=>`<style>
+@keyframes lgsky{from{background-position:50% 0}to{background-position:50% 100%}}
+@keyframes lgfall{0%{transform:translate3d(0,-30px,0) rotate(0)}100%{transform:translate3d(0,112vh,0) rotate(540deg)}}
+@keyframes lgsway{0%,100%{margin-left:-14px}50%{margin-left:18px}}
+@keyframes lgrise{from{opacity:0;transform:translateY(26px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes lgsun{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:.9}}
+@keyframes lgtori{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes lgfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes lgcloud{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
+@keyframes lgspin{to{transform:rotate(360deg)}}
+@keyframes lgpulse{0%,100%{box-shadow:0 5px 0 #2b2a3d,0 0 0 0 rgba(88,204,2,.45)}50%{box-shadow:0 5px 0 #2b2a3d,0 0 0 12px rgba(88,204,2,0)}}
+#lms-login .lgsun{position:fixed;left:50%;bottom:20%;width:min(46vw,210px);aspect-ratio:1;margin-left:calc(min(46vw,210px)/-2);border-radius:50%;background:radial-gradient(circle at 40% 35%,#ff7a6b,#e8392f);animation:lgsun 2.2s .2s ease-out both;pointer-events:none}
+#lms-login .lgcl{position:fixed;height:26px;border-radius:30px;background:rgba(255,255,255,.7);animation:lgcloud linear infinite;pointer-events:none}
+#lms-login .lgcl::before,#lms-login .lgcl::after{content:"";position:absolute;background:inherit;border-radius:50%}
+#lms-login .lgcl::before{width:34px;height:34px;left:14px;top:-16px}#lms-login .lgcl::after{width:24px;height:24px;left:44px;top:-10px}
+#lms-login .lgh{position:fixed;left:0;right:0;bottom:0;height:23%;pointer-events:none;background:radial-gradient(130% 100% at 50% 100%,#58cc02 0 55%,transparent 55.5%),radial-gradient(70% 90% at 12% 100%,#46a302 0 60%,transparent 60.5%),radial-gradient(70% 90% at 92% 100%,#6fd81f 0 60%,transparent 60.5%)}
+#lms-login i.pt{position:fixed;top:-20px;border-radius:70% 0 70% 0;background:#ffb7cf;animation:lgfall linear infinite;pointer-events:none}
+#lms-login i.pt b{display:block;width:100%;height:100%;border-radius:inherit;background:inherit;animation:lgsway ease-in-out infinite}
+#lms-login .lgc{box-sizing:border-box;position:relative;margin:auto;max-width:392px;width:100%;flex:none;background:rgba(255,253,246,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:3px solid #2b2a3d;border-radius:28px;padding:30px 22px 22px;box-shadow:0 8px 0 #2b2a3d,0 28px 56px rgba(43,42,61,.22);text-align:center;animation:lgrise .7s cubic-bezier(.2,.8,.2,1) both}
+#lms-login .lgt{display:block;margin:-66px auto 4px;animation:lgtori .9s .25s both,lgfloat 5s 1.4s ease-in-out infinite}
+#lms-login h1{margin:0;font:700 27px Fredoka,Nunito,sans-serif;letter-spacing:.2px}
+#lms-login .lgs{font-weight:800;color:#6b6880;margin:2px 0 14px;font-size:14px}
+#lms-login .lgseg{display:grid;grid-template-columns:1fr 1fr;background:#ece8dc;border-radius:16px;padding:4px;margin:0 0 14px}
+#lms-login .lgseg button{min-height:42px;border:0;background:transparent;border-radius:12px;font:800 14px Nunito,sans-serif;color:#6b6880;cursor:pointer;transition:background .25s,color .25s}
+#lms-login .lgseg button[aria-selected=true]{background:#fff;color:#2b2a3d;box-shadow:0 2px 0 #2b2a3d}
+#lms-login .lgf{display:grid;gap:10px;text-align:left;animation:lgrise .45s both}
+#lms-login .lgf label{font:800 12px Nunito,sans-serif;color:#57546b;display:grid;gap:4px}
+#lms-login .lgf input{min-height:48px;border:2px solid #cfcab8;border-radius:14px;padding:0 14px;font:700 16px Nunito,sans-serif;background:#fff;color:#2b2a3d;width:100%;box-sizing:border-box;transition:border-color .2s,box-shadow .2s}
+#lms-login .lgf input:focus{outline:0;border-color:#1cb0f6;box-shadow:0 0 0 4px rgba(28,176,246,.2)}
+#lms-login .lgf .hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
+#lms-login .lgmsg{font:700 14px Nunito,sans-serif;margin:0}#lms-login .lgmsg.bad{color:#b3261e}#lms-login .lgmsg.ok{color:#2e7d12}
+#lms-login .lgbtn{width:100%;padding:14px;border:3px solid #2b2a3d;border-radius:16px;color:#fff;font:900 16px Nunito,sans-serif;cursor:pointer;box-shadow:0 5px 0 #2b2a3d;transition:transform .12s,box-shadow .12s,filter .2s;min-height:50px}
+#lms-login .lgbtn:active{transform:translateY(3px);box-shadow:0 2px 0 #2b2a3d}#lms-login .lgbtn:disabled{filter:grayscale(.5);opacity:.75;cursor:default}
+#lms-login .lgbtn.g{background:#58cc02;animation:lgpulse 2.6s 1.5s infinite}#lms-login .lgbtn.b{background:#1cb0f6}#lms-login .lgbtn.w{background:#fff;color:#2b2a3d}
+#lms-login .lgl{background:none;border:0;color:#1c7fc0;font:800 13px Nunito,sans-serif;cursor:pointer;text-decoration:underline;min-height:40px}
+#lms-login .lgsp{width:34px;height:34px;border:4px solid #d9d4c4;border-top-color:#1cb0f6;border-radius:50%;margin:6px auto 12px;animation:lgspin 1s linear infinite}
+#lms-login button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media(max-height:560px){#lms-login{padding-top:16px!important}#lms-login svg.lgt,#ls-ph,#lms-login .lgsun{display:none!important}#lms-login h1{font-size:22px!important}}
+@media(prefers-reduced-motion:reduce){#lms-login *,#lms-login{animation:none!important}#lms-login i.pt{display:none}}
+</style><div class="lgsun" aria-hidden="true"></div>${[[8,22,14],[30,18,19],[52,24,23]].map(c=>`<span class="lgcl" aria-hidden="true" style="top:${c[0]+6}%;width:${58+c[1]}px;animation-duration:${c[2]*3}s;animation-delay:-${c[2]}s"></span>`).join('')}<div class="lgh" aria-hidden="true"></div>${[6,15,24,33,42,51,60,69,78,86,93].map((x,i)=>`<i class="pt" style="left:${x}%;animation-duration:${9+i%4*2.2}s;animation-delay:-${(i*1.7).toFixed(1)}s;width:${8+i%3*3}px;height:${6+i%3*2}px"><b style="animation-duration:${3+i%3}s"></b></i>`).join('')}<div class="lgc"><svg class="lgt" viewBox="0 0 120 80" width="120" height="80" aria-hidden="true"><rect x="22" y="22" width="9" height="56" rx="3" fill="#e8392f"/><rect x="89" y="22" width="9" height="56" rx="3" fill="#e8392f"/><rect x="6" y="8" width="108" height="10" rx="5" fill="#2b2a3d"/><rect x="12" y="16" width="96" height="8" rx="3" fill="#e8392f"/><rect x="16" y="30" width="88" height="6" rx="3" fill="#b8281f"/><rect x="50" y="18" width="20" height="14" rx="2" fill="#fff3dc" stroke="#2b2a3d" stroke-width="2"/><text x="60" y="29" text-anchor="middle" font-size="10" font-weight="900" fill="#2b2a3d">学</text></svg><h1>Dunia Akimichi</h1><div class="lgs">Ruang Belajar JFT · Tora 先生 menunggumu</div>${inner}</div>`;
 
   const inApp=()=>{const u=navigator.userAgent||'';return /FBAN|FBAV|Instagram|Line\/|MicroMessenger|TikTok|Snapchat|Twitter|; wv\)|GSA\//i.test(u)||(/iPhone|iPad/.test(u)&&!/Safari\//.test(u)&&/AppleWebKit/.test(u))};
   function loadingScreen(){overlay(card('<p style="margin:0 0 6px;font-weight:800">Memuat…</p><p id="lg-slow" style="margin:0;color:#6b6880;font-size:14px"></p>'));return setTimeout(()=>{const e=document.getElementById('lg-slow');if(e)e.innerHTML='Koneksi lambat. <button id="lg-retry" style="margin-top:12px;width:100%;padding:12px;border:3px solid #2b2a3d;border-radius:14px;background:#1cb0f6;color:#fff;font:900 15px Nunito,sans-serif">Coba lagi</button>';const b=document.getElementById('lg-retry');if(b)b.onclick=()=>location.reload()},8000)}
@@ -41,16 +80,45 @@
     st();addEventListener('resize',st);
     document.getElementById('ls-go').onclick=()=>{try{sessionStorage.setItem('lms:land','1');localStorage.setItem('lms:land','1')}catch(e){}removeEventListener('resize',st);next()};
   }
-  function loginScreen(msg){
-    const ua=inApp();let qe='';try{const h=new URLSearchParams((location.hash||'').replace(/^#/,'')+'&'+(location.search||'').replace(/^\?/,''));if(h.get('error_description')||h.get('error'))qe=(h.get('error_description')||h.get('error')).replace(/[<>&]/g,'')}catch(e){}
-    overlay(card((ua?'<div style="text-align:left;background:#fff3cd;border:2px solid #2b2a3d;border-radius:14px;padding:10px 12px;margin:0 0 14px;font-size:14px;line-height:1.45"><b>Buka lewat Chrome / Safari ya.</b> Google menolak login dari browser di dalam aplikasi (WhatsApp, Instagram, dll). Salin tautan, lalu tempel di Chrome atau Safari.<button id="lms-cp" style="margin-top:8px;width:100%;padding:10px;border:2px solid #2b2a3d;border-radius:12px;background:#fff;font:800 14px Nunito,sans-serif">Salin tautan</button></div>':'')+(qe?'<p style="color:#b3261e;font-weight:700;margin:0 0 10px;font-size:14px">Login belum berhasil: '+qe+'. Coba lagi.</p>':'')+'<p style="color:var(--muted,#56607a);margin:0 0 18px">'+(msg||'Masuk dengan akun Google yang kamu berikan ke guru. Dengan masuk, kamu setuju namamu dan hasil latihanmu disimpan dan dilihat gurumu untuk memantau belajar.')+'</p><button id="lms-g" style="width:100%;padding:14px;border:3px solid #2b2a3d;border-radius:16px;background:#58cc02;color:#fff;font:900 16px Nunito,sans-serif;cursor:pointer;box-shadow:0 5px 0 #2b2a3d">Masuk dengan Google</button>'));
-    const cp=document.getElementById('lms-cp');if(cp)cp.onclick=async()=>{try{await navigator.clipboard.writeText(location.origin+location.pathname);cp.textContent='Tersalin. Tempel di Chrome/Safari'}catch(e){cp.textContent=location.origin+location.pathname}};
-    const g=document.getElementById('lms-g');
-    g.onclick=async()=>{g.disabled=true;g.textContent='Menghubungkan…';try{const r=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}});if(r&&r.error)throw r.error}catch(e){g.disabled=false;g.textContent='Masuk dengan Google';const p=g.previousElementSibling;if(p)p.insertAdjacentHTML('afterend','<p style="color:#b3261e;font-weight:700;margin:0 0 10px;font-size:14px">Gagal menghubungi Google. Cek sinyal lalu tekan lagi.</p>')}setTimeout(()=>{if(g.disabled){g.disabled=false;g.textContent='Masuk dengan Google'}},8000)};
+  const esc2=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const DOM='@akimichi.murid',FN=cfg.url+'/functions/v1/akun-kelas';
+  async function callFn(body,tok){try{const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json',apikey:cfg.anonKey,Authorization:'Bearer '+(tok||cfg.anonKey)},body:JSON.stringify(body)});let j=null;try{j=await r.json()}catch(e){}return j||{ok:false,err:'jaringan'}}catch(e){return {ok:false,err:'jaringan'}}}
+  const ERR={username:'Nama pengguna 3–24 karakter: huruf kecil, angka, titik, atau garis bawah.',nama:'Isi nama lengkapmu (2–80 huruf).',sandi:'Kata sandi 8–72 karakter.',dipakai:'Nama pengguna itu sudah dipakai. Coba yang lain.',ramai:'Pendaftaran lagi ramai. Coba lagi beberapa menit lagi.',jaringan:'Tidak bisa menghubungi server. Cek sinyal lalu coba lagi.',gagal:'Pendaftaran belum berhasil. Coba lagi sebentar.',simpan:'Pendaftaran belum berhasil disimpan. Coba lagi.'};
+  let LTAB='google';
+  function loginScreen(msg,tab){
+    if(tab)LTAB=tab;const ua=inApp();let qe='';try{const h=new URLSearchParams((location.hash||'').replace(/^#/,'')+'&'+(location.search||'').replace(/^\?/,''));if(h.get('error_description')||h.get('error'))qe=(h.get('error_description')||h.get('error')).replace(/[<>&]/g,'')}catch(e){}
+    const seg=`<div class="lgseg" role="tablist" aria-label="Cara masuk"><button type="button" role="tab" id="lt-google" aria-selected="${LTAB==='google'}">Akun Google</button><button type="button" role="tab" id="lt-kelas" aria-selected="${LTAB!=='google'}">Akun kelas</button></div>`;
+    const warn=(ua?'<div style="text-align:left;background:#fff3cd;border:2px solid #2b2a3d;border-radius:14px;padding:10px 12px;margin:0 0 14px;font-size:14px;line-height:1.45"><b>Google tidak mau jalan di browser dalam aplikasi</b> (WhatsApp, Instagram, dll). Pilih tab <b>Akun kelas</b>, atau salin tautan lalu buka di Chrome/Safari.<button type="button" id="lms-cp" class="lgbtn w" style="margin-top:8px;min-height:42px;padding:8px;font-size:14px;box-shadow:0 3px 0 #2b2a3d">Salin tautan</button></div>':'')+(qe?'<p class="lgmsg bad" style="margin:0 0 10px">Login belum berhasil: '+qe+'. Coba lagi.</p>':'');
+    let body='';
+    if(LTAB==='google'){body=`<p style="color:#56607a;margin:0 0 16px;font-size:14px;line-height:1.5">${esc2(msg||'Masuk dengan akun Google yang kamu berikan ke guru. Dengan masuk, kamu setuju namamu dan hasil latihanmu disimpan dan dilihat gurumu untuk memantau belajar.')}</p><button type="button" id="lms-g" class="lgbtn g">Masuk dengan Google</button><p class="lgmsg bad" id="lg-m" role="alert"></p><p style="margin:10px 0 0;font-size:13px;color:#6b6880">Google bermasalah? <button type="button" class="lgl" id="lt-go-kelas">Pakai akun kelas</button></p>`}
+    else if(LTAB==='daftar'){body=`<form class="lgf" id="lf-daftar" autocomplete="on" novalidate><label>Nama lengkap<input id="lf-nama" autocomplete="name" maxlength="80" placeholder="mis. Siti Nurfadillah"></label><label>Nama pengguna<input id="lf-user" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="24" placeholder="huruf kecil, angka, titik"></label><label>Kata sandi (min. 8)<input id="lf-pw" type="password" autocomplete="new-password" maxlength="72"></label><label>Ulangi kata sandi<input id="lf-pw2" type="password" autocomplete="new-password" maxlength="72"></label><input class="hp" id="lf-hp" tabindex="-1" autocomplete="off" aria-hidden="true"><p class="lgmsg bad" id="lg-m" role="alert">${esc2(msg||'')}</p><button type="submit" class="lgbtn b" id="lf-go">Kirim pendaftaran</button><p style="margin:0;font-size:12.5px;color:#6b6880;text-align:center">Akunmu aktif setelah disetujui Sensei. Catat nama pengguna dan kata sandimu.</p><button type="button" class="lgl" id="lt-go-masuk">Sudah punya akun? Masuk</button></form>`}
+    else{body=`<form class="lgf" id="lf-masuk" autocomplete="on" novalidate><label>Nama pengguna<input id="lf-user" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="24"></label><label>Kata sandi<input id="lf-pw" type="password" autocomplete="current-password" maxlength="72"></label><p class="lgmsg bad" id="lg-m" role="alert">${esc2(msg||'')}</p><button type="submit" class="lgbtn b" id="lf-go">Masuk</button><button type="button" class="lgl" id="lt-go-daftar">Belum punya akun? Daftar di sini</button></form>`}
+    overlay(card(seg+warn+body));
+    const $=id=>document.getElementById(id),M=(t,c)=>{const e=$('lg-m');if(e){e.textContent=t||'';e.className='lgmsg '+(c||'bad')}};
+    $('lt-google').onclick=()=>loginScreen('','google');$('lt-kelas').onclick=()=>loginScreen('',LTAB==='google'?'masuk':LTAB);
+    if($('lt-go-kelas'))$('lt-go-kelas').onclick=()=>loginScreen('','masuk');if($('lt-go-masuk'))$('lt-go-masuk').onclick=()=>loginScreen('','masuk');if($('lt-go-daftar'))$('lt-go-daftar').onclick=()=>loginScreen('','daftar');
+    const cp=$('lms-cp');if(cp)cp.onclick=async()=>{try{await navigator.clipboard.writeText(location.origin+location.pathname);cp.textContent='Tersalin. Tempel di Chrome/Safari'}catch(e){cp.textContent=location.origin+location.pathname}};
+    const g=$('lms-g');
+    if(g)g.onclick=async()=>{g.disabled=true;g.textContent='Menghubungkan…';try{const r=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}});if(r&&r.error)throw r.error}catch(e){g.disabled=false;g.textContent='Masuk dengan Google';M('Gagal menghubungi Google. Cek sinyal lalu tekan lagi, atau pakai akun kelas.')}setTimeout(()=>{if(g.disabled){g.disabled=false;g.textContent='Masuk dengan Google'}},8000)};
+    const uname=()=>String($('lf-user').value||'').trim().toLowerCase();
+    async function doLogin(u,pw,btn){const r=await sb.auth.signInWithPassword({email:u+DOM,password:pw});if(r.error){if(btn){btn.disabled=false;btn.textContent='Masuk'}M(/invalid|credentials/i.test(r.error.message||'')?'Nama pengguna atau kata sandi salah.':'Belum bisa masuk. Cek sinyal lalu coba lagi.');return false}
+      loadingScreen();location.reload();return true}
+    const fm=$('lf-masuk');if(fm)fm.onsubmit=async e=>{e.preventDefault();const u=uname(),pw=$('lf-pw').value;if(!u||!pw){M('Isi nama pengguna dan kata sandi.');return}const b=$('lf-go');b.disabled=true;b.textContent='Memeriksa…';await doLogin(u,pw,b)};
+    const fd=$('lf-daftar');if(fd)fd.onsubmit=async e=>{e.preventDefault();const u=uname(),pw=$('lf-pw').value,nama=$('lf-nama').value.trim();
+      if(nama.length<2){M(ERR.nama);return}if(!/^[a-z0-9._]{3,24}$/.test(u)){M(ERR.username);return}if(pw.length<8){M(ERR.sandi);return}if(pw!==$('lf-pw2').value){M('Kata sandi dan ulangannya belum sama.');return}
+      const b=$('lf-go');b.disabled=true;b.textContent='Mengirim…';const r=await callFn({act:'daftar',username:u,nama,password:pw,hp:$('lf-hp').value});
+      if(!r.ok){b.disabled=false;b.textContent='Kirim pendaftaran';M(ERR[r.err]||ERR.gagal);return}
+      M('Pendaftaran terkirim. Masuk otomatis…','ok');await doLogin(u,pw,b)};
   }
-  function deniedScreen(email){
-    overlay(card(`<p style="color:var(--muted,#56607a);margin:0 0 6px">Email <b>${(email||'').replace(/[<>&]/g,'')}</b> belum terdaftar di kelas ini.</p><p style="color:var(--muted,#56607a);margin:0 0 18px;font-size:14px">Hubungi guru untuk mendaftarkan emailmu, atau masuk dengan akun Google yang lain.</p><button id="lms-out" style="width:100%;padding:14px;border:0;border-radius:14px;background:var(--accent,#2c4fb8);color:#fff;font:700 16px inherit;cursor:pointer">Ganti akun</button>`));
-    document.getElementById('lms-out').onclick=async()=>{manualOut=true;await sb.auth.signOut();location.reload()};
+  /* Menunggu persetujuan guru: cek otomatis tiap 10 detik */
+  let pendTimer=null;
+  function pendingScreen(who,status){
+    clearInterval(pendTimer);const rej=status==='rejected';
+    overlay(card(`${rej?'<div style="font-size:42px" aria-hidden="true">🙏</div>':'<div class="lgsp"></div>'}<h2 style="margin:0 0 6px;font:700 20px Fredoka,Nunito,sans-serif">${rej?'Permintaan belum disetujui':'Menunggu persetujuan Sensei'}</h2><p style="color:#56607a;margin:0 0 14px;font-size:14px;line-height:1.5">${rej?'Hubungi Sensei untuk menanyakan akunmu <b>'+esc2(who)+'</b>.':'Halo <b>'+esc2(who)+'</b>! Permintaan aksesmu sudah masuk ke panel Sensei. Halaman ini otomatis lanjut begitu disetujui, kamu boleh membiarkannya terbuka.'}</p><p class="lgmsg" id="lg-m" role="status"></p><button type="button" class="lgbtn b" id="pd-cek">Cek sekarang</button><button type="button" class="lgl" id="pd-out">Keluar / ganti akun</button>`));
+    const chk=async(manual)=>{try{const r=await sb.rpc('my_access');if(r.data==='approved'){clearInterval(pendTimer);location.reload();return}const m=document.getElementById('lg-m');if(m&&manual){m.className='lgmsg';m.textContent='Belum disetujui. Sabar sebentar ya.'}}catch(e){}};
+    const c=document.getElementById('pd-cek');if(c)c.onclick=()=>chk(true);
+    document.getElementById('pd-out').onclick=async()=>{clearInterval(pendTimer);manualOut=true;await sb.auth.signOut();location.reload()};
+    if(!rej)pendTimer=setInterval(()=>{if(!document.hidden)chk(false)},10000);
   }
   async function boot(){
     const lt=loadingScreen();
@@ -68,7 +136,11 @@
         if(!member&&cached&&g.error)throw g.error}
       const t=await sb.rpc('is_teacher');teacher=t.data===true;
     }catch(e){retryScreen('Belum bisa memeriksa akunmu. Cek sinyal lalu coba lagi.');return null}
-    if(!member){try{localStorage.removeItem(ck)}catch(e){}deniedScreen(session.user.email);return null}
+    if(!member){try{localStorage.removeItem(ck)}catch(e){}
+      const u0=session.user,m0=u0.user_metadata||{};let st='pending';
+      try{const r=await sb.rpc('request_access',{p_name:m0.full_name||m0.name||u0.email});if(r.error)throw r.error;st=r.data||'pending'}catch(e){retryScreen('Belum bisa mengirim permintaan akses. Cek sinyal lalu coba lagi.');return null}
+      if(st==='approved'){location.reload();return null}
+      pendingScreen(String(m0.full_name||m0.name||String(u0.email||'').split('@')[0]),st);return null}
     try{localStorage.setItem(ck,'1')}catch(e){}
     hideOverlay();
     try{if(!localStorage.getItem('lms:consent'))localStorage.setItem('lms:consent',String(Date.now()))}catch(e){}
@@ -143,5 +215,9 @@
     send(p){try{if(ch)ch.send({type:'broadcast',event:'m',payload:Object.assign({from:me},p)})}catch(e){}},
     leave(){try{if(ch)sb.removeChannel(ch)}catch(e){}ch=null},
     id:()=>me}})();
+  window.lmsAccess={
+    async list(){const r=await sb.from('access_requests').select('email,username,name,via,status,created_at,decided_at').order('created_at',{ascending:false}).limit(200);return r.error?null:r.data},
+    async decide(email,ok){const r=await sb.rpc(ok?'approve_access':'reject_access',{p_email:email});return !r.error},
+    async reset(email,pw){let s2=null;try{s2=(await sb.auth.getSession()).data.session}catch(e){}if(!s2)return {ok:false,err:'sesi'};return callFn({act:'reset',email,password:pw},s2.access_token)}};
   window.lmsHosted=true;window.lmsLogout=async()=>{manualOut=true;await sb.auth.signOut();location.reload()};
 })();

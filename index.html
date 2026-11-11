@@ -1262,7 +1262,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261111-1247"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261111-1312"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -14714,12 +14714,33 @@ function classChart(rows){
   const ser=(nm,o)=>({name:nm,pts:days.map(d=>mean(o[d])).filter(v=>v!=null)});
   return PANTAU.chart([ser('Rata-rata latihan kelas',byDay.l),ser('Rata-rata ujian kelas',byDay.e)],{label:'Rata-rata kelas per hari'})+`<p class="small muted">Titik = rata-rata kelas per hari aktif (maks. 14 hari terakhir).</p>`;
 }
+let ACC={list:null,loading:false,pwFor:'',msg:''};
+async function accLoad(){if(!window.lmsAccess||ACC.loading)return;ACC.loading=true;try{const l=await lmsAccess.list();if(l){const a=ACC.list?JSON.stringify(ACC.list.map(x=>x.email+x.status)):'',b=JSON.stringify(l.map(x=>x.email+x.status));ACC.list=l;if(CUR==='guru'&&a!==b&&!ACC.pwFor)renderPage()}else if(ACC.list===null){ACC.list=[]}}catch(e){if(ACC.list===null)ACC.list=[]}ACC.loading=false}
+const accPend=()=>ACC.list?ACC.list.filter(x=>x.status==='pending').length:0;
+function aksesHTML(){
+  if(!window.lmsAccess)return '<section class="card"><p class="muted">Persetujuan akses hanya ada di versi online.</p></section>';
+  if(ACC.list===null)return '<section class="card"><p class="muted">Memuat permintaan akses…</p></section>';
+  const when=t=>{try{return new Date(t).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return ''}};
+  const via=x=>x.via==='google'?'Google':'Akun kelas';
+  const who=x=>esc(x.username?'@'+x.username:x.email);
+  const acts=x=>{const e=esc(x.email);
+    if(x.status==='pending')return `<button type="button" class="btn sm" data-lms="acc" data-e="${e}" data-ok="1">Setujui</button><button type="button" class="btn sm ghost" data-lms="acc" data-e="${e}" data-ok="0">Tolak</button>`;
+    const pw=x.username?`<button type="button" class="btn sm ghost" data-lms="accpw" data-e="${e}">Atur sandi</button>`:'';
+    return x.status==='approved'?`${pw}<button type="button" class="btn sm ghost" data-lms="acc" data-e="${e}" data-ok="0">Cabut akses</button>`:`<button type="button" class="btn sm" data-lms="acc" data-e="${e}" data-ok="1">Setujui</button>`};
+  const row=x=>`<li style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)"><div style="min-width:0"><b>${esc(x.name)}</b><br><small class="muted">${who(x)} · ${via(x)} · ${when(x.created_at)}${x.status==='approved'?' · disetujui':x.status==='rejected'?' · ditolak':''}</small></div><div class="actions" style="margin:0">${acts(x)}</div></li>
+   ${ACC.pwFor===x.email?`<li style="padding:8px 0"><div class="status"><b>Atur kata sandi ${who(x)}</b><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><input id="acc-pw" class="fc-sel" style="flex:1;min-width:150px;margin:0" maxlength="72" autocomplete="off" placeholder="min. 8 karakter"><button type="button" class="btn sm ghost" data-lms="accrnd">Acak</button><button type="button" class="btn sm" data-lms="accpwgo" data-e="${esc(x.email)}">Simpan</button><button type="button" class="btn sm ghost" data-lms="accpwno">Batal</button></div></div></li>`:''}`;
+  const P=ACC.list.filter(x=>x.status==='pending'),O=ACC.list.filter(x=>x.status!=='pending');
+  return `<section class="card"><h2>Menunggu persetujuan <small>${P.length}</small></h2><p class="small muted">Murid yang daftar akun kelas atau masuk dengan Google yang belum ada di daftar muncul di sini. Setujui supaya mereka bisa belajar.</p>${ACC.msg?`<div class="status ok" role="status">${ACC.msg}</div>`:''}${P.length?`<ul style="list-style:none;margin:0;padding:0">${P.map(row).join('')}</ul>`:'<p class="muted">Tidak ada permintaan baru.</p>'}</section>
+  <section class="card"><h2>Riwayat keputusan <small>${O.length}</small></h2>${O.length?`<ul style="list-style:none;margin:0;padding:0">${O.map(row).join('')}</ul>`:'<p class="muted">Belum ada.</p>'}</section>`}
 function guruHTML(){
   if(!OWNER)return guruHTML0();
+  if(window.lmsAccess&&ACC.list===null)accLoad();
   const rows=guruRows();
-  const tabs=[['ringkas','Ringkasan'],['live','Live'],['murid','Per murid'],['kelas','Rekap kelas'],...(window.lmsHosted?[['hadiah','Dompet']]:[])].map(t=>`<button type="button" class="chipb${GT===t[0]?' on':''}" data-lms="gtab" data-t="${t[0]}" aria-pressed="${GT===t[0]}">${t[1]}</button>`).join('');
+  const tabs=[['ringkas','Ringkasan'],['live','Live'],['murid','Per murid'],['kelas','Rekap kelas'],...(window.lmsHosted?[['akses','Akses'+(accPend()?' ('+accPend()+')':'')],['hadiah','Dompet']]:[])].map(t=>`<button type="button" class="chipb${GT===t[0]?' on':''}" data-lms="gtab" data-t="${t[0]}" aria-pressed="${GT===t[0]}">${t[1]}</button>`).join('');
   const top=`<div class="tora-head"><span class="tora-kj" aria-hidden="true">師</span><div><h1 class="pgt">Panel Tora 先生</h1><p class="small muted">Pantau murid, nilai, dan dompet kelas dari satu tempat.</p><button type="button" class="btn sm" data-lms="go" data-r="kelola">Kelola Soal</button></div></div><div class="chips gtabbar" role="tablist" aria-label="Bagian panel">${tabs}</div>`;
-  if(GT==='ringkas')return top+ringkasHTML(rows);
+  const pb=accPend()&&GT!=='akses'?`<section class="card" style="border-color:var(--accent)"><b>${accPend()} murid menunggu persetujuan akses</b><div class="actions"><button type="button" class="btn sm" data-lms="gtab" data-t="akses">Buka daftar</button></div></section>`:'';
+  if(GT==='akses')return top+aksesHTML();
+  if(GT==='ringkas')return top+pb+ringkasHTML(rows);
   if(GT==='hadiah')return top+GAME.senseiHTML();
   if(GT==='live')return top+`<section class="card"><h2>Peta kelas</h2><p class="small muted">Posisi murid di Dunia Akimichi sesuai yang sedang mereka kerjakan sekarang.</p>${PANTAU.peta?PANTAU.peta(rows):''}</section><section class="card"><h2>Pantau langsung</h2>${PANTAU.liveHTML(rows)}</section>`;
   if(GT==='murid')return top+muridHTML(rows);
@@ -14850,7 +14871,12 @@ document.addEventListener('click',e=>{
   else if(a==='gjft'){J().go('guru');go('jft')}
   else if(a==='gkk'){K().go('guru');go('kotoba')}
   else if(a==='gcsv')exportCsv();
-  else if(a==='gtab'){GT=b.dataset.t;gDelAsk='';gNote='';renderPage()}
+  else if(a==='gtab'){GT=b.dataset.t;gDelAsk='';gNote='';ACC.pwFor='';ACC.msg='';renderPage();if(GT==='akses')accLoad()}
+  else if(a==='acc'){const e=b.dataset.e,ok=b.dataset.ok==='1';b.disabled=true;lmsAccess.decide(e,ok).then(r=>{ACC.msg=r?(ok?'Disetujui. Murid otomatis lanjut masuk.':'Akses dicabut / ditolak.'):'Gagal menyimpan keputusan. Coba lagi.';ACC.list=null;accLoad().then(()=>renderPage())})}
+  else if(a==='accpw'){ACC.pwFor=b.dataset.e;ACC.msg='';renderPage();const i=document.getElementById('acc-pw');if(i)i.focus()}
+  else if(a==='accpwno'){ACC.pwFor='';renderPage()}
+  else if(a==='accrnd'){const c='abcdefghjkmnpqrstuvwxyz23456789';let t='';const r=new Uint32Array(8);crypto.getRandomValues(r);r.forEach(v=>t+=c[v%c.length]);const i=document.getElementById('acc-pw');if(i)i.value=t}
+  else if(a==='accpwgo'){const i=document.getElementById('acc-pw'),pw=i?i.value:'';if(pw.length<8){ACC.msg='Kata sandi minimal 8 karakter.';renderPage();return}b.disabled=true;lmsAccess.reset(b.dataset.e,pw).then(r=>{ACC.msg=r&&r.ok?'Kata sandi baru: <b>'+esc(pw)+'</b>. Sampaikan ke murid lewat WhatsApp.':'Gagal mengatur kata sandi ('+esc((r&&r.err)||'?')+').';ACC.pwFor='';renderPage()})}
   else if(a==='gdelask'){gDelAsk=b.dataset.id;renderPage()}
   else if(a==='gdelno'){gDelAsk='';renderPage()}
   else if(a==='gdelgo'){gDelete(b.dataset.id)}
@@ -14887,6 +14913,7 @@ async function start(){
       try{dbx.tree('data/users').onSnapshot(sn=>{const L={},P={};sn.docs.forEach(x=>{const m=/^([0-9a-f-]{36})\/(live|plog)$/.exec(x.id);if(!m)return;(m[2]==='live'?L:P)[m[1]]=x.data()});LIVE=L;PLOGS=P;if(CUR==='guru'&&GT!=='hadiah')softRender()},()=>{})}catch(e){}
       try{dbx.collection('config').onSnapshot(sn=>{const R={};sn.docs.forEach(x=>{if(/^reset-/.test(x.id))R[x.id.slice(6)]=+(x.data()||{}).at||0});RESET=R;if(CUR==='guru')softRender()},()=>{})}catch(e){}
       setInterval(()=>{if(CUR==='guru'&&GT==='live'&&!document.hidden)softRender()},15000);
+      setInterval(()=>{if(CUR==='guru'&&!document.hidden)accLoad()},20000);
       setInterval(()=>{if(!document.hidden&&batsuBlock(CUR)){renderNav();go('harian')}},8000);
     }
     if(dbx)qmInit(dbx);if(dbx)dbx.doc('config/tantangan').onSnapshot(x=>{TANT=x.exists?x.data():null;if(CUR==='beranda'||CUR==='guru')softRender()},()=>{})}catch(e){}
