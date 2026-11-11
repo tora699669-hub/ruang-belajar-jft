@@ -1262,7 +1262,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261111-1526"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261111-1540"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -13012,6 +13012,7 @@ function onMsg(m){if(!m||!m.from||m.from===L.me)return;const p=L.players[m.from]
   else if(m.t==='foto'){L.events.push({t:'foto',m});if(m.near)toastIn('📸 '+(p?p.nm:'Teman')+' memotretmu! Pose dong!')}
   else if(m.t==='duel')duelMsg(m,p);
   else if(m.t==='tur'&&window.TUR)TUR.msg(m,p);
+  else if(m.t==='vc'&&window.SUARA)SUARA.msg(m,p);
   emit()}
 function toastIn(t){let d=document.getElementById('lb-toast');if(!d){d=document.createElement('div');d.id='lb-toast';d.className='lb-toast';d.setAttribute('role','status');document.body.appendChild(d)}d.textContent=t;d.classList.add('on');clearTimeout(d._t);d._t=setTimeout(()=>d.classList.remove('on'),2600)}
 /* ---------- duel ---------- */
@@ -13077,7 +13078,7 @@ function result(){if(!D)return;clearTimeout(D.to);const w=D.me.s>D.op.s?'me':D.m
 function listHTML(){const P=Object.values(L.players);
   return `<div class="lb-card lb-list" role="dialog" aria-modal="true" aria-labelledby="lb-lt"><button type="button" class="lb-x" data-lb="close" aria-label="Tutup">✕</button><h3 id="lb-lt">🟢 ${P.length+1} online sekarang</h3>
    <ul><li class="me"><b>${esc(nameOf())}</b><span>Kamu · Lv ${lvOf()}</span></li>${P.map(p=>`<li><b>${esc(p.nm||'Teman')}${p.sensei?' 先生':''}</b><span>Lv ${p.lv||1} · ${esc(whereName(p.w))}</span><div><button type="button" class="btn sm" data-lb="pick" data-to="${esc(p.id)}"${['jft','kotoba'].includes(p.w)?' disabled title="Lagi ujian/latihan"':''}>⚔️ Duel</button><button type="button" class="btn sm ghost" data-lb="hi" data-to="${esc(p.id)}">👋</button></div></li>`).join('')}</ul>
-   ${'<button type="button" class="btn" data-tur="open" style="margin-top:10px;width:100%">🏆 Turnamen</button>'}${P.length?'<button type="button" class="btn big" data-lb="rand" style="margin-top:10px;width:100%">🎲 Cari lawan acak</button>':'<p class="lb-sub">Belum ada teman lain yang online. Ajak mereka masuk!</p>'}</div>`}
+   ${'<button type="button" class="btn" data-tur="open" style="margin-top:10px;width:100%">🏆 Turnamen</button>'}${'<button type="button" class="btn" data-vc="open" style="margin-top:10px;width:100%">🎙️ Ruang Suara</button>'}${P.length?'<button type="button" class="btn big" data-lb="rand" style="margin-top:10px;width:100%">🎲 Cari lawan acak</button>':'<p class="lb-sub">Belum ada teman lain yang online. Ajak mereka masuk!</p>'}</div>`}
 const WN={beranda:'Di Dunia',latihan:'Menu latihan',jft:'Lagi ujian',kotoba:'Latihan kotoba',menu:'Latihan soal',verb:'Ubah kata kerja',game:'Taman Bermain',karakter:'Di toko',peringkat:'Lihat peringkat',harian:'Misi harian',progres:'Lihat rapor'};
 const whereName=w=>WN[w]||'Menjelajah';
 document.addEventListener('click',e=>{const b=e.target.closest('[data-lb]');if(!b)return;const a=b.dataset.lb;
@@ -13243,6 +13244,116 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-tur]');if(
   if(a==='open')open();else if(a==='close')ovClose();else if(a==='host')host(b.dataset.p);else if(a==='join')join(b.dataset.c);else if(a==='start')start();else if(a==='leave')leave();else if(a==='ans')answer(+b.dataset.i)});
 document.addEventListener('keydown',e=>{if(!T||T.st!=='play')return;const n=+e.key;if(n>=1&&n<=4)answer(n-1)});
 return {open,msg,get active(){return !!T},get _t(){return T},PRESETS};
+})();
+
+</script>
+<script>
+/* ===== Ruang Suara: obrolan suara antar murid (WebRTC langsung antar HP, tidak direkam, mic mati dulu).
+   Sinyal koneksi lewat kanal lobi (Supabase Realtime broadcast). Maksimal 5 orang per ruang. ===== */
+window.SUARA=(function(){'use strict';
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ROOMS=[['1','Ruang Suara 1'],['2','Ruang Suara 2'],['3','Ruang Suara 3']];
+const MAX=5,BEAT=12000,STALE=40000;
+const ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
+const OCC={};let V=null,ovOpen=false;
+const ME=()=>window.LOBI&&LOBI.me;
+const NM=()=>LOBI.nameOf();
+const isSensei=()=>!!window.LMS_OWNER_VIEW;
+const toast=t=>{try{LOBI.toast(t)}catch(e){}};
+const send=p=>{if(window.LOBI)LOBI.send(Object.assign({t:'vc'},p))};
+const peerNm=id=>{const p=(window.LOBI&&LOBI.players||{})[id];return (V&&V.roster[id]&&V.roster[id].nm)||(OCC[id]&&OCC[id].nm)||(p&&p.nm)||'Teman'};
+const inExam=()=>['jft','kotoba'].includes((location.hash||'').slice(1));
+(function(){const st=document.createElement('style');st.textContent=`
+#vc-bar{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:9000;display:flex;align-items:center;gap:6px;background:#2b2a3d;color:#fff;border-radius:999px;padding:6px 8px 6px 14px;font:800 13px Nunito,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:calc(100vw - 24px)}
+#vc-bar b{font-weight:900}#vc-bar button{border:0;border-radius:999px;min-width:40px;min-height:40px;padding:0 12px;font:900 14px Nunito,sans-serif;cursor:pointer;background:#fff;color:#2b2a3d}
+#vc-bar button.on{background:#58cc02;color:#fff}#vc-bar button.off{background:#ff4b4b;color:#fff}#vc-bar button:focus-visible{outline:3px solid #ffc800;outline-offset:2px}
+.vc-dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:#c9c9d3;margin-right:6px;vertical-align:-1px}.vc-dot.sp{background:#58cc02;box-shadow:0 0 0 4px rgba(88,204,2,.35)}
+.vc-note{background:#fff8d6;border:2px solid #ffc800;border-radius:12px;padding:8px 10px;margin:8px 0;text-align:left;font:700 13px Nunito,sans-serif;color:#3c3c3c}
+.vc-rm{width:100%;text-align:left;border:2px solid #2b2a3d;border-radius:14px;background:#fff;padding:10px 12px;margin:6px 0;cursor:pointer;font:800 15px Nunito,sans-serif;color:#3c3c3c;min-height:48px;display:flex;justify-content:space-between;align-items:center}
+.vc-rm:disabled{opacity:.5;cursor:not-allowed}`;document.head.appendChild(st)})();
+let lastOv='',lastBar='';
+function ov(h){if(h===lastOv&&ovOpen){const e=document.getElementById('vc-ov');if(e&&!e.hidden)return}lastOv=h;let d=document.getElementById('vc-ov');if(!d){d=document.createElement('div');d.id='vc-ov';d.className='lb-ov';document.body.appendChild(d)}d.innerHTML=h;d.hidden=false;ovOpen=true}
+function ovClose(){lastOv='';const d=document.getElementById('vc-ov');if(d){d.hidden=true;d.innerHTML=''}ovOpen=false}
+const count=r=>Object.keys(OCC).filter(id=>OCC[id].room===r&&Date.now()-OCC[id].t<STALE&&id!==ME()).length+(V&&V.room===r?1:0);
+
+/* ---------- tampilan ---------- */
+function menuHTML(){const ok=(()=>{try{return localStorage.getItem('lms:vcok')==='1'}catch(e){return false}})();
+  return `<div class="lb-card" role="dialog" aria-modal="true" aria-labelledby="vc-t"><button type="button" class="lb-x" data-vc="close" aria-label="Tutup">✕</button><h3 id="vc-t">🎙️ Ruang Suara</h3>
+  <p class="lb-sub">Ngobrol langsung sama teman. Mic kamu <b>mati dulu</b>, nyalakan sendiri kalau mau bicara.</p>
+  <div class="vc-note">Suara langsung antar HP dan <b>tidak direkam</b>. Jaga sopan santun ya, dan jangan bagikan data pribadi. Ruang suara otomatis tertutup saat kamu masuk ke ujian.${ok?'':' Dengan masuk, kamu setuju dengan aturan ini.'}</div>
+  ${ROOMS.map(r=>{const n=count(r[0]);return `<button type="button" class="vc-rm" data-vc="join" data-r="${r[0]}" ${n>=MAX?'disabled':''}><span>${esc(r[1])}</span><span>${n}/${MAX} orang</span></button>`}).join('')}</div>`}
+function roomHTML(){const ids=Object.keys(V.roster);
+  return `<div class="lb-card" role="dialog" aria-modal="true" aria-labelledby="vc-t"><button type="button" class="lb-x" data-vc="close" aria-label="Tutup panel">✕</button><h3 id="vc-t">${esc(V.name)}</h3>
+  <ul class="tr-list">${[ME()].concat(ids).map(id=>{const me=id===ME();const r=me?{nm:NM(),mu:V.muted}:V.roster[id];const pc=V.pcs[id];const stt=me?'':(pc?(pc.st==='ok'?'tersambung':pc.st==='gagal'?'gagal tersambung':'menyambung…'):'menunggu');
+    return `<li class="${me?'me':''}"><span><i class="vc-dot" data-sp="${esc(id)}"></i><b>${esc(r.nm)}${me?' (kamu)':''}</b>${stt?' <small>'+stt+'</small>':''}</span><span>${r.mu?'🔇':'🎙️'}</span></li>`}).join('')}</ul>
+  <p class="lb-sub">Kalau ada yang "gagal tersambung", sinyal salah satu HP mungkin membatasi suara langsung. Coba pindah Wi-Fi atau keluar lalu masuk lagi.</p>
+  <div class="actions">${isSensei()?'<button type="button" class="btn" data-vc="modmute">🔇 Bisukan semua</button>':''}<button type="button" class="btn ghost" data-vc="leave">Keluar ruang</button></div></div>`}
+function bar(){let b=document.getElementById('vc-bar');
+  if(!V){if(b)b.remove();lastBar='';return}
+  if(!b){b=document.createElement('div');b.id='vc-bar';b.setAttribute('role','group');b.setAttribute('aria-label','Kontrol suara');document.body.appendChild(b);lastBar=''}
+  const n=Object.keys(V.roster).length+1;
+  const hb=`<span>🎙️ <b>${esc(V.name)}</b> · ${n}</span>${V.hasMic?`<button type="button" class="${V.muted?'off':'on'}" data-vc="mic" aria-pressed="${!V.muted}" aria-label="${V.muted?'Nyalakan mic':'Matikan mic'}">${V.muted?'Mic mati':'Mic nyala'}</button>`:'<span>(dengar saja)</span>'}<button type="button" data-vc="panel" aria-label="Daftar peserta">👥</button><button type="button" data-vc="leave" aria-label="Keluar ruang suara">✕</button>`;if(hb!==lastBar){lastBar=hb;b.innerHTML=hb}}
+function refresh(){bar();if(ovOpen){const d=document.getElementById('vc-ov');if(d&&!d.hidden)ov(V?roomHTML():menuHTML())}}
+
+/* ---------- koneksi suara ---------- */
+const iceDone=pc=>new Promise(r=>{if(pc.iceGatheringState==='complete')return r();const f=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',f);r()}};pc.addEventListener('icegatheringstatechange',f);setTimeout(r,3500)});
+function newPC(id){const pc=new RTCPeerConnection({iceServers:ICE});const P={pc,st:'wait',el:null,an:null};V.pcs[id]=P;
+  if(V.stream)V.stream.getTracks().forEach(t=>pc.addTrack(t,V.stream));else pc.addTransceiver('audio',{direction:'recvonly'});
+  pc.ontrack=e=>{if(P.el)return;const a=document.createElement('audio');a.autoplay=true;a.setAttribute('playsinline','');a.srcObject=e.streams[0];a.style.display='none';document.body.appendChild(a);P.el=a;a.play&&a.play().catch(()=>{});
+    try{const c=V.ctx||(V.ctx=new (window.AudioContext||window.webkitAudioContext)());const an=c.createAnalyser();an.fftSize=256;c.createMediaStreamSource(e.streams[0]).connect(an);P.an=an}catch(x){}};
+  pc.onconnectionstatechange=()=>{const s=pc.connectionState;if(s==='connected'){P.st='ok';refresh()}
+    else if(s==='failed'||s==='closed'){P.st='gagal';refresh();setTimeout(()=>{if(V&&V.pcs[id]===P&&P.st==='gagal')drop(id,true)},4000)}
+    else if(s==='disconnected'){setTimeout(()=>{if(V&&V.pcs[id]===P&&pc.connectionState==='disconnected'){P.st='gagal';refresh();drop(id,true)}},8000)}};
+  return P}
+function drop(id,keepRoster){const P=V&&V.pcs[id];if(P){try{P.pc.close()}catch(e){}if(P.el){P.el.srcObject=null;P.el.remove()}delete V.pcs[id]}if(V&&!keepRoster)delete V.roster[id];refresh()}
+async function offerTo(id){if(!V||V.pcs[id])return;const P=newPC(id);try{const o=await P.pc.createOffer();await P.pc.setLocalDescription(o);await iceDone(P.pc);
+  if(V&&V.pcs[id]===P)send({k:'offer',to:id,room:V.room,sdp:{type:P.pc.localDescription.type,sdp:P.pc.localDescription.sdp}})}catch(e){drop(id,true)}}
+async function onOffer(m){if(!V||m.room!==V.room||!m.sdp)return;const id=m.from;const ex=V.pcs[id];
+  if(ex){if(ex.pc.signalingState==='have-local-offer'&&ME()>id)return;drop(id,true)}
+  const P=newPC(id);try{await P.pc.setRemoteDescription(m.sdp);const a=await P.pc.createAnswer();await P.pc.setLocalDescription(a);await iceDone(P.pc);
+    if(V&&V.pcs[id]===P)send({k:'answer',to:id,room:V.room,sdp:{type:P.pc.localDescription.type,sdp:P.pc.localDescription.sdp}})}catch(e){drop(id,true)}}
+async function onAnswer(m){if(!V||m.room!==V.room||!m.sdp)return;const P=V.pcs[m.from];if(!P||P.pc.signalingState!=='have-local-offer')return;try{await P.pc.setRemoteDescription(m.sdp)}catch(e){drop(m.from,true)}}
+function beat(){if(V)send({k:'beat',room:V.room,nm:NM(),mu:V.muted})}
+function note(m){OCC[m.from]={room:m.room,nm:String(m.nm||'Teman').slice(0,30),t:Date.now()};
+  if(V&&m.room===V.room){V.roster[m.from]={nm:OCC[m.from].nm,mu:!!m.mu};if(!V.pcs[m.from]&&ME()>m.from)offerTo(m.from);refresh()}else if(ovOpen&&!V)refresh()}
+
+/* ---------- masuk dan keluar ---------- */
+async function join(r){if(V){return}if(inExam()){toast('Ruang suara ditutup selama ujian.');return}
+  if(!window.RTCPeerConnection||!window.lmsRT||!window.LOBI||!ME()){toast('Ruang suara hanya ada di versi online dengan browser terbaru.');return}
+  const R=ROOMS.find(x=>x[0]===r);if(!R||count(r)>=MAX){toast('Ruang itu penuh.');return}
+  let stream=null;try{if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false})}
+  catch(e){toast(e&&e.name==='NotAllowedError'?'Izin mikrofon ditolak. Kamu masuk sebagai pendengar. Aktifkan izin lewat ikon gembok di address bar kalau mau bicara.':'Mikrofon tidak ditemukan. Kamu masuk sebagai pendengar.')}
+  if(inExam())return;
+  try{localStorage.setItem('lms:vcok','1')}catch(e){}
+  V={room:r,name:R[1],stream,hasMic:!!stream,muted:true,pcs:{},roster:{},ctx:null,sp:{}};
+  if(stream)stream.getAudioTracks().forEach(t=>t.enabled=false);
+  V.bt=setInterval(()=>{beat();const n=Date.now();Object.keys(V.roster).forEach(id=>{if(OCC[id]&&n-OCC[id].t>STALE){drop(id)}})},BEAT);
+  V.sv=setInterval(level,160);
+  send({k:'hello',room:r,nm:NM(),mu:true});beat();refresh();ovClose();
+  toast('Kamu masuk '+R[1]+'. Mic mati, nyalakan lewat tombol di bawah.')}
+function leave(msg){if(!V)return;send({k:'bye',room:V.room});clearInterval(V.bt);clearInterval(V.sv);Object.keys(V.pcs).forEach(id=>{try{V.pcs[id].pc.close()}catch(e){}const el=V.pcs[id].el;if(el){el.srcObject=null;el.remove()}});
+  if(V.stream)V.stream.getTracks().forEach(t=>t.stop());try{V.ctx&&V.ctx.close()}catch(e){}V=null;bar();ovClose();if(msg)toast(msg)}
+function setMute(m){if(!V||!V.hasMic)return;V.muted=m;V.stream.getAudioTracks().forEach(t=>t.enabled=!m);beat();refresh()}
+function level(){if(!V)return;const buf=new Uint8Array(128);
+  const ids=Object.keys(V.pcs);ids.forEach(id=>{const P=V.pcs[id];if(!P.an)return;P.an.getByteTimeDomainData(buf);let mx=0;for(let i=0;i<buf.length;i++)mx=Math.max(mx,Math.abs(buf[i]-128));const sp=mx>8;if(V.sp[id]!==sp){V.sp[id]=sp;const d=document.querySelector('[data-sp="'+id+'"]');if(d)d.classList.toggle('sp',sp)}})}
+
+/* ---------- pesan masuk dari lobi ---------- */
+function msg(m,p){if(!m||!m.k||!m.from)return;
+  if(m.k==='mod'){if(V&&m.room===V.room&&p&&p.sensei&&m.from!==ME()){setMute(true);toast('Sensei membisukan mic semuanya.')}return}
+  if(m.k==='beat'||m.k==='hello'||m.k==='here'){if(m.to&&m.to!==ME())return;note(m);
+    if(m.k==='hello'&&V&&m.room===V.room)send({k:'here',to:m.from,room:V.room,nm:NM(),mu:V.muted});
+    if(m.k==='here'&&V&&m.room===V.room&&!V.pcs[m.from])offerTo(m.from)}
+  else if(m.k==='bye'){delete OCC[m.from];if(V&&V.roster[m.from])drop(m.from);else if(ovOpen&&!V)refresh()}
+  else if(m.to!==ME())return;
+  else if(m.k==='offer')onOffer(m);
+  else if(m.k==='answer')onAnswer(m)}
+function modMute(){if(V)send({k:'mod',room:V.room})}
+addEventListener('hashchange',()=>{if(V&&inExam())leave('Ruang suara ditutup karena kamu masuk ujian.')});
+addEventListener('pagehide',()=>{if(V)try{send({k:'bye',room:V.room})}catch(e){}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-vc]');if(!b)return;const a=b.dataset.vc;
+  if(a==='open'){ov(V?roomHTML():menuHTML())}else if(a==='close')ovClose();else if(a==='panel'){V&&ov(roomHTML())}
+  else if(a==='join')join(b.dataset.r);else if(a==='leave')leave();else if(a==='mic'){V&&setMute(!V.muted)}else if(a==='modmute')modMute()});
+return {open:()=>ov(V?roomHTML():menuHTML()),msg:(m,p)=>msg(m,p),get active(){return !!V},get _v(){return V}};
 })();
 
 </script>
@@ -14129,7 +14240,7 @@ function route(){
   const ex=examRoute();if(ex&&r!==ex){location.hash=ex;return}
   show(r);
 }
-window.LMS_REDRAW=top=>{if(CUR==='cbt'||CUR==='bunpou'||top!==undefined){renderPage();if(top)window.scrollTo(0,0)}};window.CBT_OWNER=()=>OWNER;window.CBT_ADMIN=()=>ADMIN();window.LMS_DB=()=>DB;try{window.QCTL=JSON.parse(localStorage.getItem('lms:qctl'))||{}}catch(e){window.QCTL={}}
+window.LMS_REDRAW=top=>{if(CUR==='cbt'||CUR==='bunpou'||top!==undefined){renderPage();if(top)window.scrollTo(0,0)}};window.CBT_OWNER=()=>OWNER;window.CBT_ADMIN=()=>ADMIN();try{Object.defineProperty(window,'LMS_OWNER_VIEW',{get:()=>ADMIN(),configurable:true})}catch(e){}window.LMS_DB=()=>DB;try{window.QCTL=JSON.parse(localStorage.getItem('lms:qctl'))||{}}catch(e){window.QCTL={}}
 const go=r=>{if(location.hash==='#'+r)route();else location.hash=r};
 window.LMS_GO=r=>go(r);window.LMS_QM=()=>QM.docs;window.LMS_ME=()=>me();window.LMS_NAME=()=>getName();
 
