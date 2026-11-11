@@ -184,19 +184,28 @@
     onSnapshot(cb,err){const l={kind:'doc',path,cb,err,last:undefined};listeners.add(l);run(l);return()=>listeners.delete(l)}
   }}
   function colRef(col){return {onSnapshot(cb,err){const l={kind:'col',path:col,cb,err,last:undefined};listeners.add(l);run(l);return()=>listeners.delete(l)}}}
+  let fails=0;
   async function run(l){
+    if(l.busy)return;l.busy=true;l.t=Date.now();
     try{
       if(l.kind==='doc'){const d=await fetchDoc(l.path);const k=JSON.stringify(d);if(k===l.last)return;l.last=k;l.cb({exists:d!==null,data:()=>d})}
       else if(l.kind==='tree'){const docs=await fetchTree(l.path);const k=JSON.stringify(docs.map(x=>[x.id,x.data()]));if(k===l.last)return;l.last=k;l.cb({docs})}
       else{const docs=await fetchCol(l.path);const k=JSON.stringify(docs.map(x=>[x.id,x.data()]));if(k===l.last)return;l.last=k;l.cb({docs})}
-    }catch(e){if(l.err)try{l.err(e)}catch(_){}}
+      fails=0;
+    }catch(e){fails=Math.min(fails+1,5);if(l.err)try{l.err(e)}catch(_){}}
+    finally{l.busy=false}
   }
   const timers={};
   function notify(path){[...listeners].forEach(l=>{if(path===l.path||path.startsWith(l.path+'/')||l.path.startsWith(path))run(l)})}
   function startSync(){
     try{sb.channel('docs-sync').on('postgres_changes',{event:'*',schema:'public',table:'docs'},p=>{const path=(p.new&&p.new.path)||(p.old&&p.old.path);if(path)notify(path)}).subscribe()}catch(e){}
-    setInterval(()=>{if(!document.hidden)[...listeners].forEach(run)},15000);
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden)[...listeners].forEach(run)});
+    /* Perubahan data sudah didorong lewat Realtime (docs-sync). Polling hanya cadangan dan sengaja jarang,
+       supaya server kecil tidak kewalahan (sebelumnya semua dokumen dibaca ulang tiap 15 detik oleh semua murid,
+       ratusan kali per menit, sampai login ikut time out). Data statis lebih jarang lagi, dan jeda melebar saat server error. */
+    const STATIC=/^(config|qbank)(\/|$)/;
+    const gap=l=>(STATIC.test(l.path)?180000:45000)*(1+(l.jit==null?(l.jit=Math.random()*.4):l.jit))*(1+fails*1.5);
+    setInterval(()=>{if(document.hidden||navigator.onLine===false)return;const n=Date.now();[...listeners].forEach(l=>{if(n-(l.t||0)>=gap(l))run(l)})},5000);
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)return;const n=Date.now();[...listeners].forEach(l=>{if(n-(l.t||0)>20000)setTimeout(()=>run(l),Math.random()*4000)})});
   }
   let syncing=false;
   const dbApi=async()=>{const s=await getReady();if(!s)return null;if(!syncing){syncing=true;startSync()}return {doc:docRef,collection:colRef,tree:treeRef}};
