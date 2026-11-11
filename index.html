@@ -1262,7 +1262,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261110-1655"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261111-0617"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -8732,7 +8732,7 @@ function errMsg(err){const m=String((err&&err.message)||err||''),c=err&&err.code
 
 /* ---------- aksi ---------- */
 function buy(list,price,cur,d){
- if(d&&d.batsu){msg='Toko dikunci sampai batsu selesai. Kerjakan dulu di Misi Harian.';sfx('bad');onChange();return}
+ if(d&&d.batsu){msg='Belanja ditahan sampai batsu selesai. Tokonya tetap bisa kamu lihat dan coba.';sfx('bad');onChange();return}
  const w=wallet(d);if((cur==='K'?w.koin:w.permata)<price){msg='Saldo belum cukup. Kerjakan tugas dulu, ya.';sfx('bad');onChange();return}
  G.owned=[...new Set([...(G.owned||[]),...list])];if(cur==='K')G.spentK=(G.spentK||0)+price;else G.spentP=(G.spentP||0)+price;
  list.forEach(id=>{G.equip=Object.assign({},G.equip,{[IT[id].slot]:id})});preview=null;msg='Berhasil dibeli dan langsung dipakai!';sfx('coin');save();
@@ -8744,7 +8744,7 @@ async function buyX(x,d){if(!G||!ready)throw new Error('Data akunmu belum siap, 
  const key='x3:'+x.id;if((G.owned||[]).includes(key))return;G.owned=[...new Set([...(G.owned||[]),key])];if(cur==='K')G.spentK=(G.spentK||0)+x.price;else G.spentP=(G.spentP||0)+x.price;sfx('coin');await save()}
 function kitEquip(x){const k=Object.assign({char:'',pose:'idle',badge:''},G.kit||{});k[x.kind]=x.key;G.kit=k}
 function buyKit(x,d){
- if(d&&d.batsu){msg='Toko dikunci sampai batsu selesai. Kerjakan dulu di Misi Harian.';sfx('bad');onChange();return}
+ if(d&&d.batsu){msg='Belanja ditahan sampai batsu selesai. Tokonya tetap bisa kamu lihat dan coba.';sfx('bad');onChange();return}
  const w=wallet(d);if((x.cur==='K'?w.koin:w.permata)<x.price){msg='Saldo belum cukup. Kerjakan tugas dulu, ya.';sfx('bad');onChange();return}
  G.owned=[...new Set([...(G.owned||[]),x.id])];if(x.cur==='K')G.spentK=(G.spentK||0)+x.price;else G.spentP=(G.spentP||0)+x.price;
  kitEquip(x);kpv=null;msg='Berhasil dibeli dan langsung dipakai!';sfx('coin');save();
@@ -13907,11 +13907,10 @@ function renderTop(){
 function renderNav(){
   document.body.classList.toggle('lms-admin',ADMIN());
   if(ADMIN()){$$('lms-nav').innerHTML='<div class="lms-nav-in"><button type="button" data-lms="nav" data-r="guru" aria-current="true"><i aria-hidden="true">師</i>Panel Guru</button><button type="button" data-lms="viewas" aria-current="false"><i aria-hidden="true">生</i>Mode Murid</button></div>';return}
-  if(BATSU_ON){$$('lms-nav').innerHTML='<div class="lms-nav-in"><button type="button" data-lms="nav" data-r="harian" aria-current="true"><i aria-hidden="true">罰</i>Batsu</button></div>';return}
   $$('lms-nav').innerHTML='<div class="lms-nav-in">'+ROUTES.filter(r=>r[0]!=='simulasi'&&r[0]!=='dokkai'&&r[0]!=='kelola'&&r[0]!=='cbt'&&r[0]!=='moji'&&r[0]!=='kaiwa'&&r[0]!=='choukai'&&r[0]!=='peringkat'&&r[0]!=='bunpou'&&r[0]!=='bantuan'&&r[0]!=='game'&&r[0]!=='kotoba'&&r[0]!=='jft'&&r[0]!=='verb'&&r[0]!=='harian'&&r[0]!=='menu'&&r[0]!=='petunjuk'&&r[0]!=='kamus'&&r[0]!=='bunfc'&&r[0]!=='bunlat'&&r[0]!=='kwajib'&&r[0]!=='kosa'&&r[0]!=='progres'&&(r[0]!=='guru'||(OWNER&&!(window.lmsHosted&&STU())))).map(r=>`<button type="button" data-lms="nav" data-r="${r[0]}" aria-current="${CUR===r[0]||(r[0]==='belajar'&&CUR==='kotoba')||(r[0]==='latihan'&&(CUR==='dokkai'||CUR==='moji'||CUR==='kaiwa'||CUR==='choukai'||CUR==='petunjuk'||CUR==='cbt'||CUR==='bunpou'||CUR==='menu'||CUR==='jft'||CUR==='verb'||CUR==='bunlat'))||(r[0]==='hafalan'&&(CUR==='bunfc'||CUR==='kwajib'||CUR==='kosa'||CUR==='kamus'||CUR==='flash'))}"><i aria-hidden="true">${r[1]}</i>${r[2]}</button>`).join('')+'</div>';
 }
 const BATSU_OK=['harian','kotoba','bantuan'];
-function batsuBlock(r){if(ADMIN())return false;try{me()}catch(e){}if(!BATSU_ON)return false;if(examRoute())return false;if(r==='kotoba'&&(ACT_BATSU||K().inQuiz()))return false;return !BATSU_OK.includes(r)||r==='kotoba'}
+function batsuBlock(r){return false;if(ADMIN())return false;try{me()}catch(e){}if(!BATSU_ON)return false;if(examRoute())return false;if(r==='kotoba'&&(ACT_BATSU||K().inQuiz()))return false;return !BATSU_OK.includes(r)||r==='kotoba'}
 function show(r){
   if(batsuBlock(r)){r='harian';if(location.hash!=='#harian'){location.hash='harian';return}}
   if(CUR&&CUR!==r)PREVR=CUR;CUR=r;if(r!=='game')try{ASOBI.leave()}catch(e){}if(r!=='beranda'){try{DUNIA.stop()}catch(e){}try{PLANET.stop()}catch(e){}}if(r!=='kotoba')ACT_BATSU=false;try{PANTAU.note()}catch(e){}const isJ=r==='jft',isK=r==='kotoba';
@@ -14123,7 +14122,7 @@ const batsuN=m=>(m>=2?3:2)*20;
 function batsuCard(d,big){
   if(!d.batsu)return '';
   const x=d.miss>=2?3:2;
-  return `<section class="card batsu"><div class="bz">罰</div><div><b>BATSU dari Sensei</b><p>${d.miss>1?`Misi harianmu bolong ${d.miss} hari berturut-turut, jadi hukumannya naik jadi <b>×3</b>.`:'Kemarin misi harianmu bolong, hukumannya <b>×2</b>.'} Kerjakan <b>${batsuN(d.miss)} soal campuran</b> (20 soal × ${x}) dari semua bab yang sudah dipelajari. Harus <b>minimal 80%</b>. Belum lulus? Ulang sampai bisa.</p><p class="small"><b>EXP, Koin, dan Permata berhenti</b> selama batsu aktif. Kalau hari ini masih tidak dikerjakan, besok jadi ×3.</p>${big?'<ul class="info"><li>Selama batsu belum beres, <b>Toko dikunci</b> dan hadiah penghargaan tidak bisa diambil.</li><li>Lulus batsu = kembali normal, dan kamu tetap harus mengerjakan misi hari ini.</li></ul>':''}<button class="btn" data-lms="mis" data-m="batsu">Kerjakan batsu</button></div></section>`;
+  return `<section class="card batsu"><div class="bz">罰</div><div><b>BATSU dari Sensei</b><p>${d.miss>1?`Misi harianmu bolong ${d.miss} hari berturut-turut, jadi hukumannya naik jadi <b>×3</b>.`:'Kemarin misi harianmu bolong, hukumannya <b>×2</b>.'} Kerjakan <b>${batsuN(d.miss)} soal campuran</b> (20 soal × ${x}) dari semua bab yang sudah dipelajari. Harus <b>minimal 80%</b>. Belum lulus? Ulang sampai bisa.</p><p class="small"><b>EXP, Koin, dan Permata berhenti</b> selama batsu aktif. Kalau hari ini masih tidak dikerjakan, besok jadi ×3.</p>${big?'<ul class="info"><li>Semua menu tetap bisa dibuka. Yang ditahan selama batsu: EXP, Koin, Permata, belanja di Toko, dan klaim hadiah penghargaan.</li><li>Lulus batsu = kembali normal, dan kamu tetap harus mengerjakan misi hari ini.</li></ul>':''}<button class="btn" data-lms="mis" data-m="batsu">Kerjakan batsu</button></div></section>`;
 }
 function misiCard(d,compact){
   const nx=d.ms.find(m=>!m.done);
