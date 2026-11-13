@@ -1262,7 +1262,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261113-0550"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261113-0557"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -14165,7 +14165,7 @@ window.UJIAN_MURID=[{"id": "L13-01", "bab": 13, "sec": "M", "n": 1, "t": "「お
             const cls=got!==undefined?(k===got.pick?(got.ok?' ujm-ok':' ujm-no'):''):'';
             return '<button type="button" class="btn ghost ujm-opt'+cls+'" data-ujm="'+esc(q.id)+'|'+k+'"'+(got!==undefined||pending[q.id]?' disabled':'')+'>'+'ABCD'[k]+'. '+esc(o)+'</button>';
           }).join('');
-          const fb=got!==undefined?'<div class="status '+(got.ok?'ok':'warn')+'" style="margin-top:6px"><b>'+(got.ok?'Bener!':'Belum pas.')+'</b></div>':'';
+          const fb=got!==undefined?'<div class="status '+(got.ok?'ok':'warn')+'" style="margin-top:6px"><b>'+(got.ok?'Bener!':'Belum pas.')+'</b> '+esc(got.e)+'</div>':'';
           return '<div class="card ujm-q"><div class="small muted">No '+q.n+' · '+esc(q.lv)+' · '+q.poin+' poin</div>'+(q.img?'<img class="ujm-img" src="'+esc(q.img)+'" alt="" loading="lazy" style="max-width:200px;display:block;margin:6px 0">':'')+'<p class="ujm-t">'+esc(q.t)+'</p><div class="ujm-opts">'+opts+'</div>'+fb+'</div>';
         }).join('');
       }).join('');
@@ -14179,9 +14179,9 @@ window.UJIAN_MURID=[{"id": "L13-01", "bab": 13, "sec": "M", "n": 1, "t": "「お
     if(typeof window.lmsRPC!=='function'){alert('Koneksi ke server belum siap. Coba muat ulang halaman.');return}
     pending[id]=true;
     try{
-      const r=await window.lmsRPC('cek_jawaban',{soal_id:id,pilihan:pick});
+      const r=await window.lmsRPC('jawab_soal',{soal_id:id,pilihan:pick});
       if(r.error)throw r.error;
-      DONE[id]={pick:pick,ok:r.data===true};
+      DONE[id]={pick:pick,ok:!!(r.data&&r.data.benar),e:(r.data&&r.data.pembahasan)||''};
     }catch(e){
       alert('Jawaban belum bisa dicek. Coba lagi sebentar.');
     }finally{
