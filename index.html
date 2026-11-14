@@ -1262,7 +1262,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261114-1248"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261114-1327"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -14144,34 +14144,70 @@ window.UJIAN_MURID=[{"id": "L13-01", "bab": 13, "sec": "M", "n": 1, "t": "「お
 
 </script>
 <script>
-/* Halaman murid: Latihan soal Bab 13-18 (tanpa choukai). Kunci TIDAK ada di browser: jawaban dicek lewat RPC cek_jawaban. */
+/* Halaman murid: Latihan soal Bab 13-18 (tanpa choukai). Kunci TIDAK ada di browser: jawaban dicek lewat RPC jawab_soal.
+   Tampilan: menu per bab (kartu) di dalam menu Irodori. Klik kartu untuk membuka soal bab itu. */
 (function(){
   const SEC={M:'文字語彙 (Moji-goi)',K:'会話表現 (Kaiwa-hyougen)',D:'読解 (Dokkai)'};
+  const BABS=[13,14,15,16,17,18];
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const DONE={};            /* id -> pilihan yang dipilih murid (hanya di memori halaman) */
+  const DONE={};            /* id -> {pick, ok, e}: hanya di memori halaman */
   const pending={};         /* id -> true selama menunggu RPC */
+  let CUR=0;                /* 0 = menu bab, selain itu = nomor bab yang dibuka */
+
+  const dataAll=()=>window.UJIAN_MURID||[];
+
+  function stat(b){
+    const xs=dataAll().filter(x=>x.bab===b);
+    const ok=xs.filter(x=>DONE[x.id]&&DONE[x.id].ok).length;
+    return {n:xs.length,ok:ok,dicoba:xs.filter(x=>DONE[x.id]!==undefined).length};
+  }
+
+  function menuHTML(){
+    const cards=BABS.map(b=>{
+      const s=stat(b);
+      const pct=s.n?Math.round(s.dicoba/s.n*100):0;
+      return '<button type="button" class="card ujm-babcard" data-ujm-go="'+b+'" style="text-align:left;width:100%;cursor:pointer">'
+        +'<b>Bab '+b+'</b> <span class="small muted">· '+s.n+' soal</span>'
+        +'<div class="small muted" style="margin-top:4px">Sudah dikerjakan '+s.dicoba+' dari '+s.n+' · benar '+s.ok+'</div>'
+        +'<div class="ujm-bar" style="height:6px;background:#0001;border-radius:4px;margin-top:6px"><div style="height:6px;width:'+pct+'%;background:currentColor;border-radius:4px;opacity:.6"></div></div>'
+        +'</button>';
+    }).join('');
+    return '<section class="ujm-wrap"><h2 class="pgt">Latihan Bab 13-18</h2>'
+      +'<p class="small muted">Pilih bab, lalu kerjakan soalnya. Jawaban langsung ketahuan benar atau belum. Choukai menyusul setelah audionya dicek.</p>'
+      +'<div class="ujm-menu" style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">'+cards+'</div></section>';
+  }
+
+  function soalHTML(q){
+    const got=DONE[q.id];
+    const opts=q.o.map((o,k)=>{
+      const cls=got!==undefined?(k===got.pick?(got.ok?' ujm-ok':' ujm-no'):''):'';
+      const dis=(got!==undefined||pending[q.id])?' disabled':'';
+      return '<button type="button" class="btn ghost ujm-opt'+cls+'" data-ujm="'+esc(q.id)+'|'+k+'"'+dis+'>'+'ABCD'[k]+'. '+esc(o)+'</button>';
+    }).join('');
+    const fb=got!==undefined?'<div class="status '+(got.ok?'ok':'warn')+'" style="margin-top:6px"><b>'+(got.ok?'Bener!':'Belum pas.')+'</b> '+esc(got.e)+'</div>':'';
+    const img=q.img?'<img class="ujm-img" src="'+esc(q.img)+'" alt="Gambar soal nomor '+q.n+'" loading="lazy" style="max-width:200px;display:block;margin:6px 0">':'';
+    return '<div class="card ujm-q"><div class="small muted">No '+q.n+' · '+esc(q.lv)+' · '+q.poin+' poin</div>'+img
+      +'<p class="ujm-t">'+esc(q.t)+'</p><div class="ujm-opts">'+opts+'</div>'+fb+'</div>';
+  }
+
+  function babHTML(b){
+    const xs=dataAll().filter(x=>x.bab===b);
+    const s=stat(b);
+    const secs=['M','K','D'].map(sc=>{
+      const ys=xs.filter(x=>x.sec===sc);
+      if(!ys.length)return '';
+      return '<h3 class="ujm-sec">'+esc(SEC[sc])+' · '+ys.length+' soal</h3>'+ys.map(soalHTML).join('');
+    }).join('');
+    return '<section class="ujm-wrap">'
+      +'<button type="button" class="btn ghost" data-ujm-back="1">← Kembali ke daftar bab</button>'
+      +'<h2 class="pgt">Latihan Bab '+b+'</h2>'
+      +'<p class="small muted">Sudah dikerjakan '+s.dicoba+' dari '+s.n+' soal · benar '+s.ok+'</p>'
+      +(secs||'<p>Soal bab ini belum tersedia.</p>')+'</section>';
+  }
 
   function html(){
-    const D=window.UJIAN_MURID||[];
-    if(!D.length)return '<section class="card"><p>Soal belum tersedia.</p></section>';
-    const bab=[13,14,15,16,17,18].map(b=>{
-      const items=D.filter(x=>x.bab===b);
-      const secs=['M','K','D'].map(s=>{
-        const xs=items.filter(x=>x.sec===s);
-        if(!xs.length)return '';
-        return '<h3 class="ujm-sec">'+esc(SEC[s])+'</h3>'+xs.map(q=>{
-          const got=DONE[q.id];
-          const opts=q.o.map((o,k)=>{
-            const cls=got!==undefined?(k===got.pick?(got.ok?' ujm-ok':' ujm-no'):''):'';
-            return '<button type="button" class="btn ghost ujm-opt'+cls+'" data-ujm="'+esc(q.id)+'|'+k+'"'+(got!==undefined||pending[q.id]?' disabled':'')+'>'+'ABCD'[k]+'. '+esc(o)+'</button>';
-          }).join('');
-          const fb=got!==undefined?'<div class="status '+(got.ok?'ok':'warn')+'" style="margin-top:6px"><b>'+(got.ok?'Bener!':'Belum pas.')+'</b> '+esc(got.e)+'</div>':'';
-          return '<div class="card ujm-q"><div class="small muted">No '+q.n+' · '+esc(q.lv)+' · '+q.poin+' poin</div>'+(q.img?'<img class="ujm-img" src="'+esc(q.img)+'" alt="" loading="lazy" style="max-width:200px;display:block;margin:6px 0">':'')+'<p class="ujm-t">'+esc(q.t)+'</p><div class="ujm-opts">'+opts+'</div>'+fb+'</div>';
-        }).join('');
-      }).join('');
-      return '<details class="card ujm-bab"'+(b===13?' open':'')+'><summary><b>Bab '+b+'</b> · '+items.length+' soal</summary>'+secs+'</details>';
-    }).join('');
-    return '<section class="ujm-wrap"><h2 class="pgt">Latihan Bab 13-18</h2><p class="small muted">Pilih jawaban, langsung ketahuan benar atau belum. Choukai menyusul setelah audionya dicek.</p>'+bab+'</section>';
+    if(!dataAll().length)return '<section class="card"><p>Soal belum tersedia.</p></section>';
+    return CUR?babHTML(CUR):menuHTML();
   }
 
   async function answer(id,pick){
@@ -14191,7 +14227,12 @@ window.UJIAN_MURID=[{"id": "L13-01", "bab": 13, "sec": "M", "n": 1, "t": "「お
   }
 
   document.addEventListener('click',function(e){
-    const b=e.target.closest&&e.target.closest('[data-ujm]');
+    const t=e.target;
+    const go=t.closest&&t.closest('[data-ujm-go]');
+    if(go){CUR=Number(go.getAttribute('data-ujm-go'));if(typeof renderPage==='function')renderPage();window.scrollTo(0,0);return}
+    const back=t.closest&&t.closest('[data-ujm-back]');
+    if(back){CUR=0;if(typeof renderPage==='function')renderPage();return}
+    const b=t.closest&&t.closest('[data-ujm]');
     if(!b||b.disabled)return;
     const [id,k]=b.getAttribute('data-ujm').split('|');
     answer(id,Number(k));
