@@ -1268,7 +1268,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261114-1437"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261114-1557"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -14049,15 +14049,20 @@ function words(){if(_w)return _w;const K=window.KOSAKATA||{},b=K['初級2']||{};
   for(let l=13;l<=18;l++)(b[l]||[]).forEach(w=>{if(w&&w[0]&&w[3])out.push({jp:w[0],kana:w[1],id:String(w[3]).split(/[;；]/)[0].trim(),bab:l})});
   if(out.length<20)Object.keys(b).forEach(l=>(b[l]||[]).forEach(w=>{if(w&&w[0]&&w[3])out.push({jp:w[0],kana:w[1],id:String(w[3]).split(/[;；]/)[0].trim(),bab:+l})}));
   const seen=new Set();_w=out.filter(w=>{const k=w.id.toLowerCase();if(seen.has(k)||w.id.length>34)return false;seen.add(k);return true});return _w}
-function kanji(){if(_k)return _k;const K=window.KANJI_WAJIB||{};const out=[];['初級2','初級1'].forEach(bk=>{const b=K[bk]||{};Object.keys(b).forEach(l=>(b[l]||[]).forEach(x=>{if(x&&x.k&&x.on)out.push({k:x.k,r:x.on,w:(x.w&&x.w[0])||null,bk,bab:+l})}))});
-  const seen=new Set();_k=out.filter(x=>{if(seen.has(x.k))return false;seen.add(x.k);return true});return _k}
+function kanji(){if(_k)return _k;const K=window.KANJI_WAJIB||{};const out=[];const seen=new Set();
+  const KJ=/[\u4e00-\u9fff]/;const mean={};try{const V=window.KOSAKATA||{};Object.keys(V).forEach(bk=>Object.keys(V[bk]||{}).forEach(l=>(V[bk][l]||[]).forEach(w=>{if(w&&w[0]&&w[3]&&!mean[w[0]])mean[w[0]]=String(w[3]).split(/[;；]/)[0].trim()})))}catch(e){}
+  ['初級2','初級1','入門'].forEach(bk=>{const b=K[bk]||{};Object.keys(b).forEach(l=>(b[l]||[]).forEach(x=>{(x&&x.w||[]).forEach(w=>{const cl=t=>String(t||'').replace(/[（(][^）)]*[）)]/g,'').replace(/[～〜\s]/g,'');const jp=cl(w&&w[0]),rd=cl(w&&w[1]);if(!jp||!rd||!KJ.test(jp)||seen.has(jp))return;seen.add(jp);out.push({jp,rd,id:(mean[w[0]]||'').replace(/～/g,'').trim().length<=34&&mean[w[0]]?mean[w[0]].replace(/～/g,'').trim():null,bk,bab:+l})})}))});
+  _k=out;return _k}
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 function opts4(ok,pool,key){const wrong=shuf(pool.filter(x=>x!==ok)).filter((x,i,a)=>a.indexOf(x)===i).slice(0,3);const o=shuf([ok,...wrong]);return {o,a:o.indexOf(ok)}}
 const GEN={
   kana(){const set=Math.random()<.75?HI:KA,i=Math.floor(Math.random()*RO.length);const r=opts4(RO[i],RO);return {p:set[i],s:'Bacaan kana ini?',o:r.o,a:r.a,big:1}},
   kosakata(){const W=words();if(W.length<4)return null;const w=pick(W);const r=opts4(w.id,W.map(x=>x.id));return {p:w.jp,s:w.kana!==w.jp?w.kana:'',o:r.o,a:r.a,h:'Bab '+w.bab}},
   arti(){const W=words();if(W.length<4)return null;const w=pick(W);const r=opts4(w.jp,W.map(x=>x.jp));return {p:w.id,s:'Pilih kotoba yang artinya ini',o:r.o,a:r.a,jpo:1}},
-  kanji(){const K=kanji();if(K.length<4)return null;const x=pick(K);const r=opts4(x.r,K.map(y=>y.r));return {p:x.k,s:x.w?'Contoh: '+x.w[0]:'Cara baca kanji ini?',o:r.o,a:r.a,big:1,jpo:1,h:x.bk+' Bab '+x.bab}},
+  kanji(){const K=kanji();if(K.length<6)return null;const x=pick(K);const nearLen=K.filter(y=>y.rd!==x.rd&&Math.abs(y.rd.length-x.rd.length)<=1);const nearEnd=nearLen.filter(y=>y.rd.slice(-1)===x.rd.slice(-1));const rp=(nearEnd.length>=3?nearEnd:nearLen.length>=3?nearLen:K).map(y=>y.rd);
+    const mp=K.filter(y=>y.id&&y.id!==x.id).map(y=>y.id);
+    if(x.id&&mp.length>=3&&Math.random()<.4){const r=opts4(x.id,mp);return {p:x.jp,s:'Apa arti kata ini?',o:r.o,a:r.a,big:1,h:x.bk+' Bab '+x.bab}}
+    const r=opts4(x.rd,rp);return {p:x.jp,s:'Cara baca kata ini (hiragana)?',o:r.o,a:r.a,big:1,jpo:1,h:x.bk+' Bab '+x.bab}},
   verb(){try{const q=GAME.verbQ();return {p:q.prompt,s:'Ubah ke '+q.label,o:q.opts,a:q.a,jpo:1}}catch(e){return null}},
   bank(cat){let D={};try{D=(window.LMS_QM&&LMS_QM())||{}}catch(e){}const L=(D[cat]||[]).filter(q=>q&&q.o&&q.o.length>=2&&typeof q.a==='number'&&q.t);if(!L.length)return null;const q=pick(L);const ord=shuf(q.o.map((_,i)=>i)).slice(0,4);if(!ord.includes(q.a))ord[0]=q.a;const o2=shuf(ord);return {p:q.t,s:q.bagian&&q.bagian.length?'Potongan: '+q.bagian.join(' / '):'',o:o2.map(i=>q.o[i]),a:o2.indexOf(q.a),long:1}}
 };
