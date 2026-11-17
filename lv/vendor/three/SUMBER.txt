@@ -1,0 +1,11 @@
+three.js r187 (npm three@0.187.0), lisensi MIT (lihat LICENSE).
+Paket npm: three-0.187.0.tgz  sha256 ff540832ded0cfe919764d24a3d88f3e2a05f23303f876423e4f893841e90728
+three.min.js = build/three.module.js + build/three.core.js digabung dan diperkecil dengan esbuild 0.25.10 (--bundle --minify --format=esm).
+addons/* = examples/jsm/* yang sama, diperkecil dengan esbuild (--minify --format=esm), tanpa perubahan isi.
+Disimpan di repo, tidak dimuat dari CDN.
+
+sha256 file di folder ini:
+f0b701b88055285086b2c913486b1230b74c298713780cfdfe69381ece446f43  three.min.js
+2e2d9dcbb822a6ae50bf4dc676e80db50778cd108aa549ed4c7206d9e2cad774  addons/loaders/GLTFLoader.js
+a4cf278643ce8c978721415c447ec5abd81109f9120e2edf7288fb02d035bc4f  addons/utils/BufferGeometryUtils.js
+6c660e1682721267f673ecf4cf2cac4ac4972dc49e43474ea8b269fc98fca55f  addons/utils/SkeletonUtils.js

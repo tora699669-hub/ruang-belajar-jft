@@ -1268,7 +1268,7 @@ body.pw-lock{overflow:hidden}
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>window.LMS_BUILD="20261114-1557"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261117-0016"</script><script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -14503,6 +14503,33 @@ window.SIM_PDF_UI={html,active:()=>!!(E||R),menuHTML};
 
 </script>
 <script>
+/* ===== Pintu JFT Leveling: kartu masuk di Beranda. Dunia 3D dimuat hanya saat tombol ditekan (folder lv/).
+   Skrip ini tidak membaca atau menulis data murid, tidak memanggil Supabase, dan tidak mengubah nilai, Koin, atau timer. ===== */
+window.LVPINTU=(function(){'use strict';
+const AKAR=new URL('lv/',document.baseURI).href;
+let memuat=false,gagal='';
+const boleh=()=>/^https?:$/.test(location.protocol)&&!window.LMS_OWNER_VIEW&&!document.getElementById('lms-login')&&!document.body.classList.contains('exam');
+function html(){
+  if(!boleh())return '';
+  return '<section class="card lv-pintu-kartu" aria-labelledby="lv-pk"><h2 id="lv-pk">JFT Leveling <span class="small muted">beta</span></h2>'+
+    '<p class="small muted">Jelajahi Kota Akimichi versi 3D. Latihan, nilai, Koin, dan timer tetap sama seperti biasa.</p>'+
+    '<button type="button" class="btn" data-lvpintu="buka">'+(memuat?'Memuat dunia…':'Masuk dunia')+'</button>'+
+    (gagal?'<p class="small" role="alert">'+gagal+'</p>':'')+'</section>';
+}
+function tandai(){var b=document.querySelector('[data-lvpintu="buka"]');if(b)b.textContent=memuat?'Memuat dunia…':'Masuk dunia';var k=document.querySelector('.lv-pintu-kartu');if(k&&gagal&&!k.querySelector('[role=alert]')){var p=document.createElement('p');p.className='small';p.setAttribute('role','alert');p.textContent=gagal;k.appendChild(p)}}
+async function buka(zona){
+  if(memuat||!boleh())return false;
+  memuat=true;gagal='';tandai();
+  try{const m=await import(AKAR+'masuk.js');return await m.buka({zona:zona||undefined})}
+  catch(e){gagal='Dunia belum bisa dibuka di perangkat ini. Semua latihan tetap bisa dipakai dari menu biasa.';console.info('[lv] gagal memuat dunia:',e&&e.message);return false}
+  finally{memuat=false;tandai()}
+}
+document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('[data-lvpintu="buka"]');if(b){e.preventDefault();buka()}});
+return {html:html,buka:buka,boleh:boleh};
+})();
+
+</script>
+<script>
 const THEMES=[["duo","Klasik","linear-gradient(135deg,#58cc02,#1cb0f6)","Hijau biru"],["sakura","Sakura Pop","linear-gradient(135deg,#ffb3d1,#ff6fa5)","Kelopak jatuh"],["matcha","Matcha Lofi","linear-gradient(135deg,#b6e39a,#6cbf4a)","Gelembung naik"],["langit","Langit Pastel","linear-gradient(135deg,#a9d8ff,#e3c8ff)","Awan melayang"],["neon","Neon Tokyo","linear-gradient(135deg,#7a2cff,#ff3da6 60%,#3df0ff)","Grid bercahaya"],["bintang","Bintang Malam","linear-gradient(135deg,#060a22,#3a4bd6)","Bintang jatuh"],["aurora","Aurora","linear-gradient(135deg,#16c79a,#7b61ff)","Cahaya mengalir"]];
 const lsx=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}};
 function getTheme(){const t=lsx('lms:aes','duo');return THEMES.some(x=>x[0]===t)?t:'duo'}
@@ -14730,7 +14757,7 @@ window.DUNIA_RERENDER=()=>{if(CUR==='beranda'){LASTR='';LASTHB='';try{DUNIA.stop
 function berandaRest(){
   const d=me(),nama=getName(),dl=d.ka.daysLeft(),over=Date.now()>new Date(2026,11,21,23,59,59);
   const nameIn=nama?'':`<div class="row"><label class="fld" style="color:inherit">Isi namamu dulu<input type="text" id="lms-nama" autocomplete="name" placeholder="Contoh: Siti Rahma" value="${window.lmsHosted&&LMS.account&&LMS.account.name&&!/@/.test(LMS.account.name)?esc(LMS.account.name):''}"></label><button class="btn" data-lms="savename" type="button">Simpan nama</button></div>`;
-  const hero=GAME.heroHTML(d,nama)+(nama?'':`<section class="card">${nameIn}</section>`);
+  const hero=GAME.heroHTML(d,nama)+(nama?'':`<section class="card">${nameIn}</section>`)+(window.LVPINTU?LVPINTU.html():'');
   const pctL=Math.round((d.xp-d.lv.base)/(d.lv.next-d.lv.base)*100);
   const r=d.ready,due=d.ka.dueCount();
   const today=misiCard(d,true);
