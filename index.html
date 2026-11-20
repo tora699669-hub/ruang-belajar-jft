@@ -1409,7 +1409,7 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261120-0959"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261120-1058"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -13267,6 +13267,7 @@ const PRESETS={
 const now=()=>Date.now();
 let T=null,ROOMS={},opened=false;
 const ME=()=>window.LOBI&&LOBI.me;
+const MAXP=5;/* batas peserta per ruang turnamen (permintaan Sensei) */
 const NM=()=>LOBI.nameOf();
 const isSensei=()=>!!window.LMS_OWNER_VIEW;
 const send=p=>{if(window.LOBI)LOBI.send(Object.assign({t:'tur'},p))};
@@ -13279,7 +13280,7 @@ function menuHTML(){
   return `<div class="lb-card" role="dialog" aria-modal="true" aria-labelledby="tr-t"><button type="button" class="lb-x" data-tur="close" aria-label="Tutup">✕</button><h3 id="tr-t">🏆 Turnamen</h3>
   <p class="lb-sub">Beberapa murid main bareng, ronde demi ronde. Peserta terbawah gugur tiap ronde, juara dapat EXP paling banyak (maks 3 turnamen berhadiah per hari).</p>
   <h4 style="margin:10px 0 4px;text-align:left">Turnamen yang dibuka</h4>
-  ${R.length?`<ul class="tr-list">${R.map(r=>`<li><span><b>${esc(r.nm)}</b><br><small>${esc(r.pre)} · ${r.n} peserta</small></span><button type="button" class="btn sm" data-tur="join" data-c="${esc(r.code)}">Gabung</button></li>`).join('')}</ul>`:'<p class="lb-sub">Belum ada turnamen yang dibuka. Buat sendiri di bawah, lalu ajak temanmu.</p>'}
+  ${R.length?`<ul class="tr-list">${R.map(r=>`<li><span><b>${esc(r.nm)}</b><br><small>${esc(r.pre)} · ${r.n}/${MAXP} peserta</small></span>${r.n>=MAXP?'<span class="badge no">Penuh</span>':`<button type="button" class="btn sm" data-tur="join" data-c="${esc(r.code)}">Gabung</button>`}</li>`).join('')}</ul>`:'<p class="lb-sub">Belum ada turnamen yang dibuka. Buat sendiri di bawah, lalu ajak temanmu.</p>'}
   <h4 style="margin:10px 0 4px;text-align:left">Buat turnamen</h4>
   <div class="tr-pre">${Object.keys(PRESETS).map((k,i)=>`<button type="button" class="${i?'':'rec'}" data-tur="host" data-p="${k}"><b>${i?'':'⭐ '}${esc(PRESETS[k].name)}</b>${esc(PRESETS[k].desc)}</button>`).join('')}</div></div>`}
 function open(){if(!window.lmsRT||!window.LOBI){try{LOBI.toast('Turnamen hanya ada di versi online.')}catch(e){}return}
@@ -13289,7 +13290,7 @@ function listen(){/* dipanggil dari lobi saat ada pesan turnamen */}
 function lobbyHTML(){
   const P=Object.keys(T.pl);const host=T.role==='host';
   return `<div class="lb-card" role="dialog" aria-modal="true"><button type="button" class="lb-x" data-tur="leave" aria-label="Keluar">✕</button><h3>${esc(PRESETS[T.pre].name)}</h3><p class="lb-sub">Kode ruang</p><div class="tr-code" aria-label="Kode ruang ${esc(T.code)}">${esc(T.code)}</div>
-  <p class="lb-sub">${host?'Teman yang buka daftar turnamen akan melihat ruangmu. Mulai kalau peserta sudah cukup (minimal 2).':'Menunggu '+esc(T.hostNm)+' memulai turnamen…'}</p>
+  <p class="lb-sub">${host?'Teman yang buka daftar turnamen akan melihat ruangmu. Mulai kalau peserta sudah cukup (minimal 2, maksimal '+MAXP+' orang).':'Menunggu '+esc(T.hostNm)+' memulai turnamen…'}</p>
   <ul class="tr-list">${P.map(id=>`<li class="${id===ME()?'me':''}"><span><b>${esc(T.pl[id].nm)}</b>${id===T.host?' · tuan rumah':''}</span><small>Lv ${T.pl[id].lv||1}</small></li>`).join('')}</ul>
   <div class="actions">${host?`<button type="button" class="btn big" data-tur="start" ${P.length<2?'disabled':''}>Mulai turnamen (${P.length})</button>`:''}<button type="button" class="btn ghost" data-tur="leave">Keluar</button></div></div>`}
 function render(){
@@ -13368,7 +13369,8 @@ function leave(){if(T){send({k:'leave',code:T.code});clearInterval(T.beacon);cle
 function msg(m){if(!m||!m.k)return;
   if(m.k==='open'){const nw=!ROOMS[m.code],chg=!nw&&ROOMS[m.code].n!==m.n;if(nw)try{LOBI.toast('🏆 '+m.nm+' membuka turnamen! Buka menu Turnamen untuk gabung.')}catch(e){}ROOMS[m.code]=Object.assign({},m,{t:now()});{const o=document.getElementById('tr-ov');if((nw||chg)&&!T&&o&&!o.hidden&&o.querySelector('[data-tur=host]'))ov(menuHTML())}return}
   if(!T||m.code!==T.code)return;
-  if(m.k==='join'&&T.role==='host'&&T.st==='lobby'){if(Object.keys(T.pl).length>=16)return;T.pl[m.from]={nm:String(m.nm||'Murid').slice(0,30),lv:m.lv||1};send({k:'ros',code:T.code,pl:T.pl,host:T.host});render()}
+  if(m.k==='full'&&m.to===ME()&&T&&T.code===m.code&&T.role==='guest'){T=null;try{LOBI.toast('Ruang turnamen sudah penuh (maksimal '+MAXP+' orang). Coba ruang lain atau buat ruang sendiri.')}catch(e){}render();return}
+  if(m.k==='join'&&T.role==='host'&&T.st==='lobby'){if(!T.pl[m.from]&&Object.keys(T.pl).length>=MAXP){send({k:'full',code:T.code,to:m.from});return}T.pl[m.from]={nm:String(m.nm||'Murid').slice(0,30),lv:m.lv||1};send({k:'ros',code:T.code,pl:T.pl,host:T.host});render()}
   else if(m.k==='leave'){if(T.st==='lobby'&&T.role==='host'){delete T.pl[m.from];send({k:'ros',code:T.code,pl:T.pl,host:T.host});render()}else if(m.from===T.host&&T.role!=='host'&&T.st==='lobby'){LOBI.toast('Tuan rumah membatalkan turnamen.');T=null;ovClose()}else{T.done&&(T.done[m.from]=true);if(T.role==='host')onDone({from:m.from,r:T.r,s:(T.live[m.from]||{}).s||0,ok:(T.live[m.from]||{}).ok||0})}}
   else if(m.k==='ros'&&T.role==='guest'){T.pl=m.pl;T.host=m.host||T.host;if(T.st==='lobby')render()}
   else if(m.k==='go'&&T.role==='guest'&&T.st==='lobby'&&m.ids.indexOf(ME())>=0)onGo(m);
@@ -15161,8 +15163,11 @@ function tandai(){
 async function buka(zona){
   if(memuat||!boleh())return false;
   memuat=true;gagal='';tandai();
+  /* hanya satu dunia 3D yang jalan: jeda Kota JFT/Dunia Beranda selama JFT Leveling terbuka, nyalakan lagi saat ditutup */
+  try{if(window.PLANET&&PLANET.stop)PLANET.stop()}catch(e){}try{if(window.DUNIA&&DUNIA.stop)DUNIA.stop()}catch(e){}
+  window.addEventListener('lv:tutup',()=>{try{if(window.DUNIA_RERENDER)window.DUNIA_RERENDER()}catch(e){}},{once:true});
   try{const m=await import(AKAR+'masuk.js');return await m.buka({zona:zona||undefined})}
-  catch(e){gagal='Dunia belum bisa dibuka di perangkat ini. Semua latihan tetap bisa dipakai dari menu biasa.';console.info('[lv] gagal memuat dunia:',e&&e.message);return false}
+  catch(e){try{if(window.DUNIA_RERENDER)window.DUNIA_RERENDER()}catch(x){}gagal='Dunia belum bisa dibuka di perangkat ini. Semua latihan tetap bisa dipakai dari menu biasa.';console.info('[lv] gagal memuat dunia:',e&&e.message);return false}
   finally{memuat=false;tandai()}
 }
 document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('[data-lvpintu="buka"]');if(b){e.preventDefault();buka()}});
@@ -15607,7 +15612,7 @@ function renderPage(){
   if(gkv!==null&&$$('g-nick')){$$('g-nick').value=gkv;$$('g-nick').focus()}
   if(!same){m.classList.remove('pg-in');void m.offsetWidth;m.classList.add('pg-in')}else if(sy>0)window.scrollTo(0,sy);
   try{GAME.mount3d()}catch(e){}
-  try{if(CUR==='beranda'&&$$('pwbox'))pwMount();if(CUR==='game'&&window.ASOBI)ASOBI.mount()}catch(e){console.warn(e)}
+  try{if(CUR==='beranda'){if($$('pwbox'))pwMount();else if(window.DUNIA)DUNIA.mount()}if(CUR==='game'&&window.ASOBI)ASOBI.mount()}catch(e){console.warn(e)}
   try{if(LMS.account&&LMS.account.id&&!ADMIN())GAME.pushStats(me(),getName())}catch(e){}
 }
 function examRoute(){return J().inExam()?'jft':K().inQuiz()?'kotoba':null}
@@ -15720,13 +15725,21 @@ function pwOK(){if(window.PLANET_OK!==undefined)return window.PLANET_OK;let ok=f
 function pintasHTML(){if(window.LMS_OWNER_VIEW)return '';
  const b=(r,ik,t,k)=>`<button type="button" class="btn${k?' '+k:''}" data-lms="nav" data-r="${r}"><i aria-hidden="true">${ik}</i><span>${t}</span></button>`;
  return '<nav class="lms-pintas" aria-label="Jalan pintas">'+(window.PONDASI?b('pondasi','基','Pondasi JFT'):'')+(window.HAFALAN_JFT?b('hjft','暗','Hafalan JFT'):'')+b('simulasi','総','Simulasi JFT','ghost')+b('peringkat','冠','Peringkat','ghost')+'</nav>'}
-/* Beranda: satu game saja, JFT Leveling (dunia 3D di folder lv/, dimuat saat tombol ditekan). Kota JFT dan Dunia lama tidak dimuat lagi di Beranda. */
-function lvKartu(){if(ADMIN()||!window.LVPINTU||!LVPINTU.boleh())return '';
- return `<section class="card sim-hero lvhero" aria-label="JFT Leveling"><div class="sim-big" aria-hidden="true">遊</div><div><b>JFT Leveling</b><p class="small muted">Satu-satunya game di sini: dunia 3D dengan 11 zona, NPC guru, quest, dan duel kuis. Naik level sambil belajar. Kalau HP terasa berat, pakai Mode ringan di Setelan.</p>
- <div class="actions"><button type="button" class="btn" data-lvpintu="buka"><span data-lvpintu-label>Masuk JFT Leveling</span></button><button type="button" class="btn ghost sm" data-lms="pwtoggle">Sembunyikan game</button></div></div></section>`}
-function berandaHTML(){
- if(!ADMIN()&&lsGet('lms:pwhide')===1)return pintasHTML()+'<section class="card pwoff"><div><b>JFT Leveling disembunyikan</b><p class="small muted">Biar fokus belajar. Kamu bisa menampilkannya lagi kapan saja.</p></div><button type="button" class="btn sm" data-lms="pwtoggle">Tampilkan game</button></section><div id="bh-rest">'+berandaRest()+'</div>';
- return pintasHTML()+lvKartu()+peringkatKu()+'<div id="bh-rest">'+berandaRest()+'</div>'}
+/* Beranda: Arena Game (JFT Leveling 3D, teman online dan duel, turnamen maks 5 orang, ruang suara, Taman Bermain)
+   + dunia Kota JFT yang bisa dijelajahi bersama teman online (seperti sebelum v72). */
+function lvKartu(){if(ADMIN())return '';
+ const on=(()=>{try{return window.LOBI?Object.keys(LOBI.players||{}).length:0}catch(e){return 0}})(),rt=!!(window.lmsRT&&window.LOBI);
+ const b=(attr,ic,t,sub,cls)=>`<button type="button" class="lat ${cls||''}" ${attr}><i aria-hidden="true">${ic}</i><b>${t}</b><span>${sub}</span></button>`;
+ return `<section class="card" aria-label="Arena Game"><h2 style="margin:0 0 4px">Arena Game</h2><p class="small muted" style="margin:0 0 8px">Main sambil mengasah soal JFT A2. Tantang teman, ikut turnamen, atau ngobrol di ruang suara.</p>
+ <div class="lgrid">${window.LVPINTU&&LVPINTU.boleh()?b('data-lvpintu="buka"','遊','<span data-lvpintu-label>Masuk JFT Leveling</span>','Dunia 3D · 11 zona · NPC guru · duel NPC','feat'):''}
+ ${rt?b('data-lb="list"','⚔','Teman online dan Duel',on?on+' teman sedang online':'Lihat siapa yang online, tantang duel 1 lawan 1'):''}
+ ${rt?b('data-tur="open"','🏆','Turnamen','Maksimal 5 orang per ruang · ronde gugur'):''}
+ ${rt?b('data-vc="open"','🎙','Ruang Suara','Ngobrol pakai mikrofon dengan teman sekelas'):''}
+ ${b('data-lms="nav" data-r="game"','🎮','Taman Bermain','Mini game soal JFT')}</div></section>`}
+function berandaHTML(){let w='';
+ if(!ADMIN()&&lsGet('lms:pwhide')===1)return pintasHTML()+lvKartu()+peringkatKu()+'<section class="card pwoff"><div><b>Kota JFT disembunyikan</b><p class="small muted">Biar fokus belajar. Kamu bisa menampilkannya lagi kapan saja.</p></div><button type="button" class="btn sm" data-lms="pwtoggle">Tampilkan dunia</button></section><div id="bh-rest">'+berandaRest()+'</div>';
+ if(!ADMIN()){if(lsGet('lms:dunia')===0)w=window.DUNIA?DUNIA.html():'';else if(pwOK())w='<section class="pwbox" id="pwbox" aria-label="Kota JFT"></section>';else if(window.DUNIA)w=DUNIA.html()}
+ return pintasHTML()+lvKartu()+peringkatKu()+(w?'<div class="pwbar"><button type="button" class="btn sm ghost" data-lms="pwtoggle">Sembunyikan dunia</button></div>':'')+w+'<div id="bh-rest">'+berandaRest()+'</div>'}
 /* Kartu "Peringkatmu" di Beranda: posisi di papan paket yang terakhir kamu kerjakan (Paket TO / Simulasi Paket / Pondasi) */
 function peringkatKu(){if(ADMIN()||!window.GAME||!GAME.posisiPapan)return '';
  let L=[];try{L=JSON.parse(localStorage.getItem('lms:plog')||'[]')||[]}catch(e){}

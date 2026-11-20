@@ -250,6 +250,8 @@ export function tutup() {
   D.documentElement.style.overflow = K.gulir || '';
   K.el.akar.remove();
   K = null;
+  // beri tahu aplikasi: dunia Beranda (Kota JFT) boleh jalan lagi
+  try { W.dispatchEvent(new Event('lv:tutup')); } catch (e) { /* abaikan */ }
 }
 
 export const terbuka = () => !!K;
