@@ -1409,7 +1409,7 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261120-0944"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261120-0959"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -8474,6 +8474,7 @@ function sfx(k){if(!sfxOn())return;
 }
 document.addEventListener('click',e=>{const b=e.target.closest('button,.opt,.tile,.pk,label.opt');if(b&&!b.disabled)sfx('tap')},true);
 document.addEventListener('change',e=>{if(e.target&&e.target.type==='radio')sfx('flip')},true);
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.dataset&&t.dataset.gLbsel){lbTab=t.value;try{onChange('lb')}catch(x){}try{window.LMS_REDRAW&&LMS_REDRAW(0)}catch(x){}}});
 
 /* ---------- avatar ---------- */
 function avatarSVGold(cfg,size,flip){
@@ -8553,7 +8554,16 @@ function statsOf(d,realName){
  const m=y=>{const x=d.at.filter(a=>a.y===y);return x.length?{v:Math.round(d.ka.mean(x.map(a=>d.ka.pct(a.ok,a.n)))),n:x.length}:{v:0,n:0}};
  const pk={};d.jt.forEach(a=>{const k=a.paket||'A';if(!pk[k]||a.benar>pk[k])pk[k]=a.benar});
  const K=m('K'),J=m('J');
- const vv=vst();const cb=window.CBT&&CBT.stat?CBT.stat():{n:0,best:0},bu=window.BUNPOU_UI?BUNPOU_UI.stat():{pass:0,n:0};return {cp:(window.CBT&&CBT.packBests)?CBT.packBests():{},cb:cb.n,cbp:cb.best,sm:cb.sim||0,smp:cb.simp||0,ir:d.best?d.best.est:0,bu:bu.pass,exp:d.xp,lv:d.lv.L,streak:d.streak,kotoba:K.v,nk:K.n,kanji:J.v,nj:J.n,verb:vv.n?Math.round(vv.ok/vv.n*100):0,nv:vv.n,pk,dd:d.lastFull||'',bt:!!d.batsu,mis:d.done||0,real:realName||'',seen:Math.floor(Date.now()/6e5)*6e5};
+ const vv=vst();const cb=window.CBT&&CBT.stat?CBT.stat():{n:0,best:0},bu=window.BUNPOU_UI?BUNPOU_UI.stat():{pass:0,n:0};const PX=plogStats();return {to:PX.to,sp:PX.sp,pd:PX.pd,cp:(window.CBT&&CBT.packBests)?CBT.packBests():{},cb:cb.n,cbp:cb.best,sm:cb.sim||0,smp:cb.simp||0,ir:d.best?d.best.est:0,bu:bu.pass,exp:d.xp,lv:d.lv.L,streak:d.streak,kotoba:K.v,nk:K.n,kanji:J.v,nj:J.n,verb:vv.n?Math.round(vv.ok/vv.n*100):0,nv:vv.n,pk,dd:d.lastFull||'',bt:!!d.batsu,mis:d.done||0,real:realName||'',seen:Math.floor(Date.now()/6e5)*6e5};
+}
+/* nilai terbaik per paket dari riwayat latihan murid (lms:plog): Paket TO (skor perkiraan /250), Simulasi Paket (%), tahap Pondasi lolos */
+function plogStats(){
+ let L=[];try{L=JSON.parse(localStorage.getItem('lms:plog')||'[]')||[]}catch(e){}
+ const to={},sp={};L.forEach(x=>{if(!x||!x.k||!x.n)return;
+  if(/^to:/.test(x.k)){let e=0;['M','K','C','D'].forEach(k=>{const v=x.sc&&x.sc[k];if(v&&v[1])e+=v[0]/v[1]*62.5});e=Math.round(e);const c=x.k.slice(3);if(to[c]==null||e>to[c])to[c]=e}
+  else if(/^cbt:sp\d/.test(x.k)){const c=x.k.slice(6),v=Math.round(x.ok/x.n*100);if(sp[c]==null||v>sp[c])sp[c]=v}});
+ let pd=0;try{if(window.PONDASI)pd=PONDASI.status(L).filter(z=>z.lulus).length}catch(e){}
+ return {to,sp,pd};
 }
 function loginTick(){G=G||blank();const k=dkey();if(!(G.logins||[]).includes(k)){G.logins=[...(G.logins||[]),k].slice(-400);return true}return false}
 setInterval(()=>{try{if(!document.hidden&&!ME.sensei&&window.LMS_ME)pushStats(window.LMS_ME(),window.LMS_NAME())}catch(e){}},3e5);
@@ -8833,32 +8843,54 @@ function koleksiHTML(g,w,own){
   <div class="chips">${['semua',...RARN].map(r=>`<button class="chipb ${kRar===r?'on':''}" data-g="krar" data-v="${r}">${r==='semua'?'Semua rarity':RARL[r]}</button>`).join('')}</div>
   <div class="kgrid">${list.map(card).join('')||'<p class="muted">Belum ada di filter ini.</p>'}</div></section>`}
 /* ---------- halaman Peringkat ---------- */
-const BOARDS=[['umum','Sang Juara','EXP'],['kanji','Dewa Kanji','rata-rata %'],['kotoba','Master Kotoba','rata-rata %'],['bunpou','Ninja Bunpou','rata-rata %'],['pA','Bab 13 · Dasar','benar'],['pB','Bab 13 · Standar','benar'],['pA14','Bab 14 · Dasar','benar'],['pB14','Bab 14 · Standar','benar']];
+const BOARDS0=[['umum','Sang Juara','EXP'],['kanji','Dewa Kanji','rata-rata %'],['kotoba','Master Kotoba','rata-rata %'],['bunpou','Ninja Bunpou','rata-rata %'],['pA','Bab 13 · Dasar','benar'],['pB','Bab 13 · Standar','benar'],['pA14','Bab 14 · Dasar','benar'],['pB14','Bab 14 · Standar','benar']];
+/* Papan peringkat per kelompok: tiap paket soal di web punya papan sendiri */
+let lbGrp='umum';
+function lbGroups(){
+ const xs=ALL.filter(x=>!x.sensei&&x.stats),keys=f=>[...new Set(xs.flatMap(x=>Object.keys(f(x.stats)||{})))];
+ const toNama=k=>{try{const p=(window.TO_DRAF||[]).find(z=>z.kode===k);return p?p.nama:k}catch(e){return k}};
+ const toK=[...new Set([...keys(s=>s.to),...(()=>{try{return window.TODRAF?TODRAF.buka():[]}catch(e){return []}})()])].sort();
+ const bab=keys(s=>s.pk).filter(k=>/^[AB]\d*$/.test(k)).sort((a,b)=>(+(a.slice(1)||13))-(+(b.slice(1)||13))||a.localeCompare(b));
+ const cpN=k=>{try{const it=(CBT.packList()||[]).find(z=>z.key===k);return it?it.name:k}catch(e){return k}};
+ return [
+  ['umum','Umum',[['umum','Sang Juara (EXP)','EXP']]],
+  ['to','Paket TO',toK.map(k=>['to:'+k,toNama(k),'skor /250'])],
+  ['bab','Ujian per Bab',bab.map(k=>['p'+k,'Bab '+(k.slice(1)||'13')+' · '+(k[0]==='A'?'Dasar':'Standar'),'benar'])],
+  ['sp','Simulasi Paket',keys(s=>s.sp).sort((a,b)=>+a-+b).map(k=>['sp:'+k,'Simulasi Paket '+k,'%'])],
+  ['cp','Latihan CBT',keys(s=>s.cp).sort().map(k=>['cp:'+k,cpN(k),'%'])],
+  ['pd','Pondasi',[['pd','Tahap Pondasi lolos','tahap']]],
+  ['hafal','Kanji · Kotoba · Bunpou',[['kanji','Dewa Kanji','rata-rata %'],['kotoba','Master Kotoba','rata-rata %'],['bunpou','Ninja Bunpou','rata-rata %']]]
+ ].filter(g=>g[2].length);
+}
+const BOARDS={find:f=>lbGroups().flatMap(g=>g[2]).find(f),map:f=>lbGroups().flatMap(g=>g[2]).map(f),get length(){return lbGroups().flatMap(g=>g[2]).length},0:['umum','Sang Juara (EXP)','EXP']};
 function ranked(key){
  const xs=ALL.filter(x=>!x.sensei&&x.stats);
- const val=x=>{const s=x.stats;if(key==='umum')return s.exp||0;if(key==='kanji')return s.nj?s.kanji:-1;if(key==='kotoba')return s.nk?s.kotoba:-1;if(key==='bunpou')return (s.nv>=20)?s.verb:-1;if(key[0]==='p'){const pk=key.slice(1);return (s.pk&&s.pk[pk]!=null)?s.pk[pk]:-1}return -1};
+ const val=x=>{const s=x.stats;if(key==='umum')return s.exp||0;if(key==='kanji')return s.nj?s.kanji:-1;if(key==='kotoba')return s.nk?s.kotoba:-1;if(key==='bunpou')return (s.nv>=20)?s.verb:-1;if(key==='pd')return s.pd||0;if(/^to:/.test(key))return (s.to&&s.to[key.slice(3)]!=null)?s.to[key.slice(3)]:-1;if(/^sp:/.test(key))return (s.sp&&s.sp[key.slice(3)]!=null)?s.sp[key.slice(3)]:-1;if(/^cp:/.test(key))return (s.cp&&s.cp[key.slice(3)]!=null)?s.cp[key.slice(3)]:-1;if(key[0]==='p'){const pk=key.slice(1);return (s.pk&&s.pk[pk]!=null)?s.pk[pk]:-1}return -1};
  const PASS=20;/* batas lulus ujian 25 soal */
- return xs.map(x=>({x,v:val(x)})).filter(r=>r.v>=0&&(key!=='umum'||r.v>0)&&(key[0]!=='p'||r.v>=PASS)).sort((a,b)=>b.v-a.v);
+ return xs.map(x=>({x,v:val(x)})).filter(r=>r.v>=0&&(key!=='umum'||r.v>0)&&(key!=='pd'||r.v>0)&&(!/^p[AB]/.test(key)||r.v>=PASS)).sort((a,b)=>b.v-a.v);
 }
 const PRIZE=[[60,3],[40,2],[30,1],[20,1],[10,0]];
 function peringkatHTML(d){
- const B=BOARDS.find(b=>b[0]===lbTab)||BOARDS[0];
- const tabs=`<nav class="tabs gtabs lbt">${BOARDS.map(b=>`<button class="tab" data-g="lb" data-v="${b[0]}" aria-current="${lbTab===b[0]}">${b[1]}</button>`).join('')}</nav>`;
+ const GR0=lbGroups(),grp=GR0.find(g=>g[0]===lbGrp)||GR0[0];if(!grp[2].some(b=>b[0]===lbTab))lbTab=grp[2][0][0];
+ const B=grp[2].find(b=>b[0]===lbTab)||grp[2][0];
+ const tabs=`<nav class="tabs gtabs lbt" aria-label="Kelompok papan">${GR0.map(g=>`<button class="tab" data-g="lbg" data-v="${g[0]}" aria-current="${grp[0]===g[0]}">${g[1]}</button>`).join('')}</nav>
+  ${grp[2].length>1?`<div class="actions" style="margin:6px 0"><label class="small">Papan <select data-g-lbsel="1">${grp[2].map(b=>`<option value="${esc(b[0])}" ${b[0]===B[0]?'selected':''}>${esc(b[1])}</option>`).join('')}</select></label></div>`:''}
+  <p class="small muted">Papan: <b>${esc(B[1])}</b> · nilai: ${esc(B[2])}${/^to:/.test(B[0])?' · lulus perkiraan ≥200':''}</p>`;
  const rs=ranked(B[0]);const meIdx=rs.findIndex(r=>r.x.id===ME.id);
  const pod=rs.slice(0,3);const order=[1,0,2].filter(i=>pod[i]);
  const podium=pod.length?`<div class="podium">${order.map(i=>{const r=pod[i];return `<div class="pod p${i+1}"><div class="pav">${avatarSVG(r.x,i===0?96:76)}</div><div class="crown">${['🥇','🥈','🥉'][i]}</div><b>${esc(nickOf(r.x))}${isLazy(r.x)?' 😴':''}</b><small>${esc(r.x.real||'')}</small><span class="pv">${r.v}${B[0]==='kanji'||B[0]==='kotoba'||B[0]==='bunpou'?'%':''}</span><div class="blk">${i+1}</div></div>`}).join('')}</div>`:'';
- const tierOf=v=>B[0][0]!=='p'?'':v>=23?'<span class="tier t1">金 Emas</span>':v>=21?'<span class="tier t2">銀 Perak</span>':'<span class="tier t3">銅 Perunggu</span>';
- const pc=(B[0]==='kanji'||B[0]==='kotoba'||B[0]==='bunpou')?'%':'';
+ const tierOf=v=>/^to:/.test(B[0])?(v>=200?'<span class="tier t1">Lulus A2</span>':v>=175?'<span class="tier t2">A2.1</span>':''):!/^p[AB]/.test(B[0])?'':v>=23?'<span class="tier t1">金 Emas</span>':v>=21?'<span class="tier t2">銀 Perak</span>':'<span class="tier t3">銅 Perunggu</span>';
+ const pc=(B[0]==='kanji'||B[0]==='kotoba'||B[0]==='bunpou'||/^(sp|cp):/.test(B[0]))?'%':'';
  const one=(r,i)=>{const st=r.x.stats||{};const lz=isLazy(r.x);return `<li class="${r.x.id===ME.id?'me':''}${lz?' lazy':''}"><span class="rk">${i+1}</span><span class="ra">${avatarSVG(r.x,34)}</span><span class="rn"><b>${esc(nickOf(r.x))}</b><small>${esc(r.x.real||'')} · Lv ${st.lv||1} · ${esc(titleFor(r.x))}</small>${lz?'<span class="tier lazy">😴 Pemalas</span>':''}${tierOf(r.v)}<small class="rd">${st.exp||0} EXP · 🔥${st.streak||0} hari · kanji ${st.nj?st.kanji+'%':'-'} · kotoba ${st.nk?st.kotoba+'%':'-'} · aktif ${agoTxt(seenOf(r.x))}</small></span><span class="rv">${r.v}${pc}</span>${i<5?`<span class="rp">Top ${i+1}</span>`:''}</li>`};
  const TOP=Infinity,show=rs;
  const rows=show.map(one).join('')+'';
  const avg=rs.length?Math.round(rs.reduce((a,r)=>a+r.v,0)/rs.length):0;
  const mine=meIdx>=0?rs[meIdx]:null;
- const posisi=mine?`<section class="card lbme"><h2>Posisimu: #${meIdx+1} dari ${rs.length}</h2><div class="lbm-g"><div><b>${mine.v}${pc}</b><small>nilaimu</small></div><div><b>${avg}${pc}</b><small>rata-rata papan</small></div><div><b>${meIdx>0?(rs[meIdx-1].v-mine.v)+pc:'-'}</b><small>${meIdx>0?'ke #'+meIdx:'kamu di puncak'}</small></div><div><b>${meIdx<rs.length-1?(mine.v-rs[meIdx+1].v)+pc:'-'}</b><small>unggul dari #${meIdx+2}</small></div></div></section>`:`<section class="card lbme"><h2>Kamu belum masuk papan ini</h2><p class="muted small">${B[0][0]==='p'?'Kerjakan ujian dan capai minimal 20/25 benar.':'Kerjakan latihan supaya namamu muncul.'}</p></section>`;
+ const posisi=mine?`<section class="card lbme"><h2>Posisimu: #${meIdx+1} dari ${rs.length}</h2><div class="lbm-g"><div><b>${mine.v}${pc}</b><small>nilaimu</small></div><div><b>${avg}${pc}</b><small>rata-rata papan</small></div><div><b>${meIdx>0?(rs[meIdx-1].v-mine.v)+pc:'-'}</b><small>${meIdx>0?'ke #'+meIdx:'kamu di puncak'}</small></div><div><b>${meIdx<rs.length-1?(mine.v-rs[meIdx+1].v)+pc:'-'}</b><small>unggul dari #${meIdx+2}</small></div></div></section>`:`<section class="card lbme"><h2>Kamu belum masuk papan ini</h2><p class="muted small">${/^p[AB]/.test(B[0])?'Kerjakan ujian dan capai minimal 20/25 benar.':'Kerjakan latihan supaya namamu muncul.'}</p></section>`;
  return `<h1 class="pgt">Peringkat</h1>${tabs}${ME.sensei?'':posisi}
   <section class="card lb">${podium||'<p class="muted">Belum ada yang masuk papan ini. Jadilah yang pertama!</p>'}
   ${rs.length?`<ol class="lbl">${rows}</ol>`:''}
-  <p class="muted small">${B[0][0]==='p'?'Hanya yang lulus (minimal 20/25) masuk papan ujian: 金 Emas 23+, 銀 Perak 21–22, 銅 Perunggu 20. ':''}Semua murid yang sudah punya nilai tampil di sini. Title 😴 Pemalas muncul kalau tidak aktif lebih dari 8 jam. Hadiah peringkat dibagikan Sensei langsung.</p></section>`;
+  <p class="muted small">${/^p[AB]/.test(B[0])?'Hanya yang lulus (minimal 20/25) masuk papan ujian: 金 Emas 23+, 銀 Perak 21–22, 銅 Perunggu 20. ':''}Semua murid yang sudah punya nilai tampil di sini. Title 😴 Pemalas muncul kalau tidak aktif lebih dari 8 jam. Hadiah peringkat dibagikan Sensei langsung.</p></section>`;
 }
 
 /* ---------- panel Sensei ---------- */
@@ -8921,6 +8953,7 @@ document.addEventListener('click',async e=>{
  else if(a==='kclear'){G.kit=Object.assign({char:'',pose:'idle',badge:''},G.kit||{},{char:''});kpv=null;sfx('ok');save();return}
  else if(a==='kbadgeoff'){G.kit=Object.assign({char:'',pose:'idle',badge:''},G.kit||{},{badge:''});sfx('ok');save();return}
  else if(a==='lb')lbTab=b.dataset.v;
+ else if(a==='lbg'){lbGrp=b.dataset.v;lbTab=''}
  else if(a==='prev'){const x=IT[b.dataset.id];preview=Object.assign({},preview||{},{[x.slot]:x.id})}
  else if(a==='unprev')preview=null;
  else if(a==='set'){G[b.dataset.k]=b.dataset.k==='body'?b.dataset.v:+b.dataset.v;sfx('ok');save();return}
@@ -8947,7 +8980,7 @@ document.addEventListener('click',async e=>{
 });
 const armed={};function confirmAgain(b){const k=b.dataset.v;if(armed[k]){delete armed[k];return true}armed[k]=1;setTimeout(()=>delete armed[k],6000);return false}
 
-return {addXpR,myId:()=>ME.sensei?null:ME.id,packRank:k=>ALL.filter(x=>!x.sensei&&x.stats&&x.stats.cp&&x.stats.cp[k]!=null).map(x=>({id:x.id,nick:nickOf(x),real:x.real||'',v:x.stats.cp[k]})),kelas:()=>ALL.filter(x=>!x.sensei).map(x=>{const st=x.stats||{};return {id:x.id,real:x.real||'',nick:x.nick||'',lv:st.lv||1,exp:st.exp||0,streak:st.streak||0,bt:!!st.bt,mis:st.mis||0,cb:st.cb||0,cbp:st.cbp||0,sm:st.sm||0,smp:st.smp||0,ir:st.ir||0,bu:st.bu||0,seen:seenOf(x),lazy:isLazy(x)}}),agoTxt,fullDays:()=>new Set((G&&G.fd)||[]),markFull:k=>{if(!G||!k)return;if((G.fd||[]).includes(k))return;G.fd=[...(G.fd||[]),k].slice(-120);needSave=true},synced:()=>!!ready,buyX,ownedX:()=>((G&&G.owned)||[]).filter(k=>typeof k==='string'&&k.slice(0,3)==='x3:').map(k=>k.slice(3)),look3:()=>(G&&G.look3)||null,setLook3:l=>{if(!G)return;G.look3=Object.assign({},l);clearTimeout(L3T);L3T=setTimeout(()=>{save()},900)},verbQ:(f)=>{const F=VLEV.campur[3];const ff=f||F[rnd(F.length)];const q=vq(VERBS[rnd(VERBS.length)],ff);return Object.assign(q,{label:FORMS[ff]||ff})},init,mount3d,verbHTML,verbQuick:(lv)=>{V.lv=(lv&&VLEV[lv])?lv:'campur';vstart()},verbXp:()=>vst().xp,addXp,xpx,verbDays:()=>new Set((G&&G.vd)||[]),verbStats:vst,VFORMS:FORMS,VCATS:VLEV,titleOf,loginDays:()=>new Set((G&&G.logins)||[]),avatarSVG,heroHTML,karakterHTML,peringkatHTML,senseiHTML,komentar,pushStats,wallet,sfx,ITEMS,ACH,get state(){return {G,GR,ALL}}};
+return {addXpR,myId:()=>ME.sensei?null:ME.id,posisiPapan:key=>{const rs=ranked(key),i=rs.findIndex(r=>r.x.id===ME.id),b=lbGroups().flatMap(g=>g[2]).find(z=>z[0]===key);return {pos:i<0?null:i+1,n:rs.length,v:i<0?null:rs[i].v,nama:b?b[1]:key,satuan:b?b[2]:''}},bukaPapan:(g,k)=>{lbGrp=g;lbTab=k},packRank:k=>ALL.filter(x=>!x.sensei&&x.stats&&x.stats.cp&&x.stats.cp[k]!=null).map(x=>({id:x.id,nick:nickOf(x),real:x.real||'',v:x.stats.cp[k]})),kelas:()=>ALL.filter(x=>!x.sensei).map(x=>{const st=x.stats||{};return {id:x.id,real:x.real||'',nick:x.nick||'',lv:st.lv||1,exp:st.exp||0,streak:st.streak||0,bt:!!st.bt,mis:st.mis||0,cb:st.cb||0,cbp:st.cbp||0,sm:st.sm||0,smp:st.smp||0,ir:st.ir||0,bu:st.bu||0,seen:seenOf(x),lazy:isLazy(x)}}),agoTxt,fullDays:()=>new Set((G&&G.fd)||[]),markFull:k=>{if(!G||!k)return;if((G.fd||[]).includes(k))return;G.fd=[...(G.fd||[]),k].slice(-120);needSave=true},synced:()=>!!ready,buyX,ownedX:()=>((G&&G.owned)||[]).filter(k=>typeof k==='string'&&k.slice(0,3)==='x3:').map(k=>k.slice(3)),look3:()=>(G&&G.look3)||null,setLook3:l=>{if(!G)return;G.look3=Object.assign({},l);clearTimeout(L3T);L3T=setTimeout(()=>{save()},900)},verbQ:(f)=>{const F=VLEV.campur[3];const ff=f||F[rnd(F.length)];const q=vq(VERBS[rnd(VERBS.length)],ff);return Object.assign(q,{label:FORMS[ff]||ff})},init,mount3d,verbHTML,verbQuick:(lv)=>{V.lv=(lv&&VLEV[lv])?lv:'campur';vstart()},verbXp:()=>vst().xp,addXp,xpx,verbDays:()=>new Set((G&&G.vd)||[]),verbStats:vst,VFORMS:FORMS,VCATS:VLEV,titleOf,loginDays:()=>new Set((G&&G.logins)||[]),avatarSVG,heroHTML,karakterHTML,peringkatHTML,senseiHTML,komentar,pushStats,wallet,sfx,ITEMS,ACH,get state(){return {G,GR,ALL}}};
 })();
 
 </script>
@@ -12045,12 +12078,18 @@ function itemsKosa(buku){
   return out;
 }
 /* partikel: satu tumpukan, tidak terikat buku atau bab */
+/* Hafalan JFT A2 (window.HAFALAN_JFT dari bank/jft_a2/buat.py): "buku" = dek, "bab" = bagian 25 kartu */
+const HJ=()=>((window.HAFALAN_JFT&&window.HAFALAN_JFT.dek)||[]);
+const HJPER=25;
+function itemsHJ(dek){const d=HJ().find(x=>x.id===dek);if(!d)return [];
+  return d.items.map((r,i)=>({id:'hj:'+dek+':'+i,bab:String(Math.floor(i/HJPER)+1),front:r.w,yomi:r.y&&r.y!==r.w?r.y:'',arti:r.a,ex:r.ex||'',tr:r.tr||'',g:r.g||'',c:r.c||'',dek,say:kana(r.y||r.w)}))}
 function itemsPartikel(){
   return (KC.PART||[]).map(p=>({id:'pt:'+p.t,bab:'0',buku:'',front:p.t,yomi:p.t,arti:p.m,fungsi:p.fungsi,ex:p.ex,tr:p.tr,tip:p.tip,cat:'partikel',sb:'',say:kana(p.t.split(' ')[0])}));
 }
 const KINDS={
   kwajib:{judul:'Kanji Kata Irodori',sub:'Kanji wajib dalam bentuk kata, bukan kanji satuan. Fokus ke kata yang muncul di buku dan JFT.',items:itemsKanji,babName:(b,l)=>(FC.bab.kanji[b]||{})[l]||'Pelajaran '+l,babWord:'Pelajaran'},
   bunfc:{judul:'Kartu Bunpou',sub:'Pola tata bahasa Irodori: arti, rumus, contoh kalimat, dan tips.',items:itemsBun,babName:(b,l)=>(FC.bab.bunpou[b]||{})[l]||'Pelajaran '+l,babWord:'Pelajaran'},
+  hjft:{judul:'Hafalan JFT A2',sub:'Bahan khusus ujian JFT-Basic A2 dari file Sensei: kosakata wajib, kanji, kata kerja, hyougen dan aizuchi, kata keterangan, onomatope, pola bunpou. Cara pakainya sama dengan Kosakata Irodori.',items:itemsHJ,babName:(b,l)=>{const n=itemsHJ(b).length;return 'Bagian '+l+' · kartu '+((l-1)*HJPER+1)+'–'+Math.min(l*HJPER,n)},babWord:'Bagian'},
   kosa:{judul:'Kosakata Irodori',sub:'Kosakata per buku dan bab. Saring menurut kategori: kata kerja, benda, sifat, keterangan, penghubung, ungkapan, atau partikel.',items:itemsKosa,babName:(b,l)=>'Bab '+l,babWord:'Bab'}
 };
 
@@ -12098,6 +12137,12 @@ function backHTML(it){
     ${it.tip?`<div class="lb">Tips</div><div class="tip">${esc(it.tip)}</div>`:''}
     ${it.sim?`<div class="lb">Bandingkan dengan</div><div class="tr">${esc(it.sim)}</div>`:''}`;
   }
+  if(S.kind==='hjft'){
+    return `${it.yomi?`<div class="lb">Cara baca ${sayB}</div><div class="yo" lang="ja">${esc(it.yomi)}</div>`:`<div class="lb">Dengar ${sayB}</div>`}
+    <div class="lb">Arti</div><div class="ar">${esc(it.arti)}</div>
+    ${it.g?`<div class="lb">Golongan</div><div class="tr">${esc(it.g)}</div>`:''}
+    ${it.ex?`<div class="lb">${it.dek==='hyougen'?'Kapan dipakai':'Contoh kalimat'}</div><div class="ex" ${it.dek==='hyougen'?'':'lang="ja"'}>${esc(it.ex)}</div>`:''}${it.tr?`<div class="tr">${esc(it.tr)}</div>`:''}`;
+  }
   if(S.kind==='kosa'&&it.cat==='partikel'){
     return `<div class="lb">Arti ${sayB}</div><div class="ar">${esc(it.arti)}</div>
     <div class="lb">Fungsi</div><ul class="tr" style="margin:0;padding-left:18px">${(it.fungsi||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
@@ -12118,6 +12163,7 @@ function backHTML(it){
 function tagsHTML(it){
   const c=S.cfg;
   if(it.cat==='partikel')return '<span class="fc-tag">Partikel</span>';
+  if(S.kind==='hjft'){const d=HJ().find(x=>x.id===it.dek);return `<span class="fc-tag">${esc(d?d.jp:'JFT')}</span><span class="fc-tag alt">Bagian ${esc(it.bab)}</span>`}
   if(S.kind==='kosa'){const b=BOOKS.find(x=>KS_KEY[x[0]]===it.buku)||BK[c.buku];
     return `<span class="fc-tag">${esc(b?b[1]:'')}</span><span class="fc-tag alt">Bab ${esc(it.bab)}</span>${it.cat?`<span class="fc-tag alt">${esc(KC.NAME[it.cat]||'')}</span>`:''}`}
   return `<span class="fc-tag">${esc(BK[c.buku][1])}</span><span class="fc-tag alt">${esc(KINDS[S.kind].babName(c.buku,it.bab).split(' · ')[0])}</span>`}
@@ -12129,7 +12175,7 @@ function playHTML(){
   const kosa=S.kind==='kosa',part=isPart();
   const catCnt={};if(kosa){const basis=K.items(c.buku).filter(x=>c.bab==='all'||x.bab===String(c.bab));basis.forEach(x=>{catCnt[x.cat]=(catCnt[x.cat]||0)+1})}
   const catRow=kosa?`<p class="fc-h">Kategori kata</p><div class="fc-chips">${chip('cfg','cat','all','Semua',c.cat==='all')}${KC.CATS.filter(x=>x[0]!=='partikel'&&catCnt[x[0]]).map(x=>chip('cfg','cat',x[0],esc(x[1]),c.cat===x[0],catCnt[x[0]])).join('')}${chip('cfg','cat','partikel','Partikel',part,itemsPartikel().length)}</div>`:'';
-  const bukuRow=part?'':`<p class="fc-h">Buku</p><div class="fc-chips">${kosa?chip('cfg','buku','all','Semua buku',c.buku==='all'):''}${BOOKS.map(b=>chip('cfg','buku',b[0],b[1],c.buku===b[0],b[2])).join('')}</div>`;
+  const bukuRow=S.kind==='hjft'?`<p class="fc-h">Dek</p><div class="fc-chips">${HJ().map(d=>chip('cfg','buku',d.id,esc(d.t),c.buku===d.id,d.items.length)).join('')}</div>`:part?'':`<p class="fc-h">Buku</p><div class="fc-chips">${kosa?chip('cfg','buku','all','Semua buku',c.buku==='all'):''}${BOOKS.map(b=>chip('cfg','buku',b[0],b[1],c.buku===b[0],b[2])).join('')}</div>`;
   const babRow=part||(kosa&&c.buku==='all')?'':`<label class="fc-h" for="fc-bab" style="display:block">${K.babWord}</label>
   <select id="fc-bab" class="fc-sel" data-fc-sel="bab"><option value="all" ${c.bab==='all'?'selected':''}>Semua ${K.babWord.toLowerCase()} (${K.items(c.buku).length} kartu)</option>${babs.map(b=>`<option value="${b[0]}" ${String(c.bab)===b[0]?'selected':''}>${esc(K.babName(c.buku,b[0]))} · ${b[2]}/${b[1]} hafal</option>`).join('')}</select>`;
   const jBase=kosa&&!part?K.items(c.buku).filter(x=>(c.bab==='all'||x.bab===String(c.bab))&&(c.cat==='all'||x.cat===c.cat)):[];
@@ -12154,6 +12200,7 @@ function playHTML(){
   <div class="fc-nav"><button type="button" class="btn ghost" data-fc="prev" ${S.i?'':'disabled'} aria-label="Kartu sebelumnya">◀ Sebelum</button><button type="button" class="btn" data-fc="flip">Balik kartu</button><button type="button" class="btn ghost" data-fc="next" ${S.i+1<n?'':'disabled'} aria-label="Kartu berikutnya">Lanjut ▶</button></div>
   <div class="fc-tools"><button type="button" class="btn ${ok?'':'ghost'} ${ok?'on':''}" data-fc="mark" data-v="1" aria-pressed="${ok}">✓ Sudah hafal</button><button type="button" class="btn ghost ${!ok?'on':''}" data-fc="mark" data-v="0" aria-pressed="${!ok}">✗ Belum hafal</button>
    <button type="button" class="btn ghost ${c.acak?'on':''}" data-fc="acak" aria-pressed="${c.acak}">🔀 Acak ${c.acak?'(aktif)':''}</button><button type="button" class="btn ghost" data-fc="reset">↺ Reset hafalan</button></div>
+  ${S.kind==='hjft'?`<div class="fc-tools"><button type="button" class="btn" data-lms="go" data-r="hjtes" data-hjdek="${esc(c.buku)}">Tes cepat 10 soal (masuk rapor)</button><button type="button" class="btn ghost" data-lms="go" data-r="pondasi">Uji di Pondasi JFT</button></div>`:''}
   <p class="small muted">Tandai hafal lalu tekan Lanjut. Mau mengulang yang belum hafal saja? Pilih "Belum hafal" di atas. Pintasan: panah kiri/kanan, spasi untuk balik, H untuk hafal.</p>`;
 }
 
@@ -12251,10 +12298,13 @@ document.addEventListener('keydown',e=>{
   else if((e.key==='h'||e.key==='H')&&S.deck[S.i]){setMark(!isK(S.deck[S.i].id));draw()}
 });
 
-function open(kind){S.kind=kind;S.i=0;S.flip=false;S.quiz=null;S.order=null;
+function open(kind,dek){S.kind=kind;S.i=0;S.flip=false;S.quiz=null;S.order=null;
+  const isHJ=x=>HJ().some(d=>d.id===x);
+  if(kind==='hjft'){if(dek&&isHJ(dek))S.cfg.buku=dek;else if(!isHJ(S.cfg.buku))S.cfg.buku=(HJ()[0]||{}).id||'kosa';S.cfg.bab='all';S.cfg.cat='all';S.cfg.jenis='all'}
+  else if(isHJ(S.cfg.buku)){S.cfg.buku='shokyu2';S.cfg.bab='all'}
   let h;if(kind==='bunlat')h=bunlatHTML();else{buildDeck();h=playHTML()}
   return '<div id="fc-root">'+h+'</div>'}
-window.FLASH={kwajib:()=>open('kwajib'),bunfc:()=>open('bunfc'),kosa:()=>open('kosa'),bunlat:()=>open('bunlat'),flash:()=>open('kwajib'),
+window.FLASH={hjft:dek=>open('hjft',dek),kwajib:()=>open('kwajib'),bunfc:()=>open('bunfc'),kosa:()=>open('kosa'),bunlat:()=>open('bunlat'),flash:()=>open('kwajib'),
   counts:()=>({kata:Object.values(FC.kanji).reduce((n,a)=>n+a.length,0),bunpou:Object.values(FC.bunpou).reduce((n,a)=>n+a.length,0)}),
   hafal:()=>Object.keys(KNOWN).length};
 })();
@@ -14644,11 +14694,43 @@ function act(){if(!E||E.paused||E.final)return null;return 'Paket TO '+E.kode+' 
 const pct=(a,b)=>b?Math.round(a/b*100):null;
 const est=sc=>Object.keys(sc||{}).reduce((t,k)=>t+(sc[k]&&sc[k][1]?BOBOT*sc[k][0]/sc[k][1]:0),0);
 function hasil(PL,RS){
-  const out=[];Object.keys(PL||{}).forEach(id=>{const P=PL[id]||{};(P.items||[]).forEach(x=>{if(!x||!/^to:/.test(x.k)||x.t<=((RS&&RS[id])||0))return;out.push(Object.assign({id,nama:P.nama||'(tanpa nama)'},x))})});
+  const out=[];Object.keys(PL||{}).forEach(id=>{const P=PL[id]||{};(P.items||[]).forEach(x=>{if(!x||!/^to:/.test(x.k)||x.t<=((RS&&RS[id])||0))return;out.push(Object.assign({id,nama:(window.LMS_NAMA_RAPOR&&LMS_NAMA_RAPOR(id))||P.nama||'(tanpa nama)'},x))})});
   return out.sort((a,b)=>b.t-a.t)}
-let PSEL='';
+let PSEL='',TSORT='nama',TPAK='',TMUR='';
 const SARAN={M:'Moji-goi: ulang kartu kosakata dan kanji Irodori 15 menit per hari, lalu Pondasi.',K:'Kaiwa: latihan ungkapan per situasi (minta izin, menolak, menawarkan) dan pola bunpou.',C:'Choukai: dengarkan ulang audio paket, tulis kata kunci (waktu, tempat, siapa), latihan 2x putar.',D:'Dokkai: baca pertanyaan dulu, cari angka/jam/harga di teks, latihan berwaktu 1 menit per soal.'};
 const idsOf=p=>{const L=[];SEC.forEach(s0=>{const sc=p.sections.find(x=>x.sec===s0[0]);if(sc)sc.qs.forEach((q,i)=>L.push({id:q.id,sec:s0[0],no:i+1}))});return L};
+const URUT={nama:(a,b)=>String(a.nama).localeCompare(String(b.nama),'id',{sensitivity:'base'}),
+  namaz:(a,b)=>String(b.nama).localeCompare(String(a.nama),'id',{sensitivity:'base'}),
+  lulus:(a,b)=>((b.last>=200)-(a.last>=200))||String(a.nama).localeCompare(String(b.nama),'id'),
+  belum:(a,b)=>((a.last>=200)-(b.last>=200))||String(a.nama).localeCompare(String(b.nama),'id'),
+  rendah:(a,b)=>a.last-b.last,tinggi:(a,b)=>b.last-a.last};
+function kontrol(H){
+  const pk=[...new Set(H.map(x=>x.k.slice(3)))].sort();
+  const o=(v,t,c)=>`<option value="${esc(v)}" ${c===v?'selected':''}>${esc(t)}</option>`;
+  return `<div class="actions" style="gap:8px;flex-wrap:wrap"><label class="small">Paket <select data-tod-tpak="1">${o('','Semua paket',TPAK)}${pk.map(k=>o(k,k,TPAK)).join('')}</select></label>
+  <label class="small">Urutkan <select data-tod-tsort="1">${o('nama','Nama A–Z',TSORT)}${o('namaz','Nama Z–A',TSORT)}${o('lulus','Lulus dulu',TSORT)}${o('belum','Belum lulus dulu',TSORT)}${o('rendah','Skor terendah',TSORT)}${o('tinggi','Skor tertinggi',TSORT)}</select></label></div>`;
+}
+/* Rapor TO satu murid: tiap paket, tiap percobaan (ke-1, ke-2, ...), persen per bagian, dan peta benar/salah per nomor soal */
+function raporMurid(id,H,pill,tbl,fm){
+  const L=H.filter(x=>x.id===id).sort((a,b)=>a.t-b.t);if(!L.length){TMUR='';return ''}
+  const nama=L[0].nama,per={};L.forEach(x=>{(per[x.k]=per[x.k]||[]).push(x)});
+  const blok=Object.keys(per).sort().map(k=>{
+    const A=per[k],kode=k.slice(3),p=PK().find(x=>x.kode===kode),ids=p?idsOf(p):[];
+    const rows=A.map((x,i)=>{const sc=x.sc||{},e=Math.round(est(sc)),pv=i?Math.round(est(A[i-1].sc||{})):null;
+      return `<tr><td><b>Ke-${i+1}</b></td><td>${fm(x.t)}</td>${['M','K','C','D'].map(s=>`<td>${sc[s]?pill(pct(sc[s][0],sc[s][1])):'-'}</td>`).join('')}<td><b>${e}</b></td><td>${pv==null?'-':(e-pv>=0?'▲ +':'▼ ')+(e-pv)}</td><td>${e>=200?'<span class="badge ok">Lulus</span>':'<span class="badge no">Belum</span>'}</td></tr>`}).join('');
+    const ada=A.filter(x=>x.q&&x.q.length===ids.length);
+    let peta='';
+    if(ada.length&&ids.length){
+      const head=['Bagian','No.',...ada.map((x,i)=>'Ke-'+(A.indexOf(x)+1))];
+      const sel=v=>v==='1'?'<span style="color:var(--ok,#2d7a3a)" aria-label="benar">✓</span>':v==='0'?'<span style="color:var(--bad,#b3261e)" aria-label="salah">✗</span>':'<span class="muted" aria-label="kosong">–</span>';
+      peta=`<details class="card" style="margin-top:8px"><summary><b>Perkembangan per soal (${ids.length} soal)</b></summary>${tbl(head,ids.map((d,i)=>`<tr><td>${esc(SECN(d.sec).split(' ')[0])}</td><td>${d.no}</td>${ada.map(x=>`<td>${sel(x.q[i])}</td>`).join('')}</tr>`).join(''),'')}</details>`;
+    }
+    const sk=A.map(x=>Math.round(est(x.sc||{})));
+    return `<h3 style="margin-top:14px">${esc(kode)} · ${A.length} kali dikerjakan · terbaik ${Math.max(...sk)}</h3>${tbl(['Percobaan','Waktu','Moji','Kaiwa','Choukai','Dokkai','Skor','Naik/turun','Status'],rows,'')}${peta}`}).join('');
+  const sec=['M','K','C','D'].map(s=>{const f=L.find(x=>x.sc&&x.sc[s]),l=[...L].reverse().find(x=>x.sc&&x.sc[s]);if(!f)return '';const a=pct(f.sc[s][0],f.sc[s][1]),b=pct(l.sc[s][0],l.sc[s][1]);return `<span class="chipf">${esc(SECN(s).split(' ')[0])}: ${a}% → ${b}%</span>`}).join(' ');
+  return `<section class="card" id="tod-rapor" style="border-left:4px solid var(--accent,#1e6fb8)"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2>Rapor TO · ${esc(nama)}</h2><button type="button" class="btn ghost sm" data-tod-tmur="">Tutup</button></div>
+  <p class="small">${L.length} kali mengerjakan Paket TO. Perkembangan per bagian (percobaan pertama → terakhir): ${sec}</p>${blok}</section>`;
+}
 function panel(PL,RS){
   const H=hasil(PL,RS),B=buka(),fm=window.PANTAU?PANTAU.fmt:String;
   const pill=p=>p==null?'-':`<span class="badge ${p>=75?'ok':'no'}" style="${p>=60&&p<75?'background:var(--warn-soft);color:var(--warn)':''}">${p}%</span>`;
@@ -14658,19 +14740,20 @@ function panel(PL,RS){
   /* kelas: lulus, rata-rata per bagian (hasil terakhir tiap murid per paket) */
   const last={};H.forEach(x=>{const k=x.id+'|'+x.k;if(!last[k])last[k]=x});
   const L=Object.values(last);
-  const perM={};H.forEach(x=>{const m=perM[x.id]||(perM[x.id]={id:x.id,nama:x.nama,l:[]});m.l.push(x)});
+  const HP=TPAK?H.filter(x=>x.k==='to:'+TPAK):H;
+  const perM={};HP.forEach(x=>{const m=perM[x.id]||(perM[x.id]={id:x.id,nama:x.nama,l:[]});m.l.push(x)});
   const murid=Object.values(perM).map(m=>{const l=m.l.slice().sort((a,b)=>a.t-b.t);const e=l.map(x=>Math.round(est(x.sc)));const lt=l[l.length-1];
     const sec={};['M','K','C','D'].forEach(k=>{let o=0,n=0;l.slice(-3).forEach(x=>{const v=x.sc&&x.sc[k];if(v){o+=v[0];n+=v[1]}});sec[k]=pct(o,n)});
     const lemah=['M','K','C','D'].filter(k=>sec[k]!=null).sort((a,b)=>sec[a]-sec[b]);
     const kosong=lt.q?(lt.q.match(/-/g)||[]).length:0;
-    return {nama:m.nama,n:l.length,last:e[e.length-1],best:Math.max(...e),first:e[0],sec,lemah,kosong,auto:lt.auto}}).sort((a,b)=>a.last-b.last);
+    return {id:m.id,nama:m.nama,n:l.length,last:e[e.length-1],best:Math.max(...e),first:e[0],sec,lemah,kosong,auto:lt.auto}}).sort(URUT[TSORT]||URUT.nama);
   const lulusN=murid.filter(m=>m.last>=200).length;
   const rata=k=>{let o=0,n=0;L.forEach(x=>{const v=x.sc&&x.sc[k];if(v){o+=v[0];n+=v[1]}});return pct(o,n)};
   const kRata={M:rata('M'),K:rata('K'),C:rata('C'),D:rata('D')};
   const lemahK=['M','K','C','D'].filter(k=>kRata[k]!=null).sort((a,b)=>kRata[a]-kRata[b])[0];
   const kpi=(v,l)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
   const ringkasK=murid.length?`<div class="kpis">${kpi(murid.length,'murid sudah ikut')}${kpi(Math.round(lulusN/murid.length*100)+'%','lulus kelas (skor terakhir ≥200)')}${kpi(lulusN+'/'+murid.length,'murid lulus')}${['M','K','C','D'].map(k=>kpi(kRata[k]==null?'-':kRata[k]+'%','rata-rata '+SECN(k).split(' ')[0])).join('')}</div>${lemahK?`<p class="small">Bagian terlemah kelas: <b>${esc(SECN(lemahK))}</b>. ${esc(SARAN[lemahK])}</p>`:''}`:'<p class="muted small">Belum ada murid yang menyelesaikan paket TO.</p>';
-  const mRows=murid.map(m=>`<tr><td class="wrap-t"><b>${esc(m.nama)}</b></td><td>${m.n}x</td><td><b>${m.last}</b></td><td>${m.best}</td><td>${m.n>1?(m.last-m.first>=0?'▲ +':'▼ ')+(m.last-m.first):'-'}</td>${['M','K','C','D'].map(k=>`<td>${pill(m.sec[k])}</td>`).join('')}<td>${m.last>=200?'<span class="badge ok">Lulus</span>':'<span class="badge no">Belum</span>'}</td><td class="wrap-t small" style="min-width:300px">${m.lemah[0]?esc(SARAN[m.lemah[0]]):''}${m.kosong>=5?' Ada '+m.kosong+' soal kosong: latih atur waktu, jangan lama di satu soal.':''}</td></tr>`).join('');
+  const mRows=murid.map(m=>`<tr><td class="wrap-t"><button type="button" class="linkb" data-tod-tmur="${esc(m.id)}" style="background:none;border:0;padding:0;color:var(--accent,#1e6fb8);text-decoration:underline;cursor:pointer;font:inherit;text-align:left"><b>${esc(m.nama)}</b></button></td><td>${m.n}x</td><td><b>${m.last}</b></td><td>${m.best}</td><td>${m.n>1?(m.last-m.first>=0?'▲ +':'▼ ')+(m.last-m.first):'-'}</td>${['M','K','C','D'].map(k=>`<td>${pill(m.sec[k])}</td>`).join('')}<td>${m.last>=200?'<span class="badge ok">Lulus</span>':'<span class="badge no">Belum</span>'}</td><td class="wrap-t small" style="min-width:300px">${m.lemah[0]?esc(SARAN[m.lemah[0]]):''}${m.kosong>=5?' Ada '+m.kosong+' soal kosong: latih atur waktu, jangan lama di satu soal.':''}</td></tr>`).join('');
   /* titik rawan per nomor soal */
   const kodes=[...new Set(H.map(x=>x.k.slice(3)))];if(!PSEL||!kodes.includes(PSEL))PSEL=kodes[0]||'';
   let rawan='';
@@ -14690,7 +14773,8 @@ function panel(PL,RS){
    <div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${toggles}</div>
    <div class="actions"><button type="button" class="btn ghost sm" data-tod-bkall="def">Buka semua yang layak (${bukaDef().length})</button><button type="button" class="btn ghost sm" data-tod-bkall="none">Tutup semua</button></div><p class="small muted" id="tod-bkmsg" role="status"></p></section>
   <section class="card"><h2>Kelas</h2>${ringkasK}<p class="small muted">Skor perkiraan, bukan nilai resmi: tiap bagian 62,5 poin, lulus A2 sekitar 200.</p></section>
-  <section class="card"><h2>Per murid dan strategi</h2><p class="small muted">Diurutkan dari skor terakhir terendah. Persen per bagian = 3 percobaan terakhir.</p>${tbl(['Murid','Coba','Skor terakhir','Terbaik','Naik/turun','Moji','Kaiwa','Choukai','Dokkai','Status','Strategi'],mRows,'Belum ada data murid.')}</section>
+  ${TMUR?raporMurid(TMUR,H,pill,tbl,fm):''}
+  <section class="card"><h2>Per murid dan strategi</h2>${kontrol(H)}<p class="small muted">${TPAK?'Hanya paket '+esc(TPAK)+'. ':'Semua paket. '}Lulus = skor terakhir ≥200. Persen per bagian = 3 percobaan terakhir. Ketuk nama untuk membuka rapor TO murid itu.</p>${tbl(['Murid','Coba','Skor terakhir','Terbaik','Naik/turun','Moji','Kaiwa','Choukai','Dokkai','Status','Strategi'],mRows,'Belum ada data murid.')}</section>
   <section class="card"><h2>Titik rawan per nomor soal</h2>${rawan||'<p class="muted small">Belum ada data.</p>'}</section>
   <section class="card"><h2>Ringkasan per paket</h2>${tbl(['Paket','Percobaan','Murid','Rata-rata skor perkiraan','Lulus (≥200)'],ring,'Belum ada murid yang menyelesaikan paket TO.')}</section>
   <section class="card"><h2>Riwayat hasil (200 terbaru)</h2>${tbl(['Waktu','Murid','Paket','Moji','Kaiwa','Choukai','Dokkai','Skor perkiraan','Benar','Durasi','Ket.'],rows,'Belum ada hasil.')}</section>`;
@@ -14700,9 +14784,9 @@ async function simpanBuka(list){
   let ok=true;try{const db=window.LMS_DB&&window.LMS_DB();if(db)await db.doc('config/to').set(o);else ok=false}catch(e){ok=false}
   redraw();setTimeout(()=>{const m=document.getElementById('tod-bkmsg');if(m)m.textContent=ok?'Tersimpan. Murid langsung melihat daftar baru.':'Gagal menyimpan ke server. Coba lagi.'},50);
 }
-document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-bk]'))return;
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.matches('[data-tod-tsort]')){TSORT=t.value;redraw();return}if(t&&t.matches&&t.matches('[data-tod-tpak]')){TPAK=t.value;redraw();return}if(!t||!t.matches||!t.matches('[data-tod-bk]'))return;
   const cur=new Set(buka());t.checked?cur.add(t.dataset.todBk):cur.delete(t.dataset.todBk);simpanBuka([...cur])});
-document.addEventListener('click',e=>{const ps=e.target.closest&&e.target.closest('[data-tod-psel]');if(ps){PSEL=ps.dataset.todPsel;redraw();return}const t=e.target.closest&&e.target.closest('[data-tod-bkall]');if(!t)return;simpanBuka(t.dataset.todBkall==='def'?bukaDef():[])});
+document.addEventListener('click',e=>{const mr=e.target.closest&&e.target.closest('[data-tod-tmur]');if(mr){TMUR=mr.dataset.todTmur||'';redraw();if(TMUR)setTimeout(()=>{const r=document.getElementById('tod-rapor');if(r)r.scrollIntoView({block:'start'})},60);return}const ps=e.target.closest&&e.target.closest('[data-tod-psel]');if(ps){PSEL=ps.dataset.todPsel;redraw();return}const t=e.target.closest&&e.target.closest('[data-tod-bkall]');if(!t)return;simpanBuka(t.dataset.todBkall==='def'?bukaDef():[])});
 window.TODRAF={html,buka,layak,bukaDef,act,panel,sync:awanSync,_st:()=>({E,R,saved,AST})};
 })();
 
@@ -15340,7 +15424,7 @@ function menuHTML(){
     <div class="pd-bar" aria-label="${nh} dari ${d.items.length} sudah hafal"><i style="width:${p}%"></i></div>
     <div class="small">${nh} hafal (${p}%) · ${last?'tes terakhir '+last.ok+'/'+last.n:'belum tes'}</div>
     <div class="actions"><button type="button" class="btn" data-hj-kartu="${d.id}">Kartu</button><button type="button" class="btn ghost" data-hj-daftar="${d.id}">Daftar</button><button type="button" class="btn ghost" data-hj-tes="${d.id}">Tes cepat 10 soal</button></div></section>`}).join('');
-  return `<button type="button" class="backlink" data-lms="go" data-r="hafalan">← Hafalan</button><h1 class="pgt">Hafalan JFT A2</h1>
+  return `<button type="button" class="backlink" data-lms="go" data-r="hjft">← Kartu Hafalan JFT</button><h1 class="pgt">Tes dan daftar Hafalan JFT A2</h1>
   <section class="card"><p class="small muted">Bahan hafalan khusus ujian JFT-Basic A2, disusun dari file Sensei (kosakata wajib, kata kerja wajib, hyougen, pola kalimat, rangkuman N4) dan dirapikan. Hafalkan pakai <b>Kartu</b>, lalu cek dengan <b>Tes cepat</b>. Hasil tes masuk ke rapor dan dipantau Sensei. Setelah itu, uji di <b>Pondasi JFT</b>.</p>
   <div class="actions"><button type="button" class="btn ghost" data-lms="go" data-r="pondasi">Ke Pondasi JFT</button></div></section>
   ${rows||'<section class="card"><p class="muted">Bahan belum termuat.</p></section>'}`;
@@ -15411,7 +15495,7 @@ function tesHTML(){
 function html(){return V.m==='kartu'?kartuHTML():V.m==='daftar'?daftarHTML():V.m==='tes'?tesHTML():menuHTML()}
 document.addEventListener('click',e=>{
   const t=e.target.closest&&e.target.closest('[data-hj-kartu],[data-hj-daftar],[data-hj-tes],[data-hj-menu],[data-hj-balik],[data-hj-tandai],[data-hj-a],[data-hj-next]');if(!t)return;const d=t.dataset;
-  if(d.hjKartu){V={m:'kartu',id:d.hjKartu}}
+  if(d.hjKartu){window.HJ_DEK=d.hjKartu;location.hash='hjft';return}
   else if(d.hjDaftar){V={m:'daftar',id:d.hjDaftar};cari=''}
   else if(d.hjTes){V={m:'tes',id:d.hjTes}}
   else if(d.hjMenu){V={m:'menu'}}
@@ -15422,7 +15506,8 @@ document.addEventListener('click',e=>{
   redraw();if(!d.hjBalik&&!d.hjA)window.scrollTo(0,0);
 });
 document.addEventListener('input',e=>{const t=e.target;if(!t||!t.dataset||!t.dataset.hjCari)return;cari=t.value;const pos=t.selectionStart;redraw();const n=document.getElementById('hj-cari');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(x){}}});
-window.addEventListener('hashchange',()=>{if(String(location.hash||'').replace('#','').split('?')[0]!=='hjft'){V={m:'menu'};cari=''}});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-hjdek]');if(t){V={m:'tes',id:t.dataset.hjdek};window.HJ_DEK=t.dataset.hjdek}},true);
+window.addEventListener('hashchange',()=>{if(String(location.hash||'').replace('#','').split('?')[0]!=='hjtes'){V={m:'menu'};cari=''}});
 const label={kosa:'Kosakata wajib',kanji:'Kanji JFT A2',verb:'Kata kerja wajib',hyougen:'Hyougen dan aizuchi',fukushi:'Kata keterangan',ono:'Onomatope',bunpou:'Pola bunpou'};
 window.HAFALAN_JFT_UI={html,label,reset:()=>{V={m:'menu'}}};
 })();
@@ -15466,7 +15551,7 @@ const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const J=()=>LMS.mods.jft,K=()=>LMS.mods.ktk;
 const DRAF_ON=!!(window.UBAB_DRAF&&window.SIM_DRAF&&window.DRAFGURU);
 const TO_ON=!!(window.TO_DRAF&&window.TODRAF);
-const ROUTES=[['beranda','家','Beranda'],['latihan','試','Latihan'],['jft','試','Ujian'],['simulasi','総','Simulasi JFT A2'],['irodori','基','Irodori'],['hafalan','暗','Hafalan'],['dokkai','読','Dokkai'],['cbt','試','Latihan Soal'],['moji','文','Moji-goi'],['kaiwa','話','Kaiwa-hyougen'],['choukai','聴','Choukai'],['bunpou','文','Belajar Bunpou JFT A2'],['kelola','編','Kelola Soal'],['verb','動','Bunpou'],['harian','日','Misi Harian'],['menu','新','Latihan Soal Baru'],['petunjuk','案','Petunjuk'],['kotoba','語','Kotoba'],['kamus','辞','Kamus Irodori'],['kwajib','必','Kanji Kata Irodori'],['bunfc','文','Kartu Bunpou'],['bunlat','文','Latihan Bunpou'],['kosa','語','Kosakata Irodori'],['progres','進','Rapor'],['peringkat','冠','Peringkat'],['karakter','人','Karakter'],['game','遊','Taman Bermain'],['guru','師','Guru'],['ubabdraf','試','Ujian Bab 13-18 (draf)'],['simdraf','総','Simulasi JFT A2 (draf)'],['todraf','総','Paket TO JFT A2 (draf)'],['simto','総','Simulasi TO'],['pondasi','基','Pondasi JFT'],['hjft','暗','Hafalan JFT A2'],['bantuan','助','Bantuan']].filter(r=>((r[0]!=='ubabdraf'&&r[0]!=='simdraf')||DRAF_ON)&&(r[0]!=='todraf'&&r[0]!=='simto'||TO_ON));
+const ROUTES=[['beranda','家','Beranda'],['latihan','試','JFT A2'],['jft','試','Ujian'],['simulasi','総','Simulasi JFT A2'],['irodori','基','Irodori'],['hafalan','暗','Hafalan'],['dokkai','読','Dokkai'],['cbt','試','Latihan Soal'],['moji','文','Moji-goi'],['kaiwa','話','Kaiwa-hyougen'],['choukai','聴','Choukai'],['bunpou','文','Belajar Bunpou JFT A2'],['kelola','編','Kelola Soal'],['verb','動','Bunpou'],['harian','日','Misi Harian'],['menu','新','Latihan Soal Baru'],['petunjuk','案','Petunjuk'],['kotoba','語','Kotoba'],['kamus','辞','Kamus Irodori'],['kwajib','必','Kanji Kata Irodori'],['bunfc','文','Kartu Bunpou'],['bunlat','文','Latihan Bunpou'],['kosa','語','Kosakata Irodori'],['progres','進','Rapor'],['peringkat','冠','Peringkat'],['karakter','人','Karakter'],['game','遊','Taman Bermain'],['guru','師','Guru'],['ubabdraf','試','Ujian Bab 13-18 (draf)'],['simdraf','総','Simulasi JFT A2 (draf)'],['todraf','総','Paket TO JFT A2 (draf)'],['simto','総','Simulasi TO'],['pondasi','基','Pondasi JFT'],['hjft','暗','Hafalan JFT A2'],['hjtes','暗','Tes Hafalan JFT'],['bantuan','助','Bantuan']].filter(r=>((r[0]!=='ubabdraf'&&r[0]!=='simdraf')||DRAF_ON)&&(r[0]!=='todraf'&&r[0]!=='simto'||TO_ON));
 const slug=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,30)||'tanpa-nama';
 const HARI=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const PLAN=['Ulangi yang salah dari tes minggu ini (Tugas harian, langkah 1).','Tes kotoba bab fokus, 20 soal.','Tes kanji bab fokus, 20 soal.','Ulang kata lemah (Tugas harian, langkah 1), lalu kerjakan tugas kelas dari guru.','Tes gabungan bab, 20 soal.','Latihan soal JFT Bab 13 (menu JFT).','Tes gabungan 30 soal, lalu kirim kode hasil ke guru.'];
@@ -15490,7 +15575,7 @@ function renderTop(){
 function renderNav(){
   document.body.classList.toggle('lms-admin',ADMIN());
   if(ADMIN()){$$('lms-nav').innerHTML='<div class="lms-nav-in"><button type="button" data-lms="nav" data-r="guru" aria-current="true"><i aria-hidden="true">師</i>Panel Guru</button><button type="button" data-lms="viewas" aria-current="false"><i aria-hidden="true">生</i>Mode Murid</button></div>';return}
-  $$('lms-nav').innerHTML='<div class="lms-nav-in">'+ROUTES.filter(r=>r[0]!=='simulasi'&&r[0]!=='dokkai'&&r[0]!=='kelola'&&r[0]!=='cbt'&&r[0]!=='moji'&&r[0]!=='kaiwa'&&r[0]!=='choukai'&&r[0]!=='peringkat'&&r[0]!=='bunpou'&&r[0]!=='bantuan'&&r[0]!=='game'&&r[0]!=='kotoba'&&r[0]!=='jft'&&r[0]!=='verb'&&r[0]!=='harian'&&r[0]!=='menu'&&r[0]!=='petunjuk'&&r[0]!=='kamus'&&r[0]!=='bunfc'&&r[0]!=='bunlat'&&r[0]!=='kwajib'&&r[0]!=='kosa'&&r[0]!=='progres'&&r[0]!=='ubabdraf'&&r[0]!=='simdraf'&&r[0]!=='todraf'&&r[0]!=='simto'&&r[0]!=='pondasi'&&r[0]!=='hjft'&&(r[0]!=='guru'||(OWNER&&!(window.lmsHosted&&STU())))).map(r=>`<button type="button" data-lms="nav" data-r="${r[0]}" aria-current="${CUR===r[0]||(r[0]==='belajar'&&CUR==='kotoba')||(r[0]==='latihan'&&(CUR==='dokkai'||CUR==='moji'||CUR==='kaiwa'||CUR==='choukai'||CUR==='petunjuk'||CUR==='cbt'||CUR==='bunpou'||CUR==='menu'||CUR==='jft'||CUR==='verb'||CUR==='bunlat'))||(r[0]==='hafalan'&&(CUR==='bunfc'||CUR==='kwajib'||CUR==='kosa'||CUR==='kamus'||CUR==='flash'))}"><i aria-hidden="true">${r[1]}</i>${r[2]}</button>`).join('')+'</div>';
+  $$('lms-nav').innerHTML='<div class="lms-nav-in">'+ROUTES.filter(r=>r[0]!=='simulasi'&&r[0]!=='dokkai'&&r[0]!=='kelola'&&r[0]!=='cbt'&&r[0]!=='moji'&&r[0]!=='kaiwa'&&r[0]!=='choukai'&&r[0]!=='peringkat'&&r[0]!=='bunpou'&&r[0]!=='bantuan'&&r[0]!=='game'&&r[0]!=='kotoba'&&r[0]!=='jft'&&r[0]!=='verb'&&r[0]!=='harian'&&r[0]!=='menu'&&r[0]!=='petunjuk'&&r[0]!=='kamus'&&r[0]!=='bunfc'&&r[0]!=='bunlat'&&r[0]!=='kwajib'&&r[0]!=='kosa'&&r[0]!=='progres'&&r[0]!=='ubabdraf'&&r[0]!=='simdraf'&&r[0]!=='todraf'&&r[0]!=='simto'&&r[0]!=='pondasi'&&r[0]!=='hjft'&&r[0]!=='hjtes'&&(r[0]!=='guru'||(OWNER&&!(window.lmsHosted&&STU())))).map(r=>`<button type="button" data-lms="nav" data-r="${r[0]}" aria-current="${CUR===r[0]||(r[0]==='belajar'&&CUR==='kotoba')||(r[0]==='latihan'&&(CUR==='dokkai'||CUR==='moji'||CUR==='kaiwa'||CUR==='choukai'||CUR==='petunjuk'||CUR==='cbt'||CUR==='bunpou'||CUR==='menu'||CUR==='jft'||CUR==='verb'||CUR==='bunlat'))||(r[0]==='hafalan'&&(CUR==='bunfc'||CUR==='kwajib'||CUR==='kosa'||CUR==='kamus'||CUR==='flash'))}"><i aria-hidden="true">${r[1]}</i>${r[2]}</button>`).join('')+'</div>';
 }
 const BATSU_OK=['harian','kotoba','bantuan'];
 function batsuBlock(r){return false;if(ADMIN())return false;try{me()}catch(e){}if(!BATSU_ON)return false;if(examRoute())return false;if(r==='kotoba'&&(ACT_BATSU||K().inQuiz()))return false;return !BATSU_OK.includes(r)||r==='kotoba'}
@@ -15512,7 +15597,7 @@ addEventListener('scroll',()=>{LASTI=Date.now()},{passive:true});
 function softRender(){clearTimeout(SOFTT);const w=Date.now()-LASTI;if(w<900){SOFTT=setTimeout(softRender,900-w+60);return}renderPage()}
 function renderPage(){
   const m=$$('lms-main');if(!m||CUR==='jft'||CUR==='kotoba')return;
-  const f={beranda:berandaHTML,belajar:belajarHTML,latihan:latihanHTML,simulasi:simulasiHTML,irodori:irodoriHTML,hafalan:hafalanHTML,dokkai:()=>window.CBT?CBT.secHTML('D'):'',moji:()=>window.CBT?CBT.secHTML('M'):'',kaiwa:()=>window.CBT?CBT.secHTML('K'):'',choukai:()=>window.CBT?CBT.secHTML('C'):'',cbt:()=>window.CBT?CBT.html():'',bunpou:()=>window.BUNPOU_UI?BUNPOU_UI.html():'',kelola:()=>OWNER&&window.KELOLA?KELOLA.html():'',ubabdraf:()=>GURUONLY()&&window.DRAFGURU?DRAFGURU.ubab():'',simdraf:()=>GURUONLY()&&window.DRAFGURU?DRAFGURU.sim():'',todraf:()=>GURUONLY()&&window.TODRAF?TODRAF.html('g'):'',simto:()=>!OWNER&&window.TODRAF?TODRAF.html('m'):'',pondasi:()=>window.PONDASI?PONDASI.html():'',hjft:()=>window.HAFALAN_JFT_UI?HAFALAN_JFT_UI.html():'',verb:()=>{const h=GAME.verbHTML();return (window.MATERI_KK&&/Pilih bentuk yang mau dilatih/.test(h))?h+MATERI_KK.html():h},harian:harianHTML,menu:menuHTML,petunjuk:petunjukHTML,progres:progresHTML,guru:guruHTML,bantuan:bantuanHTML,kamus:()=>window.KAMUS?KAMUS.html():'',bunfc:()=>window.FLASH?FLASH.bunfc():'',bunlat:()=>window.FLASH?FLASH.bunlat():'',flash:()=>window.FLASH?FLASH.kwajib():'',kwajib:()=>window.FLASH?FLASH.kwajib():'',kosa:()=>window.FLASH?FLASH.kosa():'',peringkat:()=>GAME.peringkatHTML(me()),karakter:()=>GAME.karakterHTML(me()),game:()=>window.ASOBI?ASOBI.html():''}[CUR]||berandaHTML;
+  const f={beranda:berandaHTML,belajar:belajarHTML,latihan:latihanHTML,simulasi:simulasiHTML,irodori:irodoriHTML,hafalan:hafalanHTML,dokkai:()=>window.CBT?CBT.secHTML('D'):'',moji:()=>window.CBT?CBT.secHTML('M'):'',kaiwa:()=>window.CBT?CBT.secHTML('K'):'',choukai:()=>window.CBT?CBT.secHTML('C'):'',cbt:()=>window.CBT?CBT.html():'',bunpou:()=>window.BUNPOU_UI?BUNPOU_UI.html():'',kelola:()=>OWNER&&window.KELOLA?KELOLA.html():'',ubabdraf:()=>GURUONLY()&&window.DRAFGURU?DRAFGURU.ubab():'',simdraf:()=>GURUONLY()&&window.DRAFGURU?DRAFGURU.sim():'',todraf:()=>GURUONLY()&&window.TODRAF?TODRAF.html('g'):'',simto:()=>!OWNER&&window.TODRAF?TODRAF.html('m'):'',pondasi:()=>window.PONDASI?PONDASI.html():'',hjft:()=>window.FLASH&&FLASH.hjft?'<button type="button" class="backlink" data-lms="go" data-r="hafalan">← Hafalan</button>'+FLASH.hjft(window.HJ_DEK):'',hjtes:()=>window.HAFALAN_JFT_UI?HAFALAN_JFT_UI.html():'',verb:()=>{const h=GAME.verbHTML();return (window.MATERI_KK&&/Pilih bentuk yang mau dilatih/.test(h))?h+MATERI_KK.html():h},harian:harianHTML,menu:menuHTML,petunjuk:petunjukHTML,progres:progresHTML,guru:guruHTML,bantuan:bantuanHTML,kamus:()=>window.KAMUS?KAMUS.html():'',bunfc:()=>window.FLASH?FLASH.bunfc():'',bunlat:()=>window.FLASH?FLASH.bunlat():'',flash:()=>window.FLASH?FLASH.kwajib():'',kwajib:()=>window.FLASH?FLASH.kwajib():'',kosa:()=>window.FLASH?FLASH.kosa():'',peringkat:()=>GAME.peringkatHTML(me()),karakter:()=>GAME.karakterHTML(me()),game:()=>window.ASOBI?ASOBI.html():''}[CUR]||berandaHTML;
   if(CUR==='beranda'&&$$('bh-rest')&&((window.PLANET&&PLANET.active&&$$('pwbox'))||(window.DUNIA&&DUNIA.active&&$$('dw')))){const hb=berandaRest();if(hb===LASTHB){try{PLANET.refresh()}catch(e){}return}LASTHB=hb;const kn=$$('lms-nama'),kv2=kn?kn.value:null,kf=kn&&document.activeElement===kn;$$('bh-rest').innerHTML=hb;const kn2=$$('lms-nama');if(kn2&&kv2!==null){kn2.value=kv2;if(kf)kn2.focus()}try{GAME.mount3d()}catch(e){}try{DUNIA.refresh()}catch(e){}try{PLANET.refresh()}catch(e){}try{if(LMS.account&&LMS.account.id&&!ADMIN())GAME.pushStats(me(),getName())}catch(e){}return}
   const keep=$$('lms-nama');const kv=keep?keep.value:null;const gk=$$('g-nick'),gkv=gk&&document.activeElement===gk?gk.value:null;
   const h=(!['beranda','belajar','latihan','progres','peringkat','karakter'].includes(CUR)&&!(CUR==='menu'&&!(QM.qs&&QM.sel))&&!(CUR==='cbt'&&window.CBT&&CBT.inPack&&CBT.inPack())&&!ADMIN()?'<button type="button" class="backlink" data-lms="back">← Kembali</button>':'')+f();
@@ -15641,7 +15726,15 @@ function lvKartu(){if(ADMIN()||!window.LVPINTU||!LVPINTU.boleh())return '';
  <div class="actions"><button type="button" class="btn" data-lvpintu="buka"><span data-lvpintu-label>Masuk JFT Leveling</span></button><button type="button" class="btn ghost sm" data-lms="pwtoggle">Sembunyikan game</button></div></div></section>`}
 function berandaHTML(){
  if(!ADMIN()&&lsGet('lms:pwhide')===1)return pintasHTML()+'<section class="card pwoff"><div><b>JFT Leveling disembunyikan</b><p class="small muted">Biar fokus belajar. Kamu bisa menampilkannya lagi kapan saja.</p></div><button type="button" class="btn sm" data-lms="pwtoggle">Tampilkan game</button></section><div id="bh-rest">'+berandaRest()+'</div>';
- return pintasHTML()+lvKartu()+'<div id="bh-rest">'+berandaRest()+'</div>'}
+ return pintasHTML()+lvKartu()+peringkatKu()+'<div id="bh-rest">'+berandaRest()+'</div>'}
+/* Kartu "Peringkatmu" di Beranda: posisi di papan paket yang terakhir kamu kerjakan (Paket TO / Simulasi Paket / Pondasi) */
+function peringkatKu(){if(ADMIN()||!window.GAME||!GAME.posisiPapan)return '';
+ let L=[];try{L=JSON.parse(localStorage.getItem('lms:plog')||'[]')||[]}catch(e){}
+ const lt=[...L].reverse().find(x=>x&&/^(to:|cbt:sp\d|pd:)/.test(x.k||''));if(!lt)return '';
+ const key=/^to:/.test(lt.k)?lt.k:/^cbt:sp/.test(lt.k)?'sp:'+lt.k.slice(6):'pd',grp=key==='pd'?'pd':key.slice(0,2);
+ let r;try{r=GAME.posisiPapan(key)}catch(e){return ''}
+ const isi=r.pos?`<b style="font-size:24px">#${r.pos}</b> <span class="small muted">dari ${r.n} murid · nilaimu ${r.v}${/%/.test(r.satuan)?'%':''}</span>`:'<span class="small muted">Posisimu muncul setelah data tersinkron (beberapa menit).</span>';
+ return `<section class="card" aria-label="Peringkatmu"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><div><b>Peringkatmu · ${esc(r.nama)}</b><div>${isi}</div></div><button type="button" class="btn sm ghost" data-lms="papan" data-g="${esc(grp)}" data-k="${esc(key)}">Lihat papan</button></div></section>`}
 const ZACT={alun:()=>[['Misi harian','data-lms="nav" data-r="harian"'],['Bantuan dan panduan','data-lms="nav" data-r="bantuan"']],
  pos:d=>{const nx=d.ms.find(m=>!m.done);return [...(nx?[['▶ '+nx.t,`data-lms="mis" data-m="${nx.id}" data-k="${nx.k||''}" data-f="${nx.f||''}"`]]:[]),['Buka misi harian','data-lms="nav" data-r="harian"']]},
  taman:()=>[['Tes kotoba dan kanji','data-lms="nav" data-r="kotoba"'],['Kartu hafalan','data-lms="kartu"'],['Kosakata Irodori','data-lms="nav" data-r="kosa"'],['Kanji kata Irodori','data-lms="nav" data-r="kwajib"']],
@@ -15785,7 +15878,7 @@ function curAct(){
   const r=CUR;
   if(r==='simto'&&window.TODRAF&&TODRAF.act){const a=TODRAF.act();if(a)return {k:'ujian',t:a}}
   if(r==='pondasi')return {k:'latihan',t:'Pondasi JFT'};
-  if(r==='hjft')return {k:'latihan',t:'Hafalan JFT A2'};
+  if(r==='hjft'||r==='hjtes')return {k:'latihan',t:'Hafalan JFT A2'};
   if(r==='kotoba')return ACT_BATSU?{k:'batsu',t:'Mengerjakan batsu'}:{k:'latihan',t:'Latihan Kotoba / Kanji atau kartu hafalan'};
   if(r==='cbt')return {k:'latihan',t:'Latihan Soal JFT A2'};
   if(r==='moji')return {k:'latihan',t:'Latihan Moji-goi'};
@@ -15884,47 +15977,40 @@ function latihanHTML(){
   const sm=ja.simAvail&&ja.simAvail();
   const nq=Object.values(QM.docs).reduce((t,x)=>t+x.length,0);
   const vs=GAME.verbStats();
-  return `<h1 class="pgt">Latihan</h1>
+  return `<h1 class="pgt">JFT A2</h1>
+  <section class="card sim-hero"><div class="sim-big" aria-hidden="true">試</div><div><b>Semua bahan khusus ujian JFT-Basic A2</b><p class="small muted">Urutannya: Pondasi dan hafalan dulu, lalu latihan per bagian (Moji-goi, Kaiwa, Choukai, Dokkai), terakhir simulasi 60 menit. Materi buku ada di menu <b>Irodori</b>.</p></div></section>
   <div class="lgrid">${card(d.batsu?'罰':'日',d.batsu?'Batsu menunggu':'Misi Harian (wajib)',d.batsu?'Kerjakan hukuman dulu, ya':d.done+' dari 3 selesai · beruntun '+d.streak+' hari','data-lms="go" data-r="harian"',true,'feat')}
-  ${window.PONDASI?card('基','Pondasi JFT',(()=>{try{const l=PONDASI.langkah();return 'Langkah kamu: '+l.teks}catch(e){return '8 tahap kategori JFT · terbuka berurutan'}})(),'data-lms="go" data-r="pondasi"',true,'feat','1')+(window.HAFALAN_JFT?card('暗','Hafalan JFT A2','Kosakata wajib · kanji · hyougen · onomatope · bunpou','data-lms="go" data-r="hjft"',true,'feat','1'):''):''}
   ${rem?card('補','Tugas Remedial','Dibuka Sensei, kerjakan ya','data-lms="jft"',true,'warnc'):''}</div>
-  <section class="card lvguide"><h2>Jalur tingkat</h2><p class="muted small">Semua menu diberi tingkat. Kerjakan dari Dasar dulu, naik kalau nilai sudah 70% ke atas.</p><div class="tw"><table><thead><tr><th>Tingkat</th><th>Fokus</th><th>Menu</th></tr></thead><tbody><tr><td><em class="lvb l1">Dasar</em></td><td>Kosakata, partikel, kata kerja bentuk ます dan て</td><td>Kosakata, Kanji Kata, Bunpou 1–5, CBT tahap 1</td></tr><tr><td><em class="lvb l2">Menengah</em></td><td>Pola kalimat, bentuk ない dan た, soal bergambar</td><td>Bunpou 6–11 dan 14, Irodori Per Bab, CBT tahap 2</td></tr><tr><td><em class="lvb l3">Atas</em></td><td>Bentuk biasa, pengandaian, ujian penuh dan simulasi</td><td>Bunpou 12–16, Fukushuu, Satu Buku, CBT tahap 3, Simulasi</td></tr></tbody></table></div></section>
-  ${sec('1 · Belajar materi','Mulai dari rumus dan contoh. Urutannya Dasar sampai Atas.',
-   card('文','Belajar Bunpou JFT A2',(window.BUNPOU_UI?BUNPOU_UI.count:0)+' pelajaran · rumus, contoh, latihan · EXP','data-lms="go" data-r="bunpou"',true,'feat','1')+
-   card('動','Materi Perubahan Kata Kerja','12 bentuk: te, nai, kamus, pasif, kausatif, perintah, intransitif-transitif','data-lms="go" data-r="verb"',true,'','1')+
-   card('辞','Kamus Irodori','Cari kata · saring buku, bab, jenis kata','data-lms="go" data-r="kamus"',true))}
-  ${sec('2 · Hafalan','Kartu kosakata, kanji kata, dan pola bunpou ada di menu Hafalan sendiri supaya gampang dicari.',
-   card('暗','Menu Hafalan',due?due+' kartu siap diulang · Kosakata · Kanji · Bunpou':'Kosakata · Kanji kata · Kartu Bunpou · Ulang kartu','data-lms="go" data-r="hafalan"',true,'feat','1'))}
-  ${sec('3 · Latihan per bagian JFT','Satu bagian satu menu, jadi kamu bisa mengasah bagian tertentu. Buka paketnya untuk melihat nilai dan peringkat kelas sebelum mulai.',
+  ${sec('1 · Pondasi dan hafalan JFT A2','Mulai dari sini. Tahap Pondasi terbuka berurutan setelah lolos 80%.',
+   (window.PONDASI?card('基','Pondasi JFT',(()=>{try{const l=PONDASI.langkah();return 'Langkah kamu: '+l.teks}catch(e){return '8 tahap kategori JFT · terbuka berurutan'}})(),'data-lms="go" data-r="pondasi"',true,'feat','1'):'')+
+   (window.HAFALAN_JFT?card('暗','Hafalan JFT A2','Kosakata wajib · kanji · kata kerja · hyougen · onomatope · bunpou','data-lms="go" data-r="hjft"',true,'feat','1'):'')+
+   card('文','Belajar Bunpou JFT A2',(window.BUNPOU_UI?BUNPOU_UI.count:0)+' pelajaran · rumus, contoh, latihan · EXP','data-lms="go" data-r="bunpou"',true,'','1')+
+   card('動','Materi Perubahan Kata Kerja','te, nai, kamus, pasif, kausatif, perintah, intransitif-transitif','data-lms="go" data-r="verb"',true,'','1')+
+   card('動','Latihan Kata Kerja dan Sifat',vs.n?'Akurasi kata kerja '+Math.round(vs.ok/vs.n*100)+'%':'Ubah bentuk kata kerja','data-lms="qmcat" data-c="kata"',true,'','2'))}
+  ${sec('2 · Latihan per bagian JFT','Satu bagian satu menu. Buka paketnya untuk melihat nilai dan peringkat kelas sebelum mulai.',
    card('文','Moji-goi','Kosakata, kanji, cara baca · paket per tahap','data-lms="go" data-r="moji"',true,'feat','1')+
    card('話','Kaiwa-hyougen','Ungkapan percakapan · paket per tahap','data-lms="go" data-r="kaiwa"',true,'','2')+
-   card('聴','Choukai (mendengarkan)','Paket sendiri. Segera hadir, menunggu audio.','',false,'','3')+
+   card('聴','Choukai (mendengarkan)','Ada di Simulasi TO (paket 60 menit, audio 2x putar).','',false,'','3')+
    card('読','Dokkai (membaca)','Khusus soal bacaan · teks pendek · pembahasan','data-lms="go" data-r="dokkai"',true,'','2')+
-   card('試','Latihan acak dan riwayat','Campuran 40 soal · acak per bagian · ulang yang salah','data-lms="go" data-r="cbt"',true,'','2')+
-   card('語','Kosakata dan Kanji','Kotoba · Kanji','data-lms="qmcat" data-c="kosa"',true,'','1')+
-   card('文','Tata Bahasa dan Kalimat','Bunpou · Partikel · Susun kalimat','data-lms="qmcat" data-c="tata"',true,'','2')+
-   card('動','Kata Kerja dan Sifat',vs.n?'Akurasi kata kerja '+Math.round(vs.ok/vs.n*100)+'%':'Ubah bentuk kata kerja','data-lms="qmcat" data-c="kata"',true,'','2'))}
-  ${sec('4 · Irodori','Ujian per bab, Fukushuu, dan Satu Buku ada di menu sendiri. Isinya materi buku Irodori, bukan simulasi JFT.',
-   card('基','Menu Irodori',d.best?'Latihan Bab 13-18 · Ujian per bab · skor terbaik '+d.best.est:'Latihan Bab 13-18 · Ujian per bab · Fukushuu · Satu Buku','data-lms="go" data-r="irodori"',true,'feat','2'))}
-  ${sec('5 · Simulasi JFT A2','Menu terpisah: panduan, paket simulasi bertahap, dan jalur 6 minggu menuju 21 Desember.',
+   card('試','Latihan acak dan riwayat','Campuran 40 soal · acak per bagian · ulang yang salah','data-lms="go" data-r="cbt"',true,'','2'))}
+  ${sec('3 · Simulasi JFT A2 (60 menit)','Format ujian asli: 4 bagian berurutan, Choukai tanpa kembali, skor perkiraan 250.',
    (window.TODRAF&&TO_ON&&!OWNER&&TODRAF.buka().length?card('試','Simulasi TO (paket 60 menit)','Paket ujian lengkap · waktu berhenti kalau kamu keluar · hasil masuk Pantauan Sensei','data-lms="go" data-r="simto"',true,'feat','3'):'')+
    card('総','Simulasi JFT A2',d.best?'Skor terbaik '+d.best.est+' · target 200':'Panduan, paket bertahap, jalur belajar','data-lms="go" data-r="simulasi"',true,'feat','3')+
-   card('時','Simulasi waktu 60 menit','50 soal campuran. Segera hadir.','',false,'','3')+
-   card('弱','Remedial bagian lemah','Latihan otomatis dari bagian terendah. Segera hadir.','',false,'','3'))}
+   card('冠','Peringkat per paket','Lihat posisimu di tiap paket TO dan simulasi','data-lms="go" data-r="peringkat"',true,'','3'))}
   ${sec('Pantau','Lihat kelemahanmu dan apa yang perlu diulang.',
    card('報','Rapor Diri','Kelemahan dan rencana','data-lms="go" data-r="progres"',true))}
 `;
 }
-
-/* ---- Hafalan: semua kartu hafalan di satu menu ---- */
 function hafalanHTML(){
   const d=me(),ka=d.ka,due=ka.dueCount(),fn=window.FLASH?FLASH.counts():{kata:0,bunpou:0};
   const row=(ic,t,sub,attr)=>`<button type="button" class="hubrow" ${attr}><i aria-hidden="true">${ic}</i><span><b>${t}</b><small>${sub}</small></span><em aria-hidden="true">›</em></button>`;
   return `<h1 class="pgt">Hafalan</h1>
   <section class="card sim-hero"><div class="sim-big" aria-hidden="true">暗</div><div><b>Tempat menghafal</b><p class="small muted">Balik kartu, tandai hafal atau belum, lalu ulang yang belum hafal. Lima menit tiap hari lebih ampuh daripada sejam sekali seminggu.</p></div></section>
   <div class="lgrid"><button type="button" class="lat feat" data-lms="kartu"><i aria-hidden="true">復</i><b>Ulang Kartu Kata</b><span>${due?due+' kartu siap diulang hari ini':'Belum ada kartu jatuh tempo'}</span></button></div>
-  <section class="card"><h2>Pilih bahan hafalan</h2><div class="hubrows">
-   ${window.HAFALAN_JFT?row('必','Hafalan JFT A2 (khusus ujian)','Kosakata wajib · kanji · kata kerja · hyougen · kata keterangan · onomatope · bunpou','data-lms="go" data-r="hjft"'):''}
+  ${window.HAFALAN_JFT?`<section class="card"><h2>Untuk ujian JFT A2</h2><div class="hubrows">
+   ${row('必','Hafalan JFT A2','Kosakata wajib · kanji · kata kerja · hyougen · kata keterangan · onomatope · bunpou','data-lms="go" data-r="hjft"')}
+  </div></section>`:''}
+  <section class="card"><h2>Materi Irodori</h2><div class="hubrows">
    ${row('語','Kosakata Irodori','Kartu per buku, bab, dan jenis kata · plus partikel','data-lms="go" data-r="kosa"')}
    ${row('必','Kanji Kata Irodori',fn.kata+' kata · A1, A2.1, A2.2','data-lms="go" data-r="kwajib"')}
    ${row('文','Kartu Bunpou',fn.bunpou+' pola · arti, rumus, contoh','data-lms="go" data-r="bunfc"')}
@@ -15950,7 +16036,8 @@ function irodoriHTML(){
   <section class="card"><h2>Latihan Bab 13-18 per kategori</h2><p class="muted small">Kosakata dan kanji, kaiwa-hyougen, dan dokkai. Choukai menyusul setelah naskah dan audionya dicocokkan.</p></section>
   ${window.UJIAN_MURID_UI?UJIAN_MURID_UI.html():''}
   <section class="card"><h2>Jalur Irodori (dikunci bertahap)</h2><p class="muted small">Paket berikutnya terbuka setelah paket sebelumnya lulus. Supaya belajarnya runtut, bukan loncat-loncat.</p><div class="tw"><table><thead><tr><th>Tahap</th><th>Syarat buka</th><th>Status</th></tr></thead><tbody>${JAL}</tbody></table></div></section>
-  <section class="card"><h2>Materi Irodori</h2><div class="actions"><button type="button" class="btn ghost" data-lms="go" data-r="kamus">Kamus Irodori</button> <button type="button" class="btn ghost" data-lms="go" data-r="kosa">Kosakata Irodori</button> <button type="button" class="btn ghost" data-lms="go" data-r="kwajib">Kanji Kata Irodori</button> <button type="button" class="btn ghost" data-lms="go" data-r="simulasi">Simulasi JFT A2</button></div></section>`;
+  <section class="card"><h2>Materi dan latihan Irodori</h2><p class="muted small">Semua yang bersumber dari buku Irodori ada di sini. Bahan khusus ujian JFT A2 ada di menu <b>JFT A2</b>.</p>
+  <div class="hubrows">${[['語','Kosakata Irodori','Kartu per buku, bab, dan jenis kata · plus partikel','data-lms="go" data-r="kosa"'],['必','Kanji Kata Irodori','Kartu kanji per tingkat A1, A2.1, A2.2','data-lms="go" data-r="kwajib"'],['文','Kartu Bunpou Irodori','Pola, rumus, contoh','data-lms="go" data-r="bunfc"'],['辞','Kamus Irodori','Cari kata · saring buku, bab, jenis kata','data-lms="go" data-r="kamus"'],['語','Latihan Kosakata dan Kanji per bab','Kotoba · Kanji','data-lms="qmcat" data-c="kosa"'],['文','Latihan Tata Bahasa dan Kalimat per bab','Bunpou · Partikel · Susun kalimat','data-lms="qmcat" data-c="tata"'],['復','Ulang Kartu Kata','Kartu yang jatuh tempo hari ini','data-lms="kartu"']].map(r=>`<button type="button" class="hubrow" ${r[3]}><i aria-hidden="true">${r[0]}</i><span><b>${r[1]}</b><small>${r[2]}</small></span><em aria-hidden="true">›</em></button>`).join('')}</div></section>`;
 }
 
 /* ---- Simulasi JFT A2: panduan format, kesiapan per bagian, dan jalur menuju 21 Desember ---- */
@@ -16036,6 +16123,8 @@ function raporHTML(d){
 const PLSEC={M:'Moji-goi',K:'Kaiwa-hyougen',C:'Choukai',D:'Dokkai'};
 const plLabel=k=>/^to:/.test(k)?'Simulasi TO · '+k.slice(3):/^ub:/.test(k)?'Latihan Bab '+k.slice(3,5)+' · '+(PLSEC[k.slice(5)]||k.slice(5)):/^cbt:sp\d/.test(k)?'Simulasi Paket '+k.slice(6):/^cbt:/.test(k)?'CBT · '+(window.CBT&&k.slice(4)?k.slice(4):''):/^kj:/.test(k)?'Misi Kanji Wajib':/^mb:/.test(k)?'Misi Pondasi · Partikel':/^pd:/.test(k)?'Pondasi '+(window.PONDASI&&PONDASI.TOP[k.slice(3)]?PONDASI.TOP[k.slice(3)].kode+' · '+PONDASI.TOP[k.slice(3)].t:k.slice(3)):/^lv:duel:/.test(k)?'JFT Leveling · Duel '+({kevin1:'Pemanasan',kevin2:'Latihan',kevin3:'Serius'}[k.slice(9)]||k.slice(9)):/^hf:/.test(k)?'Hafalan JFT · '+(window.HAFALAN_JFT_UI&&HAFALAN_JFT_UI.label[k.slice(3)]||k.slice(3)):k==='bunlat'?'Latihan Bunpou':/^qm:/.test(k)?'Soal Baru · '+(QMN[k.slice(3)]?QMN[k.slice(3)][1]:k.slice(3)):/^v:/.test(k)?'Kata Kerja · '+(GAME.VCATS[k.slice(2)]?GAME.VCATS[k.slice(2)][0]:k.slice(2)==='lemah'?'Fokus lemah':k.slice(2)):k;
 window.FOKUS_LABEL=k=>plLabel(k);
+/* nama murid seperti di rapor (nama asli profil, cadangan nama panggilan); dipakai panel Paket TO */
+window.LMS_NAMA_RAPOR=id=>{try{const x=(GAME.state.ALL||[]).find(a=>a.id===id);return x&&(x.real||x.nick)||null}catch(e){return null}};
 function pCtx(){const ja=J().api;return {secDef:ja.secDef,babOf:ja.babOf,packName:ja.packName,passed:ja.passed,label:plLabel}}
 function selfPl(){
   const log=(lsGet('lms:plog')||[]).slice();const vh=(GAME.verbStats().hist||[]);
@@ -16310,21 +16399,34 @@ function slStat(r){
 const slPct=(ok,n)=>n?Math.round(ok/n*100):null;
 function slBars(list){
   return '<div class="slbars">'+list.map(([lab,p,sub])=>`<div class="slbar"><span class="slbar-l">${PANTAU.esc(lab)}</span><span class="slbar-t" role="img" aria-label="${PANTAU.esc(lab)} ${p==null?'belum ada data':p+' persen'}"><i style="width:${p==null?0:p}%;background:${p==null?'transparent':p>=75?'var(--ok)':p>=60?'var(--warn)':'var(--bad)'}"></i></span><b class="slbar-v">${p==null?'-':p+'%'}</b>${sub?`<small class="muted">${PANTAU.esc(sub)}</small>`:''}</div>`).join('')+'</div>'}
+/* Urutan dan status lulus per paket di rapor kelas (tab Semua) */
+let SL_SORT='nama',SL_PAK='';
+const plEst=sc=>{let e=0;['M','K','C','D'].forEach(k=>{const v=sc&&sc[k];if(v&&v[1])e+=v[0]/v[1]*62.5});return Math.round(e)};
+function plLulus(k,x){if(/^to:/.test(k))return {lulus:plEst(x.sc)>=200,nilai:plEst(x.sc)+'/250'};const p=x.n?Math.round(x.ok/x.n*100):0;return {lulus:p>=(/^pd:/.test(k)?80:70),nilai:p+'%'}}
+function paketStatus(g,k){const L=((g.map&&g.map.pl)||[]).filter(x=>x.k===k&&x.n);if(!L.length)return null;const b=L.map(x=>plLulus(k,x));const best=b.find(x=>x.lulus)||b[b.length-1];return {n:L.length,lulus:b.some(x=>x.lulus),terakhir:b[b.length-1].nilai,best:best.nilai}}
 function semuaHTML(rows){
   if(!rows.length)return '<section class="card"><h2>Semua latihan</h2><p class="muted">Belum ada murid yang masuk.</p></section>';
-  const S=rows.map(g=>({g,s:slStat(g.map)}));
+  const pakList=[...new Set(rows.flatMap(g=>((g.map&&g.map.pl)||[]).map(x=>x.k)))].filter(Boolean).sort((a,b)=>plLabel(a).localeCompare(plLabel(b),'id'));
+  if(SL_PAK&&!pakList.includes(SL_PAK))SL_PAK='';
+  const nm=(a,b)=>String(a.g.nama).localeCompare(String(b.g.nama),'id',{sensitivity:'base'});
+  const st=x=>SL_PAK?paketStatus(x.g,SL_PAK):null,rk=x=>{const v=st(x);return v?(v.lulus?2:1):0};
+  const S=rows.map(g=>({g,s:slStat(g.map)})).sort(SL_SORT==='namaz'?(a,b)=>-nm(a,b):SL_SORT==='lulus'?(a,b)=>(rk(b)-rk(a))||nm(a,b):SL_SORT==='belum'?(a,b)=>((rk(a)||3)-(rk(b)||3))||nm(a,b):nm);
+  const o=(v,t,c)=>`<option value="${PANTAU.esc(v)}" ${c===v?'selected':''}>${PANTAU.esc(t)}</option>`;
+  const ktrl=`<div class="actions" style="gap:8px;flex-wrap:wrap"><label class="small">Urutkan <select data-sl-sort="1">${o('nama','Nama A–Z',SL_SORT)}${o('namaz','Nama Z–A',SL_SORT)}${o('lulus','Lulus dulu (paket dipilih)',SL_SORT)}${o('belum','Belum lulus dulu (paket dipilih)',SL_SORT)}</select></label>
+   <label class="small">Status per paket <select data-sl-pak="1">${o('','(pilih paket)',SL_PAK)}${pakList.map(k=>o(k,plLabel(k),SL_PAK)).join('')}</select></label></div>`;
   const cls={M:[0,0],K:[0,0],C:[0,0],D:[0,0]};S.forEach(x=>Object.keys(cls).forEach(k=>{cls[k][0]+=x.s.sec[k][0];cls[k][1]+=x.s.sec[k][1]}));
   const colDone=SL_COLS.map(c=>S.filter(x=>x.s.o[c].n>0).length);
   const tahap=g=>{try{if(!window.PONDASI)return '';const st=PONDASI.status((g.map&&g.map.pl)||[]),nl=st.filter(x=>x.lulus).length,l=PONDASI.langkah(st);return `${nl}/8 lolos<br><small>${PANTAU.esc(l.semua?'Semua lolos':l.teks)}</small>`}catch(e){return ''}};
-  const head=['Murid','Tahap Pondasi',...SL_COLS,'Bagian terlemah'];
+  const head=['Murid',...(SL_PAK?['Status '+PANTAU.esc(plLabel(SL_PAK))]:[]),'Tahap Pondasi',...SL_COLS,'Bagian terlemah'];
   const body=S.map(({g,s})=>{
     const cells=SL_COLS.map(c=>{const x=s.o[c];return x.n?`${x.n}x ${PANTAU.pill(slPct(x.ok,x.tot))}`:'<span class="muted">Belum</span>'});
     const ws=SL_SEC.map(([k,l])=>[l,slPct(s.sec[k][0],s.sec[k][1])]).filter(z=>z[1]!=null).sort((a,b)=>a[1]-b[1])[0];
-    return [`<b>${PANTAU.esc(g.nama)}</b>`,tahap(g)||'<span class="muted">-</span>',...cells,ws?`${PANTAU.esc(ws[0])} ${PANTAU.pill(ws[1])}`:'<span class="muted">Belum ada data</span>']});
+    const ps=SL_PAK?paketStatus(g,SL_PAK):null;
+    return [`<b>${PANTAU.esc(g.nama)}</b>`,...(SL_PAK?[ps?`${ps.lulus?'<span class="badge ok">Lulus</span>':'<span class="badge no">Belum lulus</span>'}<br><small>${ps.n}x · terakhir ${ps.terakhir} · terbaik ${ps.best}</small>`:'<span class="muted">Belum dicoba</span>']:[]),tahap(g)||'<span class="muted">-</span>',...cells,ws?`${PANTAU.esc(ws[0])} ${PANTAU.pill(ws[1])}`:'<span class="muted">Belum ada data</span>']});
   const sum=SL_COLS.map((c,i)=>[c,Math.round(colDone[i]/rows.length*100),colDone[i]+' dari '+rows.length+' murid sudah']);
   return `<section class="card"><h2>Kekuatan kelas per bagian JFT</h2><p class="small muted">Gabungan semua latihan CBT, simulasi, dan Latihan Bab 13-18 yang tercatat sejak fitur ini aktif. Hijau 75% ke atas, kuning 60-74%, merah di bawah 60%.</p>${slBars(SL_SEC.map(([k,l])=>[l,slPct(cls[k][0],cls[k][1]),cls[k][1]?cls[k][1]+' soal':'belum ada data']))}</section>
   <section class="card"><h2>Partisipasi per jenis latihan</h2><p class="small muted">Persentase murid yang sudah mencoba tiap jenis latihan.</p>${slBars(sum)}</section>
-  <section class="card"><h2>Semua murid x semua latihan</h2><p class="small muted">Tiap sel: berapa kali dikerjakan dan rata-rata nilainya. "Belum" berarti belum pernah. Geser tabel ke samping di HP.</p>${PANTAU.xl(head,body,'Belum ada murid.')}</section>`;
+  <section class="card"><h2>Semua murid x semua latihan</h2>${ktrl}<p class="small muted">Tiap sel: berapa kali dikerjakan dan rata-rata nilainya. "Belum" berarti belum pernah. Pilih paket untuk melihat siapa yang sudah lulus (TO: skor ≥200, Pondasi: ≥80%, lainnya: ≥70%). Geser tabel ke samping di HP.</p>${PANTAU.xl(head,body,'Belum ada murid.')}</section>`;
 }
 function kelasTable(rows){
   const ctx=pCtx(),ja=J().api,ka=K().api;
@@ -16446,11 +16548,12 @@ function raporHTML(rows){
    <div class="att"><h3>Akun di aplikasi, tidak ada di rapor <small>${lebih.length}</small></h3>${lebih.length?`<ul>${lebih.map(g=>`<li>${esc(g.nama||'(tanpa nama)')}</li>`).join('')}</ul>`:'<p class="small muted">Tidak ada.</p>'}</div></div></section>`;
 }
 document.addEventListener('input',e=>{const t=e.target;if(!t||t.id!=='rp-q')return;const q=t.value.trim().toLowerCase();let v=0;document.querySelectorAll('#rp-body tr[data-nm]').forEach(tr=>{const ok=!q||tr.dataset.nm.includes(q);tr.hidden=!ok;if(ok)v++});const k=document.getElementById('rp-kosong');if(k)k.hidden=v>0});
+let G_URUT='a';
 function guruHTML(){
   if(!OWNER)return guruHTML0();
   if(window.lmsAccess&&ACC.list===null)accLoad();
-  const rows=guruRows();
-  const tabs=[['ringkas','Ringkasan'],['semua','Semua latihan'],['live','Live'],['murid','Per murid'],['kelas','Rekap kelas'],['pantau','Pantauan'],...(TO_ON?[['to','Paket TO']]:[]),['rapor','Rapor resmi'],...(window.lmsHosted?[['akses','Akses'+(accPend()?' ('+accPend()+')':'')],['hadiah','Dompet']]:[])].map(t=>`<button type="button" class="chipb${GT===t[0]?' on':''}" data-lms="gtab" data-t="${t[0]}" aria-pressed="${GT===t[0]}">${t[1]}</button>`).join('');
+  const rows=guruRows().sort((a,b)=>(G_URUT==='z'?-1:1)*String(a.nama||'').localeCompare(String(b.nama||''),'id',{sensitivity:'base'}));
+  const tabs=[['ringkas','Ringkasan'],['semua','Semua latihan'],['live','Live'],['murid','Per murid'],['kelas','Rekap kelas'],['pantau','Pantauan'],...(TO_ON?[['to','Paket TO']]:[]),['rapor','Rapor resmi'],...(window.lmsHosted?[['akses','Akses'+(accPend()?' ('+accPend()+')':'')],['hadiah','Dompet']]:[])].map(t=>`<button type="button" class="chipb${GT===t[0]?' on':''}" data-lms="gtab" data-t="${t[0]}" aria-pressed="${GT===t[0]}">${t[1]}</button>`).join('')+`<span class="small muted" style="margin-left:8px">Urut nama:</span><button type="button" class="chipb${G_URUT==='a'?' on':''}" data-lms="gurut" data-u="a" aria-pressed="${G_URUT==='a'}">A–Z</button><button type="button" class="chipb${G_URUT==='z'?' on':''}" data-lms="gurut" data-u="z" aria-pressed="${G_URUT==='z'}">Z–A</button>`;
   const top=`<div class="tora-head"><span class="tora-kj" aria-hidden="true">師</span><div><h1 class="pgt">Panel Tora 先生</h1><p class="small muted">Pantau murid, nilai, dan dompet kelas dari satu tempat.</p><button type="button" class="btn sm" data-lms="go" data-r="kelola">Kelola Soal</button> ${DRAF_ON?'<button type="button" class="btn sm ghost" data-lms="go" data-r="ubabdraf">Ujian Bab 13-18 (draf)</button> <button type="button" class="btn sm ghost" data-lms="go" data-r="simdraf">Simulasi JFT A2 (draf)</button>':''}${TO_ON?' <button type="button" class="btn sm ghost" data-lms="go" data-r="todraf">Paket TO JFT A2 (draf)</button>':''}</div></div><div class="chips gtabbar" role="tablist" aria-label="Bagian panel">${tabs}</div>`;
   const pb=accPend()&&GT!=='akses'?`<section class="card" style="border-color:var(--accent)"><b>${accPend()} murid menunggu persetujuan akses</b><div class="actions"><button type="button" class="btn sm" data-lms="gtab" data-t="akses">Buka daftar</button></div></section>`:'';
   if(GT==='akses')return top+aksesHTML();
@@ -16589,6 +16692,8 @@ document.addEventListener('click',e=>{
   else if(a==='gjft'){J().go('guru');go('jft')}
   else if(a==='gkk'){K().go('guru');go('kotoba')}
   else if(a==='gcsv')exportCsv();
+  else if(a==='papan'){try{GAME.bukaPapan(b.dataset.g,b.dataset.k)}catch(e){}go('peringkat')}
+  else if(a==='gurut'){G_URUT=b.dataset.u==='z'?'z':'a';SL_SORT=G_URUT==='z'?'namaz':'nama';renderPage()}
   else if(a==='gtab'){GT=b.dataset.t;gDelAsk='';gNote='';ACC.pwFor='';ACC.msg='';renderPage();if(GT==='akses')accLoad()}
   else if(a==='rpsort'){const k=b.dataset.k;if(RAPOR.sort===k)RAPOR.dir=-RAPOR.dir;else{RAPOR.sort=k;RAPOR.dir=(k==='nama'||k==='tes')?1:-1}renderPage()}
   else if(a==='rpf'){RAPOR.f=b.dataset.f;renderPage()}
@@ -16606,7 +16711,7 @@ document.addEventListener('click',e=>{
   else if(a==='gcsvall'){const c=pCtx();let R=[PANTAU.csvHead(c)];guruRows().forEach(g=>{R=R.concat(PANTAU.csvRows(g.nama,{jt:g.map.jt,kk:g.map.kk,pl:g.map.pl},c))});dlCsv('semua-detail-murid.csv',R)}
   else if(a==='gcsvme'){const c=pCtx(),d=me();dlCsv('data-saya.csv',[PANTAU.csvHead(c),...PANTAU.csvRows(getName()||'Saya',{jt:d.jt,kk:d.at,pl:selfPl()},c)])}
 });
-document.addEventListener('change',e=>{const t=e.target;if(t&&t.id==='g-sel'){GSEL=t.value;gDelAsk='';gNote='';renderPage()}});
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.id==='g-sel'){GSEL=t.value;gDelAsk='';gNote='';renderPage()}else if(t&&t.dataset&&t.dataset.slSort){SL_SORT=t.value;renderPage()}else if(t&&t.dataset&&t.dataset.slPak){SL_PAK=t.value;if(SL_PAK&&SL_SORT==='nama')SL_SORT='lulus';renderPage()}});
 window.addEventListener('hashchange',route);
 
 /* ---- mulai ---- */
