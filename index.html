@@ -1409,7 +1409,7 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261120-0558"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261120-0644"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -14308,6 +14308,47 @@ const ssDel=k=>{try{localStorage.removeItem(k)}catch(e){}};
 const ssSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 const TTL=7*24*3600*1000;
 const saved=(kode,mode)=>{const v=ssGet(SKEY(kode,mode));if(!v||v.v!==1||v.kode!==kode||Date.now()-(v.at||0)>TTL){if(v)ssDel(SKEY(kode,mode));return null}return v};
+/* Cadangan sesi ke server (mode murid): data/users/<uid>/simto = {sesi:{kode:snap},selesai:{kode:waktu},at}.
+   Murid bisa lanjut dari HP lain. Per paket, sesi terbaru menang. Paket yang selesai atau dimulai ulang dicatat di "selesai"
+   supaya sesi lamanya tidak hidup lagi di perangkat lain. Tanpa kunci jawaban. Perangkat tetap penyimpanan utama. */
+const uidAkun=()=>{try{const i=typeof LMS!=='undefined'&&LMS.account&&LMS.account.id;return /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(i||'')?i:''}catch(e){return ''}};
+const TKEY=()=>'lms:tosel:'+uidAkun();
+const lokalM=()=>{const o={},p='lms:to:'+nama()+':m:';try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf(p)===0){const v=ssGet(k);if(v&&v.v===1&&v.kode)o[v.kode]=v}}}catch(e){}return o};
+let awanT=0,awanLast=0,awanBusy=false,awanUlang=false,awanErr=false;
+async function awanSync(){
+  const u=uidAkun();if(!u)return;
+  let db=null;try{db=window.LMS_DB&&window.LMS_DB()}catch(e){}
+  if(!db)return;
+  if(awanBusy){awanUlang=true;return}
+  awanBusy=true;
+  try{
+    const x=await db.doc('data/users/'+u+'/simto').get();const c=x&&x.exists?(x.data()||{}):{};
+    const cs=c.sesi||{},ct=c.selesai||{},tb=ssGet(TKEY())||{},now=Date.now();
+    Object.keys(ct).forEach(k=>{if(!((+tb[k]||0)>=(+ct[k]||0)))tb[k]=+ct[k]||0});
+    const aktif=k=>!!E&&E.mode==='m'&&E.kode===k;
+    const lok=lokalM();let ubah=false;
+    Object.keys(lok).forEach(k=>{if(tb[k]&&(lok[k].at||0)<=tb[k]&&!aktif(k)){ssDel(SKEY(k,'m'));delete lok[k];ubah=true}});
+    Object.keys(cs).forEach(k=>{const r=cs[k];if(!r||r.v!==1||r.kode!==k||now-(r.at||0)>TTL||(tb[k]&&r.at<=tb[k])||aktif(k))return;
+      const l=lok[k];if(!l||(r.at||0)>(l.at||0)){if(ssSet(SKEY(k,'m'),r)){lok[k]=r;ubah=true}}});
+    const sesi={};Object.keys(lok).forEach(k=>{if(now-(lok[k].at||0)<=TTL)sesi[k]=lok[k]});
+    Object.keys(tb).forEach(k=>{if(now-tb[k]>TTL)delete tb[k]});
+    ssSet(TKEY(),tb);
+    await db.doc('data/users/'+u+'/simto').set({sesi,selesai:tb,at:now});
+    const pulih=awanErr;awanErr=false;
+    if((ubah||pulih)&&!E&&!R)redraw();
+  }catch(e){const baru=!awanErr;awanErr=true;if(baru&&!E&&!R)redraw()}
+  finally{awanBusy=false;awanLast=Date.now();if(awanUlang){awanUlang=false;awanSync()}}
+}
+function awanTulis(segera){
+  if(!uidAkun())return;
+  if(segera){clearTimeout(awanT);awanT=0;awanSync();return}
+  if(!awanT)awanT=setTimeout(()=>{awanT=0;awanSync()},20000);
+}
+function sesiHapus(kode,mode){
+  ssDel(SKEY(kode,mode));
+  if(mode!=='m'||!uidAkun())return;
+  const tb=ssGet(TKEY())||{};tb[kode]=Date.now();ssSet(TKEY(),tb);awanTulis(true);
+}
 const ROUTE=()=>(location.hash||'').replace('#','').split('?')[0];
 const onTO=()=>E&&ROUTE()===(E.mode==='m'?'simto':'todraf');
 /* paket yang boleh dibuka murid: tanpa soal ditahan dan semua Choukai ada audio. Daftar buka diatur Sensei (config/to). */
@@ -14361,9 +14402,9 @@ function resume(kode,mode){
   save();tick();redraw();window.scrollTo(0,0);
 }
 function snap(){return {v:1,kode:E.kode,mode:E.mode,si:E.si,pos:E.pos,ans:E.ans,flag:E.flag,ord:E.ord,plays:E.plays,sisa:Math.max(0,left()),at:Date.now()}}
-function save(){if(!E)return;if(!ssSet(SKEY(E.kode,E.mode),snap())&&!err){err='Penyimpanan di perangkat penuh. Jeda dan lanjut mungkin tidak tersimpan.'}}
+function save(){if(!E)return;if(!ssSet(SKEY(E.kode,E.mode),snap())&&!err){err='Penyimpanan di perangkat penuh. Jeda dan lanjut mungkin tidak tersimpan.'}if(E.mode==='m')awanTulis()}
 /* jeda: waktu berhenti, sesi tersimpan */
-function pause(){if(!E||E.paused)return;E.sisa=Math.max(0,left());E.paused=true;E.tk=null;clearInterval(TM);try{if(AUD)AUD.pause()}catch(e){}save()}
+function pause(){if(!E||E.paused)return;E.sisa=Math.max(0,left());E.paused=true;E.tk=null;clearInterval(TM);try{if(AUD)AUD.pause()}catch(e){}save();if(E.mode==='m')awanTulis(true)}
 function unpause(){if(!E||!E.paused)return;E.paused=false;E.tk=Date.now();tick()}
 const left=()=>!E?0:E.paused?E.sisa:E.sisa-(Date.now()-E.tk)/1000;
 let SV=0;
@@ -14434,7 +14475,7 @@ async function finish(auto){
   await Promise.all(items.map(async x=>{if(x.pick==null)return;if(!siap){x.gagal=true;return}const r=await nilai(x);x.ok=r.ok;x.gagal=r.gagal}));
   LASTIT={items,E0,auto,dur};REV=null;
   R=hitung(items,E0,auto,dur);E=null;busy=false;
-  if(!R.gagal)logR();else if(E0.mode!=='m')ssDel(SKEY(E0.kode,E0.mode));
+  if(!R.gagal)logR();else if(E0.mode!=='m')sesiHapus(E0.kode,E0.mode);
   redraw();window.scrollTo(0,0);
 }
 /* nilai ulang hanya soal yang gagal */
@@ -14452,7 +14493,7 @@ function logR(){
     const sc={};let ok=0,n=0;SEC.forEach(s=>{const v=R.per[s[0]];if(v){sc[s[0]]=[v.ok,v.n];ok+=v.ok;n+=v.n}});
     const q=LASTIT&&LASTIT.E0.kode===R.kode?LASTIT.items.map(x=>x.pick==null?'-':x.ok?'1':'0').join(''):'';
     if(window.lmsLog)window.lmsLog('to:'+R.kode,ok,n,sc,{dur:R.dur,auto:R.auto?1:0,gagal:R.gagal||0,q})}catch(e){}}
-  ssDel(SKEY(R.kode,R.mode));
+  sesiHapus(R.kode,R.mode);
 }
 /* ---------- Lihat jawaban setelah selesai ---------- */
 let REV=null;/* {buka:bool,muat:bool,k:{id:indexBenar},err} */
@@ -14508,7 +14549,8 @@ function menuHTML(mode){
   const L=mode==='m'?PK().filter(p=>buka().includes(p.kode)):PK();
   const cards=L.map(p=>kartu(p,mode)).join('');
   if(mode==='m')return `<button type="button" class="backlink" data-lms="go" data-r="latihan">← Latihan</button><h1 class="pgt">Simulasi JFT A2 · Paket TO</h1>
-  <section class="card"><p class="small muted">Aturan seperti ujian asli: 4 bagian berurutan (Moji-goi, Kaiwa, Choukai, Dokkai), total 60 menit. Bagian yang sudah ditinggalkan terkunci. Choukai tanpa kembali, audio maksimal 2 kali putar. Kalau kamu keluar dari paket, <b>waktu berhenti</b> dan bisa dilanjutkan dari sisa waktu. Kalau waktu habis, jawaban terkirim otomatis dan hasilnya muncul. Skor hanya perkiraan: tiap bagian 62,5 poin, lulus A2 sekitar 200 ke atas.</p><p class="small muted">Bagian dengar (Choukai) masih dalam pengecekan guru.</p></section>
+  <section class="card"><p class="small muted">Aturan seperti ujian asli: 4 bagian berurutan (Moji-goi, Kaiwa, Choukai, Dokkai), total 60 menit. Bagian yang sudah ditinggalkan terkunci. Choukai tanpa kembali, audio maksimal 2 kali putar. Kalau kamu keluar dari paket, <b>waktu berhenti</b> dan bisa dilanjutkan dari sisa waktu. Kalau waktu habis, jawaban terkirim otomatis dan hasilnya muncul. Skor hanya perkiraan: tiap bagian 62,5 poin, lulus A2 sekitar 200 ke atas.</p><p class="small muted">Sesimu juga disimpan di server, jadi bisa dilanjutkan dari HP lain dengan akun yang sama.</p><p class="small muted">Bagian dengar (Choukai) masih dalam pengecekan guru.</p></section>
+  ${awanErr?`<div class="status warn" role="alert">Cadangan sesi ke server belum berhasil. Sesi tetap tersimpan di HP ini. Jangan ganti HP di tengah paket.</div>`:''}
   ${err?`<div class="status warn" role="alert">${esc(err)}</div>`:''}
   ${cards?`<div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${cards}</div>`:'<section class="card"><p class="muted">Belum ada paket yang dibuka Sensei. Tunggu info dari Sensei, ya.</p></section>'}`;
   return `<button type="button" class="backlink" data-lms="go" data-r="guru">← Panel guru</button><h1 class="pgt">Simulasi JFT A2 · Paket TO (uji guru)</h1>
@@ -14520,6 +14562,7 @@ function html(mode){
   mode=mode||'g';
   if(E){if(E.paused&&!E.final&&onTO())unpause();return examHTML()}
   if(R)return resultHTML();
+  if(mode==='m'&&!awanBusy&&Date.now()-awanLast>60000)awanSync();
   return menuHTML(mode)}
 
 let AUD=null;
@@ -14534,7 +14577,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
   if(d.todResume){resume(d.todResume,md);return}
   if(d.todAsk){ASK=d.todAsk;redraw();return}
   if(d.todAskno){ASK='';redraw();return}
-  if(d.todFresh){ssDel(SKEY(d.todFresh,md));start(d.todFresh,md);return}
+  if(d.todFresh){sesiHapus(d.todFresh,md);start(d.todFresh,md);return}
   if(d.todRetry){ulang();return}
   if(d.todRev){lihatJawaban();return}
   if(d.todHome){logR();R=null;redraw();return}
@@ -14549,7 +14592,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
   else if(d.todCancel){dlg=null;redraw()}
   else if(d.todOk){dlg=null;if(AUD)AUD.pause();if(si<E.secs.length-1){E.si++;E.pos=0;save();redraw();window.scrollTo(0,0)}else finish(false)}
   else if(d.todPause){pause();E=null;R=null;redraw()}
-  else if(d.todQuit){clearInterval(TM);if(AUD)AUD.pause();ssDel(SKEY(E.kode,E.mode));E=null;R=null;redraw()}
+  else if(d.todQuit){clearInterval(TM);if(AUD)AUD.pause();sesiHapus(E.kode,E.mode);E=null;R=null;redraw()}
   else if(d.todPlay){play(d.todPlay)}
 });
 
@@ -14617,7 +14660,7 @@ async function simpanBuka(list){
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-bk]'))return;
   const cur=new Set(buka());t.checked?cur.add(t.dataset.todBk):cur.delete(t.dataset.todBk);simpanBuka([...cur])});
 document.addEventListener('click',e=>{const ps=e.target.closest&&e.target.closest('[data-tod-psel]');if(ps){PSEL=ps.dataset.todPsel;redraw();return}const t=e.target.closest&&e.target.closest('[data-tod-bkall]');if(!t)return;simpanBuka(t.dataset.todBkall==='def'?bukaDef():[])});
-window.TODRAF={html,buka,layak,bukaDef,act,panel,_st:()=>({E,R,saved})};
+window.TODRAF={html,buka,layak,bukaDef,act,panel,sync:awanSync,_st:()=>({E,R,saved})};
 })();
 
 </script>
