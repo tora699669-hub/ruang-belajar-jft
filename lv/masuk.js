@@ -142,6 +142,7 @@ function mulai(lawan) {
   const L = LAWAN[lawan] || LAWAN.kevin1, soal = soalDuel(W, L.jenis, L.soal);
   K.duelKosong = !soal.length; K.duelTunggu = false;
   K.duel = soal.length ? mulaiDuel({ soal, lawan }) : null;
+  K.duelDicatat = false;
   gambarPanel();
 }
 
@@ -185,6 +186,8 @@ function padaKlik(e) {
   else if (a === 'jawab') {
     if (!K.duel || K.duelTunggu) return;
     K.duel = jawab(K.duel, +b.dataset.i); K.duelTunggu = true;
+    // Hasil duel ikut tercatat di riwayat latihan murid (Pantauan Sensei dan rapor). Hanya log, tanpa EXP/Koin.
+    if (K.duel.selesai && !K.duelDicatat) { K.duelDicatat = true; try { const n = K.duel.benar + K.duel.salah; if (n && typeof window.lmsLog === 'function' && !window.LMS_OWNER_VIEW) window.lmsLog('lv:duel:' + K.duel.lawan, K.duel.benar, n, null, { menang: K.duel.menang ? 1 : 0 }); } catch (e) { /* log gagal tidak menghentikan dunia */ } }
     const t = K.duel.terakhir;
     if (t.benar) { if (K.dunia) K.dunia.rayakan('benar'); if (suara && K.setelan.suara) suara.benar(); }
     gambarPanel();

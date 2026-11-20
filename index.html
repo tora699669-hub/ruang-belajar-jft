@@ -1409,7 +1409,7 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261120-0735"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261120-0806"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -15991,7 +15991,7 @@ function raporHTML(d){
 
 /* ---- data pribadi untuk Rapor, grafik, dan panel Sensei ---- */
 const PLSEC={M:'Moji-goi',K:'Kaiwa-hyougen',C:'Choukai',D:'Dokkai'};
-const plLabel=k=>/^to:/.test(k)?'Simulasi TO · '+k.slice(3):/^ub:/.test(k)?'Latihan Bab '+k.slice(3,5)+' · '+(PLSEC[k.slice(5)]||k.slice(5)):/^cbt:sp\d/.test(k)?'Simulasi Paket '+k.slice(6):/^cbt:/.test(k)?'CBT · '+(window.CBT&&k.slice(4)?k.slice(4):''):/^kj:/.test(k)?'Misi Kanji Wajib':/^mb:/.test(k)?'Misi Pondasi · Partikel':/^pd:/.test(k)?'Pondasi '+(window.PONDASI&&PONDASI.TOP[k.slice(3)]?PONDASI.TOP[k.slice(3)].kode+' · '+PONDASI.TOP[k.slice(3)].t:k.slice(3)):/^hf:/.test(k)?'Hafalan JFT · '+(window.HAFALAN_JFT_UI&&HAFALAN_JFT_UI.label[k.slice(3)]||k.slice(3)):k==='bunlat'?'Latihan Bunpou':/^qm:/.test(k)?'Soal Baru · '+(QMN[k.slice(3)]?QMN[k.slice(3)][1]:k.slice(3)):/^v:/.test(k)?'Kata Kerja · '+(GAME.VCATS[k.slice(2)]?GAME.VCATS[k.slice(2)][0]:k.slice(2)==='lemah'?'Fokus lemah':k.slice(2)):k;
+const plLabel=k=>/^to:/.test(k)?'Simulasi TO · '+k.slice(3):/^ub:/.test(k)?'Latihan Bab '+k.slice(3,5)+' · '+(PLSEC[k.slice(5)]||k.slice(5)):/^cbt:sp\d/.test(k)?'Simulasi Paket '+k.slice(6):/^cbt:/.test(k)?'CBT · '+(window.CBT&&k.slice(4)?k.slice(4):''):/^kj:/.test(k)?'Misi Kanji Wajib':/^mb:/.test(k)?'Misi Pondasi · Partikel':/^pd:/.test(k)?'Pondasi '+(window.PONDASI&&PONDASI.TOP[k.slice(3)]?PONDASI.TOP[k.slice(3)].kode+' · '+PONDASI.TOP[k.slice(3)].t:k.slice(3)):/^lv:duel:/.test(k)?'JFT Leveling · Duel '+({kevin1:'Pemanasan',kevin2:'Latihan',kevin3:'Serius'}[k.slice(9)]||k.slice(9)):/^hf:/.test(k)?'Hafalan JFT · '+(window.HAFALAN_JFT_UI&&HAFALAN_JFT_UI.label[k.slice(3)]||k.slice(3)):k==='bunlat'?'Latihan Bunpou':/^qm:/.test(k)?'Soal Baru · '+(QMN[k.slice(3)]?QMN[k.slice(3)][1]:k.slice(3)):/^v:/.test(k)?'Kata Kerja · '+(GAME.VCATS[k.slice(2)]?GAME.VCATS[k.slice(2)][0]:k.slice(2)==='lemah'?'Fokus lemah':k.slice(2)):k;
 window.FOKUS_LABEL=k=>plLabel(k);
 function pCtx(){const ja=J().api;return {secDef:ja.secDef,babOf:ja.babOf,packName:ja.packName,passed:ja.passed,label:plLabel}}
 function selfPl(){
