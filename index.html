@@ -1409,7 +1409,7 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261120-0939"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261120-0944"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -5714,7 +5714,7 @@ function askNext(){
   const b=$('dlg').querySelector('button');if(b)b.focus();
 }
 function toQ(){const e=document.querySelector('#jft-app .qpanel');if(!e)return;const y=e.getBoundingClientRect().top;if(y<0||y>innerHeight*.5)window.scrollTo(0,Math.max(0,scrollY+y-12))}
-function haltAudio(){try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}try{SH.pause()}catch(e){}shTrack=null;shFly=false;SH.__bad=0}
+function haltAudio(){try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}try{SH.pause()}catch(e){}shTrack=null;shFly=false;SH.__bad=0;shMid=null;SH.__cnt=null}
 function stopAudios(){try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}Object.values(audios).forEach(a=>{try{a.pause()}catch(e){}});try{SH.pause()}catch(e){}}
 let submitting=false;
 function forceSubmit(auto){
@@ -5747,26 +5747,33 @@ function prefetch(track){
   return AUWAIT[track]=fetch(AUDIO[track]).then(r=>{if(!r.ok)throw new Error('http '+r.status);return r.blob()}).then(b=>{AUBLOB[track]=URL.createObjectURL(new Blob([b],{type:'audio/mp4'}))}).catch(()=>{AUFAIL[track]=1}).finally(()=>{delete AUWAIT[track];if(P&&P.phase==='run'){const q=curQ();if(q.track===track)audUI(q.id)}});
 }
 function preloadAudio(){const t=[...new Set(ALL.filter(q=>q.track).map(q=>q.track))];t.reduce((p,k)=>p.then(()=>prefetch(k)),Promise.resolve())}
-SH.addEventListener('ended',()=>{shFly=false;audRefresh()});SH.addEventListener('pause',()=>audRefresh());SH.addEventListener('playing',()=>audRefresh());
+/* Aman untuk earphone/headset: jatah dihitung saat suara benar-benar mulai ('playing'); kalau berhenti di tengah
+   (tombol earphone, asisten Gemini, telepon) murid bisa melanjutkan tanpa mengurangi jatah. */
+let shMid=null,shTo=0;
+SH.addEventListener('ended',()=>{shFly=false;shMid=null;audRefresh()});
+SH.addEventListener('pause',()=>{if(!SH.ended&&shTrack&&shTrack!=='__t'&&(shFly||SH.__cnt)){shMid={track:shTrack};shFly=false;SH.__cnt=null}audRefresh()});
+SH.addEventListener('playing',()=>{clearTimeout(shTo);if(SH.__cnt&&SH.__cnt===shTrack&&P){P.plays[shTrack]=(P.plays[shTrack]||0)+1;persist()}SH.__cnt=null;shFly=true;shMid=null;audRefresh()});
+try{const ms=navigator.mediaSession;if(ms){ms.setActionHandler('play',()=>{if(shMid&&P&&P.phase==='run'){const q=curQ();if(q&&q.track===shMid.track)playQ(q.id)}});ms.setActionHandler('pause',()=>{try{SH.pause()}catch(e){}});['seekbackward','seekforward','previoustrack','nexttrack','seekto'].forEach(k=>{try{ms.setActionHandler(k,()=>{})}catch(e){}})}}catch(e){}
 const useAlt={};
 const srcFor=tr=>useAlt[tr]&&AUDIO_ALT[tr]?AUDIO_ALT[tr]:(AUBLOB[tr]||AUDIO[tr]);
 SH.addEventListener('error',()=>{
   if(shTrack&&shTrack!=='__t'&&AUDIO_ALT[shTrack]&&!useAlt[shTrack]){useAlt[shTrack]=1;SH.__bad=0;SH.src=AUDIO_ALT[shTrack];try{SH.load()}catch(e){}const p=SH.play();if(p&&p.catch)p.catch(()=>{SH.__bad=SH.__bad||'play';audRefresh()});return}
-  const c=SH.error?SH.error.code:0;SH.__bad=c||1;if(shFly&&P&&shTrack){shFly=false;P.plays[shTrack]=Math.max(0,(P.plays[shTrack]||0)-1);persist()}audRefresh()});
+  const c=SH.error?SH.error.code:0;SH.__bad=c||1;SH.__cnt=null;if(shFly&&shTrack){shFly=false;shMid={track:shTrack}}audRefresh()});
 function audRefresh(){if(P&&P.phase==='run'){const q=curQ();if(q.track)audUI(q.id)}}
 function audUI(qid){
   const b=$('pl-'+qid),m=$('am-'+qid);if(!b||!P)return;
   const q=ALL.find(x=>x.id===qid);const tr=q.track;
-  const used=P.plays[tr]||0,left=Math.max(2-used,0);
+  const used=P.plays[tr]||0,left=Math.max(2-used,0),mid=shMid&&shMid.track===tr;
   const playing=q.tts!==undefined?(shFly&&shTrack===tr):(shTrack===tr&&!SH.paused&&!SH.ended);
-  b.textContent=playing?'Sedang diputar…':(used?'▶ Putar lagi':'▶ Putar audio');
-  b.disabled=playing||left<=0;
-  m.textContent=(q.tts===undefined&&!AUBLOB[tr]&&!AUFAIL[tr]?'Menyiapkan audio… ':'')+(SH.__bad&&shTrack===tr?`Audio gagal dimuat (kode ${SH.__bad}). Coba tekan lagi, atau pakai "Pilih file" di kanan. `:'')+`Sisa putar: ${left}x`;
+  b.textContent=playing?'Sedang diputar…':mid?'▶ Lanjutkan audio':(used?'▶ Putar lagi':'▶ Putar audio');
+  b.disabled=playing||(left<=0&&!mid);
+  m.textContent=(q.tts===undefined&&!AUBLOB[tr]&&!AUFAIL[tr]?'Menyiapkan audio… ':'')+(SH.__bad&&shTrack===tr?`Audio gagal dimuat (kode ${SH.__bad}). Coba tekan lagi, atau pakai "Pilih file" di kanan. `:'')+(mid?'Audio terhenti di tengah. Tekan Lanjutkan, jatah tidak berkurang. ':'')+`Sisa putar: ${left}x`;
 }
 function playQ(qid){
   const q=ALL.find(x=>x.id===qid);if(!P||P.phase!=='run'||!q||!q.track)return;
   const tr=q.track;
-  if((P.plays[tr]||0)>=2)return;
+  const lanjut=shMid&&shMid.track===tr&&shTrack===tr&&!SH.__bad;
+  if(!lanjut&&(P.plays[tr]||0)>=2)return;
   if(q.tts!==undefined){if(shFly)return;if(dynSpeak(q)){shFly=true;shTrack=tr;P.plays[tr]=(P.plays[tr]||0)+1;persist();audRefresh()}return}
   if(shTrack===tr&&!SH.paused&&!SH.ended)return;
   if(shTrack&&shTrack!==tr&&!SH.paused&&!SH.ended)haltAudio();
@@ -5778,10 +5785,10 @@ function playQ(qid){
     shTrack=tr;try{SH.load()}catch(e){}
     if(!AUBLOB[tr])prefetch(tr);
   }
-  try{SH.currentTime=0}catch(e){}
+  if(!lanjut){try{SH.currentTime=0}catch(e){}SH.__cnt=tr}else{SH.__cnt=null;shMid=null}
   const p=SH.play();
-  const ok=()=>{shFly=true;P.plays[tr]=(P.plays[tr]||0)+1;persist();audRefresh()};
-  if(p&&p.then)p.then(ok).catch(err=>{SH.__bad=SH.__bad||(err&&err.name==='NotAllowedError'?'izin':'play');audRefresh()});else ok();
+  clearTimeout(shTo);shTo=setTimeout(()=>{if(SH.__cnt===tr&&SH.paused){SH.__cnt=null;SH.__bad='diam';audRefresh()}},15000);
+  if(p&&p.then)p.then(()=>audRefresh()).catch(err=>{SH.__cnt=null;SH.__bad=SH.__bad||(err&&err.name==='NotAllowedError'?'izin':'play');audRefresh()});else audRefresh();
 }
 function localAudio(qid,file){
   const q=ALL.find(x=>x.id===qid);if(!q)return;
