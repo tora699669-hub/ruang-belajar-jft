@@ -1409,7 +1409,7 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261120-0806"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261120-0939"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -14382,9 +14382,9 @@ function bangun(kode,mode,sv){
   const p=PK().find(x=>x.kode===kode);if(!p)return false;
   const secs=SEC.map(s=>p.sections.find(x=>x.sec===s[0])).filter(Boolean);
   const scr=secs.map(screens);
-  const fresh={si:0,pos:0,ans:secs.map(s=>s.qs.map(()=>null)),flag:secs.map(s=>s.qs.map(()=>false)),ord:secs.map(s=>s.qs.map(q=>bolehAcak(q)?acak(q.o.length):q.o.map((_,i)=>i))),plays:{},sisa:LIM};
+  const fresh={si:0,pos:0,ans:secs.map(s=>s.qs.map(()=>null)),flag:secs.map(s=>s.qs.map(()=>false)),ord:secs.map(s=>s.qs.map(q=>bolehAcak(q)?acak(q.o.length):q.o.map((_,i)=>i))),plays:{},lanjut:null,sisa:LIM};
   const ok=sv&&sv.ans&&sv.ans.length===secs.length&&sv.ans.every((a,i)=>a.length===secs[i].qs.length)&&sv.ord&&sv.ord.every((a,i)=>a.length===secs[i].qs.length);
-  const b=ok?{si:Math.min(sv.si|0,secs.length-1),pos:sv.pos|0,ans:sv.ans,flag:sv.flag||fresh.flag,ord:sv.ord,plays:sv.plays||{},sisa:Math.max(0,+sv.sisa||0)}:fresh;
+  const b=ok?{si:Math.min(sv.si|0,secs.length-1),pos:sv.pos|0,ans:sv.ans,flag:sv.flag||fresh.flag,ord:sv.ord,plays:sv.plays||{},lanjut:sv.lanjut||null,sisa:Math.max(0,+sv.sisa||0)}:fresh;
   if(b.pos>=scr[b.si].length)b.pos=0;
   E=Object.assign({kode,mode,nama:p.nama,secs,scr,paused:false,tk:Date.now()},b);
   R=null;err='';dlg=null;ASK='';return true;
@@ -14401,10 +14401,10 @@ function resume(kode,mode){
   if(E.sisa<=0){finish(true);return}
   save();tick();redraw();window.scrollTo(0,0);
 }
-function snap(){return {v:1,kode:E.kode,mode:E.mode,si:E.si,pos:E.pos,ans:E.ans,flag:E.flag,ord:E.ord,plays:E.plays,sisa:Math.max(0,left()),at:Date.now()}}
+function snap(){return {v:1,kode:E.kode,mode:E.mode,si:E.si,pos:E.pos,ans:E.ans,flag:E.flag,ord:E.ord,plays:E.plays,lanjut:E.lanjut||null,sisa:Math.max(0,left()),at:Date.now()}}
 function save(){if(!E)return;if(!ssSet(SKEY(E.kode,E.mode),snap())&&!err){err='Penyimpanan di perangkat penuh. Jeda dan lanjut mungkin tidak tersimpan.'}if(E.mode==='m')awanTulis()}
 /* jeda: waktu berhenti, sesi tersimpan */
-function pause(){if(!E||E.paused)return;E.sisa=Math.max(0,left());E.paused=true;E.tk=null;clearInterval(TM);try{if(AUD)AUD.pause()}catch(e){}save();if(E.mode==='m')awanTulis(true)}
+function pause(){if(!E||E.paused)return;E.sisa=Math.max(0,left());E.paused=true;E.tk=null;clearInterval(TM);hentiAudio(true);save();if(E.mode==='m')awanTulis(true)}
 function unpause(){if(!E||!E.paused)return;E.paused=false;E.tk=Date.now();tick()}
 const left=()=>!E?0:E.paused?E.sisa:E.sisa-(Date.now()-E.tk)/1000;
 let SV=0;
@@ -14424,8 +14424,14 @@ function qHTML(sec,qi,q){
 }
 function audioHTML(q){
   if(!q.audio)return `<div class="status warn small">Audio soal ini belum tersedia (${esc(q.tahan||'belum ada file')}). Soal ditahan, tetap bisa dilihat di draf.</div>`;
-  const used=E.plays[q.audio]||0,sisa=MAXPLAY-used;
-  return `<div class="tod-audio"><button type="button" class="btn sm" data-tod-play="${esc(q.audio)}" ${sisa<=0?'disabled':''}>${sisa<=0?'Audio sudah diputar 2 kali':'▶ Putar audio'}</button><span class="small">Sisa putar: <b>${Math.max(0,sisa)}</b> dari ${MAXPLAY}${q.dur?` · ${Math.round(q.dur)} detik`:''}</span>${q.akel&&q.akel.length>1?`<span class="small muted">Satu rekaman untuk soal ${q.akel.join(', ')}</span>`:''}</div>`;
+  const used=E.plays[q.audio]||0,sisa=MAXPLAY-used,ini=AST&&AST.src===q.audio,lj=E.lanjut&&E.lanjut.src===q.audio;
+  let tombol;
+  if(ini&&AST.st==='muat')tombol=`<button type="button" class="btn sm" disabled>⏳ Memuat audio…</button>`;
+  else if(ini&&AST.st==='main')tombol=`<button type="button" class="btn sm ghost" disabled>🔊 Sedang diputar</button>`;
+  else if(lj)tombol=`<button type="button" class="btn sm" data-tod-play="${esc(q.audio)}">▶ Lanjutkan audio</button>`;
+  else tombol=`<button type="button" class="btn sm" data-tod-play="${esc(q.audio)}" ${sisa<=0?'disabled':''}>${sisa<=0?'Audio sudah diputar 2 kali':'▶ Putar audio'}</button>`;
+  const info=lj?`<div class="status warn small" role="status">Audio terhenti di tengah (misalnya karena tombol earphone atau aplikasi lain). Tekan <b>Lanjutkan audio</b>, jatah putar tidak berkurang.</div>`:'';
+  return `<div class="tod-audio">${tombol}<span class="small">Sisa putar: <b>${Math.max(0,sisa)}</b> dari ${MAXPLAY}${q.dur?` · ${Math.round(q.dur)} detik`:''}</span>${q.akel&&q.akel.length>1?`<span class="small muted">Satu rekaman untuk soal ${q.akel.join(', ')}</span>`:''}</div>${info}`;
 }
 function examHTML(){
   const si=E.si,sec=E.secs[si],scr=E.scr[si][E.pos],isC=sec.sec==='C';
@@ -14467,7 +14473,7 @@ function hitung(items,E0,auto,dur){
 /* Kirim dan nilai. Dipanggil saat tombol Selesai (bagian terakhir) atau saat waktu habis. Hasil SELALU tampil, walau sebagian soal gagal dinilai. */
 async function finish(auto){
   if(!E||busy)return;
-  busy=true;err='';clearInterval(TM);try{if(AUD)AUD.pause()}catch(e){}
+  busy=true;err='';clearInterval(TM);hentiAudio(false);
   const E0=E;E0.final=true;E0.paused=true;E0.sisa=Math.max(0,left());E0.tk=null;if(auto)E0.sisa=0;save();redraw();
   const dur=Math.round(LIM-(auto?0:E0.sisa));
   const items=[];E0.secs.forEach((s,si)=>s.qs.forEach((q,i)=>items.push({s:s.sec,si,qi:i,q,pick:E0.ans[si][i],tahan:!!q.tahan,ok:false,gagal:false})));
@@ -14565,11 +14571,41 @@ function html(mode){
   if(mode==='m'&&!awanBusy&&Date.now()-awanLast>60000)awanSync();
   return menuHTML(mode)}
 
-let AUD=null;
+/* Pemutar Choukai (aman untuk earphone/headset Bluetooth):
+   - jatah putar baru dihitung saat suara benar-benar mulai (event 'playing'), bukan saat tombol ditekan;
+   - kalau audio berhenti di tengah (tombol earphone, asisten Gemini/Google, telepon, aplikasi lain), posisi disimpan
+     dan murid bisa melanjutkan TANPA mengurangi jatah;
+   - tombol play/pause earphone diarahkan ke audio soal lewat Media Session, jadi tidak membuka asisten;
+   - kalau 15 detik tidak juga mulai, jatah tidak terpakai dan muncul pesan. */
+let AUD=null,AST=null;
+function hentiAudio(simpan){
+  const a=AUD,st=AST;AUD=null;AST=null;
+  if(a){try{a.onplaying=a.onpause=a.onended=a.onerror=null;if(simpan&&st&&st.mulai&&!a.ended&&E){E.lanjut={src:st.src,t:Math.max(0,(a.currentTime||0)-1)};save()}a.pause()}catch(e){}}
+  if(st&&st.tm)clearTimeout(st.tm);
+}
+function sesiMedia(){
+  try{const ms=navigator.mediaSession;if(!ms)return;
+    try{ms.metadata=new MediaMetadata({title:'Choukai · Simulasi JFT',artist:'Kelas Akimichi'})}catch(e){}
+    ms.setActionHandler('play',()=>{if(AUD&&AUD.paused){const p=AUD.play();if(p&&p.catch)p.catch(()=>{})}else if(E&&E.lanjut)play(E.lanjut.src)});
+    ms.setActionHandler('pause',()=>{if(AUD)hentiAudio(true);redraw()});
+    ['seekbackward','seekforward','previoustrack','nexttrack','seekto'].forEach(k=>{try{ms.setActionHandler(k,()=>{})}catch(e){}});
+  }catch(e){}
+}
 function play(src){
-  if(!E)return;const n=E.plays[src]||0;if(n>=MAXPLAY)return;
-  try{if(AUD){AUD.pause()}AUD=new Audio(src);const p=AUD.play();E.plays[src]=n+1;save();if(p&&p.catch)p.catch(()=>{E.plays[src]=n;save();err='Audio gagal diputar. Jatah putar tidak terpakai.';redraw()})}catch(e){err='Audio gagal diputar.'}
-  redraw();
+  if(!E)return;
+  const lj=E.lanjut&&E.lanjut.src===src?E.lanjut:null;
+  const n=E.plays[src]||0;if(!lj&&n>=MAXPLAY)return;
+  hentiAudio(true);err='';
+  const a=new Audio();a.preload='auto';a.src=src;
+  const st={src,st:'muat',mulai:!!lj};AUD=a;AST=st;
+  a.onplaying=()=>{if(AST!==st)return;if(!st.mulai){st.mulai=true;E.plays[src]=(E.plays[src]||0)+1}E.lanjut=null;st.st='main';clearTimeout(st.tm);save();redraw()};
+  a.onpause=()=>{if(AST!==st||a.ended)return;hentiAudio(true);redraw()};
+  a.onended=()=>{if(AST!==st)return;E.lanjut=null;AUD=null;AST=null;save();redraw()};
+  a.onerror=()=>{if(AST!==st)return;hentiAudio(st.mulai);err=st.mulai?'Audio terputus. Tekan Lanjutkan audio, jatah tidak berkurang.':'Audio gagal dimuat. Cek sinyal atau earphone, lalu tekan lagi. Jatah putar tidak berkurang.';redraw()};
+  st.tm=setTimeout(()=>{if(AST===st&&st.st==='muat'){hentiAudio(st.mulai);err='Audio belum bisa diputar. Cek earphone atau sinyal, lalu tekan lagi. Jatah putar tidak berkurang.';redraw()}},15000);
+  const mulai=()=>{const p=a.play();if(p&&p.catch)p.catch(()=>{if(AST!==st)return;hentiAudio(st.mulai);err='Audio diblokir HP. Tekan tombol putar sekali lagi. Jatah putar tidak berkurang.';redraw()})};
+  if(lj){a.addEventListener('loadedmetadata',()=>{try{a.currentTime=lj.t}catch(e){}},{once:true})}
+  sesiMedia();mulai();redraw();
 }
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-tod-start],[data-tod-resume],[data-tod-fresh],[data-tod-ask],[data-tod-askno],[data-tod-retry],[data-tod-rev],[data-tod-pause],[data-tod-a],[data-tod-go],[data-tod-next],[data-tod-prev],[data-tod-flag],[data-tod-fin],[data-tod-ok],[data-tod-cancel],[data-tod-quit],[data-tod-home],[data-tod-play]');if(!t)return;const d=t.dataset;
   const md=ROUTE()==='simto'?'m':'g';
@@ -14585,14 +14621,14 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
   const si=E.si,isC=E.secs[si].sec==='C';
   if(d.todA){const [qi,k]=d.todA.split(':').map(Number);E.ans[si][qi]=E.ans[si][qi]===k&&!isC?null:k;save();redraw()}
   else if(d.todGo!=null){const g=+d.todGo;if(!isC&&g>=0){E.pos=g;redraw()}}
-  else if(d.todNext){if(E.pos<E.scr[si].length-1){E.pos++;if(AUD)AUD.pause();redraw();window.scrollTo(0,0)}}
+  else if(d.todNext){if(E.pos<E.scr[si].length-1){E.pos++;hentiAudio(true);redraw();window.scrollTo(0,0)}}
   else if(d.todPrev){if(!isC&&E.pos>0){E.pos--;redraw()}}
   else if(d.todFlag){const sc=E.scr[si][E.pos],v=!sc.every(i=>E.flag[si][i]);sc.forEach(i=>E.flag[si][i]=v);redraw()}
   else if(d.todFin){dlg='fin';redraw()}
   else if(d.todCancel){dlg=null;redraw()}
-  else if(d.todOk){dlg=null;if(AUD)AUD.pause();if(si<E.secs.length-1){E.si++;E.pos=0;save();redraw();window.scrollTo(0,0)}else finish(false)}
+  else if(d.todOk){dlg=null;hentiAudio(false);if(E)E.lanjut=null;if(si<E.secs.length-1){E.si++;E.pos=0;save();redraw();window.scrollTo(0,0)}else finish(false)}
   else if(d.todPause){pause();E=null;R=null;redraw()}
-  else if(d.todQuit){clearInterval(TM);if(AUD)AUD.pause();sesiHapus(E.kode,E.mode);E=null;R=null;redraw()}
+  else if(d.todQuit){clearInterval(TM);hentiAudio(false);sesiHapus(E.kode,E.mode);E=null;R=null;redraw()}
   else if(d.todPlay){play(d.todPlay)}
 });
 
@@ -14660,7 +14696,7 @@ async function simpanBuka(list){
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-bk]'))return;
   const cur=new Set(buka());t.checked?cur.add(t.dataset.todBk):cur.delete(t.dataset.todBk);simpanBuka([...cur])});
 document.addEventListener('click',e=>{const ps=e.target.closest&&e.target.closest('[data-tod-psel]');if(ps){PSEL=ps.dataset.todPsel;redraw();return}const t=e.target.closest&&e.target.closest('[data-tod-bkall]');if(!t)return;simpanBuka(t.dataset.todBkall==='def'?bukaDef():[])});
-window.TODRAF={html,buka,layak,bukaDef,act,panel,sync:awanSync,_st:()=>({E,R,saved})};
+window.TODRAF={html,buka,layak,bukaDef,act,panel,sync:awanSync,_st:()=>({E,R,saved,AST})};
 })();
 
 </script>
