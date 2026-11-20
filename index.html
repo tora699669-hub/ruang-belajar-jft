@@ -977,6 +977,7 @@ tr.now td{background:var(--accent-soft)}
 .tod-opts{display:grid;gap:8px}.tod-opt{display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--line);background:var(--surface-raised,var(--card));color:inherit;border-radius:8px;padding:10px 12px;min-height:48px;font-size:17px}.tod-opt b{min-width:1.2em}.tod-opt img{max-height:120px;max-width:60%;border-radius:4px}.tod-opt.on{border-color:#b7791f;background:color-mix(in srgb,#f6c453 30%,var(--surface-raised,var(--card)))}
 .tod-audio{display:flex;flex-wrap:wrap;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 .tod-foot{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.rv-q{border-top:1px solid var(--line);padding:10px 0}.rv-os{list-style:none;padding:0;margin:6px 0;display:grid;gap:6px}.rv-o{display:flex;flex-wrap:wrap;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px}.rv-o img{max-height:110px;max-width:60%}.rv-o em{font-style:normal;font-weight:700;font-size:13px}.rv-k{border-color:#1f7a4d;background:color-mix(in srgb,#1f7a4d 14%,var(--surface-raised,var(--card)))}.rv-x{border-color:#b42318;background:color-mix(in srgb,#b42318 12%,var(--surface-raised,var(--card)))}details.card>summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
 .tod-dlg{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}.tod-dlg .card{max-width:460px;width:100%}
 /* pondasi, fokus minggu ini, pantauan */
 .pd-stem{font-size:20px;line-height:1.7;margin:10px 0}.pd-opts{display:grid;gap:8px}.pd-opt{display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--line);background:var(--surface-raised,var(--card));color:inherit;border-radius:10px;padding:10px 12px;min-height:48px;font-size:18px}.pd-opt em{margin-left:auto;font-style:normal;font-size:13px;font-weight:700}.pd-opt.benar{border-color:#1f7a4d;background:color-mix(in srgb,#1f7a4d 14%,var(--surface-raised,var(--card)))}.pd-opt.salah{border-color:#b42318;background:color-mix(in srgb,#b42318 12%,var(--surface-raised,var(--card)))}.pd-opt:disabled{cursor:default;opacity:1}
@@ -1408,8 +1409,8 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261120-0545"</script><script src="config.js"></script>
-<script src="akun_kunci.js"></script>
+<script>window.LMS_BUILD="20261120-0558"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
 const LMS={active:null,mods:{},dummy:document.createElement('div'),
@@ -14428,10 +14429,10 @@ async function finish(auto){
   busy=true;err='';clearInterval(TM);try{if(AUD)AUD.pause()}catch(e){}
   const E0=E;E0.final=true;E0.paused=true;E0.sisa=Math.max(0,left());E0.tk=null;if(auto)E0.sisa=0;save();redraw();
   const dur=Math.round(LIM-(auto?0:E0.sisa));
-  const items=[];E0.secs.forEach((s,si)=>s.qs.forEach((q,i)=>items.push({s:s.sec,q,pick:E0.ans[si][i],tahan:!!q.tahan,ok:false,gagal:false})));
+  const items=[];E0.secs.forEach((s,si)=>s.qs.forEach((q,i)=>items.push({s:s.sec,si,qi:i,q,pick:E0.ans[si][i],tahan:!!q.tahan,ok:false,gagal:false})));
   const siap=await waitRPC();
   await Promise.all(items.map(async x=>{if(x.pick==null)return;if(!siap){x.gagal=true;return}const r=await nilai(x);x.ok=r.ok;x.gagal=r.gagal}));
-  LASTIT={items,E0,auto,dur};
+  LASTIT={items,E0,auto,dur};REV=null;
   R=hitung(items,E0,auto,dur);E=null;busy=false;
   if(!R.gagal)logR();else if(E0.mode!=='m')ssDel(SKEY(E0.kode,E0.mode));
   redraw();window.scrollTo(0,0);
@@ -14453,6 +14454,37 @@ function logR(){
     if(window.lmsLog)window.lmsLog('to:'+R.kode,ok,n,sc,{dur:R.dur,auto:R.auto?1:0,gagal:R.gagal||0,q})}catch(e){}}
   ssDel(SKEY(R.kode,R.mode));
 }
+/* ---------- Lihat jawaban setelah selesai ---------- */
+let REV=null;/* {buka:bool,muat:bool,k:{id:indexBenar},err} */
+async function cariKunci(x){
+  if(x.ok&&x.pick!=null)return x.pick;
+  for(let k=0;k<x.q.o.length;k++){if(k===x.pick)continue;
+    for(let t=0;t<3;t++){try{const r=await window.lmsRPC('jawab_soal',{soal_id:x.q.id,pilihan:k});if(r&&!r.error){if(benar(r))return k;break}}catch(e){}await sleep(800*(t+1))}}
+  return null}
+async function lihatJawaban(){
+  if(!LASTIT)return;if(REV&&REV.muat)return;
+  if(REV&&REV.k){REV.buka=!REV.buka;redraw();return}
+  REV={buka:true,muat:true,k:{}};redraw();
+  if(!await waitRPC()){REV.muat=false;REV.err='Koneksi ke server belum siap. Coba tekan lagi.';REV.k=null;redraw();return}
+  const it=LASTIT.items;let i=0;
+  async function kerja(){while(i<it.length){const x=it[i++];if(x.tahan)continue;REV.k[x.q.id]=await cariKunci(x)}}
+  await Promise.all([kerja(),kerja(),kerja(),kerja(),kerja(),kerja()]);
+  REV.muat=false;redraw();
+}
+function reviewHTML(){
+  if(!REV||!REV.buka||!LASTIT)return '';
+  if(REV.muat)return '<section class="card"><p>Menyiapkan jawaban benar...</p></section>';
+  const per={};LASTIT.items.forEach(x=>{(per[x.s]=per[x.s]||[]).push(x)});
+  const blk=SEC.filter(s=>per[s[0]]).map(s=>{
+    const qs=per[s[0]].map((x,i)=>{const kb=REV.k[x.q.id];const st=x.pick==null?'kosong':x.ok?'benar':'salah';
+      const ord=(LASTIT.E0.ord[x.si]&&LASTIT.E0.ord[x.si][x.qi])||x.q.o.map((_,k)=>k);
+      const ops=ord.map((k,pos)=>{const o=x.q.o[k];const im=x.q.oimg&&x.q.oimg[k];const kunci=k===kb,pil=k===x.pick;
+        return `<li class="rv-o${kunci?' rv-k':''}${pil&&!kunci?' rv-x':''}"><b>${'ABCD'[pos]}</b>${im?`<img src="${esc(im)}" alt="Pilihan ${'ABCD'[pos]}" loading="lazy">`:''}${o?`<span lang="ja">${esc(o)}</span>`:''}${kunci?' <em>✓ jawaban benar</em>':''}${pil&&!kunci?' <em>✗ jawabanmu</em>':''}${pil&&kunci?' <em>(jawabanmu)</em>':''}</li>`}).join('');
+      return `<div class="rv-q rv-${st}"><p class="small"><b>No. ${i+1}</b> · ${st==='benar'?'<span class="badge ok">Benar</span>':st==='salah'?'<span class="badge no">Salah</span>':'<span class="badge wait">Tidak dijawab</span>'}</p>${x.q.gimg?`<img class="tod-img" src="${esc(x.q.gimg)}" alt="Bacaan" loading="lazy">`:''}${x.q.img?`<img class="tod-img" src="${esc(x.q.img)}" alt="Soal ${i+1}" loading="lazy">`:x.q.stem?`<p lang="ja" class="tod-stem">${esc(x.q.stem)}</p>`:''}<ol class="rv-os">${ops}</ol>${kb==null?'<p class="small muted">Kunci soal ini belum bisa dimuat.</p>':''}</div>`}).join('');
+    const sal=per[s[0]].filter(x=>!x.ok).length;
+    return `<details class="card" ${sal?'open':''}><summary><b>${esc(s[1])}</b> · ${per[s[0]].length-sal} benar, ${sal} salah atau kosong</summary>${qs}</details>`}).join('');
+  return `<section class="card"><h2>Jawabanmu</h2><p class="small muted">Hijau = jawaban benar. Merah = pilihanmu yang salah. Huruf pilihan sama dengan yang kamu lihat saat ujian.</p></section>${blk}`;
+}
 function resultHTML(){
   const L=lv(R.total);
   const bars=SEC.filter(s=>R.per[s[0]]).map(s=>{const v=R.per[s[0]],p=Math.round(v.ok/v.n*100);return `<div class="slbar"><span class="slbar-l">${esc(s[1])}</span><span class="slbar-t"><i style="width:${p}%"></i></span><b class="slbar-v">${p}%</b><small class="muted">${v.ok}/${v.n} benar · ${v.poin.toFixed(1)} / ${BOBOT} poin</small></div>`}).join('');
@@ -14460,7 +14492,8 @@ function resultHTML(){
    <p style="font-size:30px;margin:6px 0"><b>${R.total}</b> <small>/ 250</small> · <b>${esc(L[0])}</b></p><p class="small muted">${esc(L[1])}. Skor resmi JFT memakai penskalaan yang tidak dipublikasi, jadi angka ini hanya perkiraan: tiap bagian 62,5 poin, lulus A2 = 200 ke atas. Waktu ${mm(R.dur)}.</p>
    <h3>Persentase benar per bagian</h3><div class="slbars">${bars}</div>
    ${R.tahan?`<p class="small muted">${R.tahan} soal Choukai ditahan karena audionya belum ada, tetap ikut dihitung sebagai soal.</p>`:''}
-   <div class="actions">${R.mode==='m'?'':`<button type="button" class="btn" data-tod-start="${esc(R.kode)}">Ulangi paket ini</button>`}<button type="button" class="btn ghost" data-tod-home="1">Pilih paket lain</button></div></section>`;
+   <div class="actions">${R.mode==='m'?'':`<button type="button" class="btn" data-tod-start="${esc(R.kode)}">Ulangi paket ini</button>`}<button type="button" class="btn ghost" data-tod-home="1">Pilih paket lain</button></div>
+   ${LASTIT&&LASTIT.E0.kode===R.kode?`<div class="actions"><button type="button" class="btn" data-tod-rev="1" ${REV&&REV.muat?'disabled':''}>${REV&&REV.muat?'Memuat jawaban...':REV&&REV.buka?'Tutup jawaban':'Lihat jawaban dan kunci'}</button></div>${REV&&REV.err?`<p class="status warn">${esc(REV.err)}</p>`:''}`:''}</section>${reviewHTML()}`;
 }
 function kartu(p,mode){
   const c={};p.sections.forEach(s=>c[s.sec]=s.n);const tot=p.sections.reduce((a,s)=>a+s.n,0);
@@ -14495,7 +14528,7 @@ function play(src){
   try{if(AUD){AUD.pause()}AUD=new Audio(src);const p=AUD.play();E.plays[src]=n+1;save();if(p&&p.catch)p.catch(()=>{E.plays[src]=n;save();err='Audio gagal diputar. Jatah putar tidak terpakai.';redraw()})}catch(e){err='Audio gagal diputar.'}
   redraw();
 }
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-tod-start],[data-tod-resume],[data-tod-fresh],[data-tod-ask],[data-tod-askno],[data-tod-retry],[data-tod-pause],[data-tod-a],[data-tod-go],[data-tod-next],[data-tod-prev],[data-tod-flag],[data-tod-fin],[data-tod-ok],[data-tod-cancel],[data-tod-quit],[data-tod-home],[data-tod-play]');if(!t)return;const d=t.dataset;
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-tod-start],[data-tod-resume],[data-tod-fresh],[data-tod-ask],[data-tod-askno],[data-tod-retry],[data-tod-rev],[data-tod-pause],[data-tod-a],[data-tod-go],[data-tod-next],[data-tod-prev],[data-tod-flag],[data-tod-fin],[data-tod-ok],[data-tod-cancel],[data-tod-quit],[data-tod-home],[data-tod-play]');if(!t)return;const d=t.dataset;
   const md=ROUTE()==='simto'?'m':'g';
   if(d.todStart){start(d.todStart,md);return}
   if(d.todResume){resume(d.todResume,md);return}
@@ -14503,6 +14536,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
   if(d.todAskno){ASK='';redraw();return}
   if(d.todFresh){ssDel(SKEY(d.todFresh,md));start(d.todFresh,md);return}
   if(d.todRetry){ulang();return}
+  if(d.todRev){lihatJawaban();return}
   if(d.todHome){logR();R=null;redraw();return}
   if(!E)return;
   const si=E.si,isC=E.secs[si].sec==='C';
