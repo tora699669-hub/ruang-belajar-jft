@@ -1408,7 +1408,7 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261120-0513"</script><script src="config.js"></script>
+<script>window.LMS_BUILD="20261120-0545"</script><script src="config.js"></script>
 <script src="akun_kunci.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -14449,7 +14449,8 @@ function logR(){
   if(!R||R.logged)return;R.logged=true;
   if(R.mode==='m'){try{
     const sc={};let ok=0,n=0;SEC.forEach(s=>{const v=R.per[s[0]];if(v){sc[s[0]]=[v.ok,v.n];ok+=v.ok;n+=v.n}});
-    if(window.lmsLog)window.lmsLog('to:'+R.kode,ok,n,sc,{dur:R.dur,auto:R.auto?1:0,gagal:R.gagal||0})}catch(e){}}
+    const q=LASTIT&&LASTIT.E0.kode===R.kode?LASTIT.items.map(x=>x.pick==null?'-':x.ok?'1':'0').join(''):'';
+    if(window.lmsLog)window.lmsLog('to:'+R.kode,ok,n,sc,{dur:R.dur,auto:R.auto?1:0,gagal:R.gagal||0,q})}catch(e){}}
   ssDel(SKEY(R.kode,R.mode));
 }
 function resultHTML(){
@@ -14525,21 +14526,54 @@ const est=sc=>Object.keys(sc||{}).reduce((t,k)=>t+(sc[k]&&sc[k][1]?BOBOT*sc[k][0
 function hasil(PL,RS){
   const out=[];Object.keys(PL||{}).forEach(id=>{const P=PL[id]||{};(P.items||[]).forEach(x=>{if(!x||!/^to:/.test(x.k)||x.t<=((RS&&RS[id])||0))return;out.push(Object.assign({id,nama:P.nama||'(tanpa nama)'},x))})});
   return out.sort((a,b)=>b.t-a.t)}
+let PSEL='';
+const SARAN={M:'Moji-goi: ulang kartu kosakata dan kanji Irodori 15 menit per hari, lalu Pondasi.',K:'Kaiwa: latihan ungkapan per situasi (minta izin, menolak, menawarkan) dan pola bunpou.',C:'Choukai: dengarkan ulang audio paket, tulis kata kunci (waktu, tempat, siapa), latihan 2x putar.',D:'Dokkai: baca pertanyaan dulu, cari angka/jam/harga di teks, latihan berwaktu 1 menit per soal.'};
+const idsOf=p=>{const L=[];SEC.forEach(s0=>{const sc=p.sections.find(x=>x.sec===s0[0]);if(sc)sc.qs.forEach((q,i)=>L.push({id:q.id,sec:s0[0],no:i+1}))});return L};
 function panel(PL,RS){
   const H=hasil(PL,RS),B=buka(),fm=window.PANTAU?PANTAU.fmt:String;
-  const pill=p=>p==null?'-':`<span class="badge ${p>=75?'ok':'no'}">${p}%</span>`;
+  const pill=p=>p==null?'-':`<span class="badge ${p>=75?'ok':'no'}" style="${p>=60&&p<75?'background:var(--warn-soft);color:var(--warn)':''}">${p}%</span>`;
+  const tbl=(head,body,kosong)=>body?`<div class="tw xl"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`:`<p class="muted small">${kosong}</p>`;
   const toggles=PK().map(p=>{const why=layak(p),on=B.includes(p.kode),tot=p.sections.reduce((a,s)=>a+s.n,0);
     return `<label class="card" style="display:flex;gap:10px;align-items:flex-start;padding:10px;${why?'opacity:.65':''}"><input type="checkbox" data-tod-bk="${esc(p.kode)}" ${on?'checked':''} ${why?'disabled':''} style="margin-top:4px"><span><b>${esc(p.nama)}</b> <span class="small muted">· ${tot} soal</span><br><span class="small ${why?'':'muted'}">${why?'Tidak bisa dibuka: '+esc(why):on?'Terbuka untuk murid':'Tertutup'}</span></span></label>`}).join('');
+  /* kelas: lulus, rata-rata per bagian (hasil terakhir tiap murid per paket) */
+  const last={};H.forEach(x=>{const k=x.id+'|'+x.k;if(!last[k])last[k]=x});
+  const L=Object.values(last);
+  const perM={};H.forEach(x=>{const m=perM[x.id]||(perM[x.id]={id:x.id,nama:x.nama,l:[]});m.l.push(x)});
+  const murid=Object.values(perM).map(m=>{const l=m.l.slice().sort((a,b)=>a.t-b.t);const e=l.map(x=>Math.round(est(x.sc)));const lt=l[l.length-1];
+    const sec={};['M','K','C','D'].forEach(k=>{let o=0,n=0;l.slice(-3).forEach(x=>{const v=x.sc&&x.sc[k];if(v){o+=v[0];n+=v[1]}});sec[k]=pct(o,n)});
+    const lemah=['M','K','C','D'].filter(k=>sec[k]!=null).sort((a,b)=>sec[a]-sec[b]);
+    const kosong=lt.q?(lt.q.match(/-/g)||[]).length:0;
+    return {nama:m.nama,n:l.length,last:e[e.length-1],best:Math.max(...e),first:e[0],sec,lemah,kosong,auto:lt.auto}}).sort((a,b)=>a.last-b.last);
+  const lulusN=murid.filter(m=>m.last>=200).length;
+  const rata=k=>{let o=0,n=0;L.forEach(x=>{const v=x.sc&&x.sc[k];if(v){o+=v[0];n+=v[1]}});return pct(o,n)};
+  const kRata={M:rata('M'),K:rata('K'),C:rata('C'),D:rata('D')};
+  const lemahK=['M','K','C','D'].filter(k=>kRata[k]!=null).sort((a,b)=>kRata[a]-kRata[b])[0];
+  const kpi=(v,l)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+  const ringkasK=murid.length?`<div class="kpis">${kpi(murid.length,'murid sudah ikut')}${kpi(Math.round(lulusN/murid.length*100)+'%','lulus kelas (skor terakhir ≥200)')}${kpi(lulusN+'/'+murid.length,'murid lulus')}${['M','K','C','D'].map(k=>kpi(kRata[k]==null?'-':kRata[k]+'%','rata-rata '+SECN(k).split(' ')[0])).join('')}</div>${lemahK?`<p class="small">Bagian terlemah kelas: <b>${esc(SECN(lemahK))}</b>. ${esc(SARAN[lemahK])}</p>`:''}`:'<p class="muted small">Belum ada murid yang menyelesaikan paket TO.</p>';
+  const mRows=murid.map(m=>`<tr><td class="wrap-t"><b>${esc(m.nama)}</b></td><td>${m.n}x</td><td><b>${m.last}</b></td><td>${m.best}</td><td>${m.n>1?(m.last-m.first>=0?'▲ +':'▼ ')+(m.last-m.first):'-'}</td>${['M','K','C','D'].map(k=>`<td>${pill(m.sec[k])}</td>`).join('')}<td>${m.last>=200?'<span class="badge ok">Lulus</span>':'<span class="badge no">Belum</span>'}</td><td class="wrap-t small" style="min-width:300px">${m.lemah[0]?esc(SARAN[m.lemah[0]]):''}${m.kosong>=5?' Ada '+m.kosong+' soal kosong: latih atur waktu, jangan lama di satu soal.':''}</td></tr>`).join('');
+  /* titik rawan per nomor soal */
+  const kodes=[...new Set(H.map(x=>x.k.slice(3)))];if(!PSEL||!kodes.includes(PSEL))PSEL=kodes[0]||'';
+  let rawan='';
+  if(PSEL){const p=PK().find(x=>x.kode===PSEL);const ids=p?idsOf(p):[];
+    const rr=L.filter(x=>x.k==='to:'+PSEL&&x.q&&x.q.length===ids.length);
+    const st=ids.map((d,i)=>{let b=0,n=0;rr.forEach(x=>{n++;if(x.q[i]==='1')b++});return Object.assign({p:pct(b,n),n},d)}).filter(d=>d.n);
+    const top=st.slice().sort((a,b)=>a.p-b.p).slice(0,15);
+    const persec=['M','K','C','D'].map(k=>{const z=st.filter(d=>d.sec===k);return z.length?`<span class="chipf">${esc(SECN(k).split(' ')[0])}: ${Math.round(z.reduce((a,d)=>a+d.p,0)/z.length)}%</span>`:''}).join(' ');
+    rawan=`<div class="actions" role="group" aria-label="Pilih paket">${kodes.map(k=>`<button type="button" class="chipb${k===PSEL?' on':''}" data-tod-psel="${esc(k)}" aria-pressed="${k===PSEL}">${esc(k)}</button>`).join('')}</div>
+    ${rr.length?`<p class="small muted">Dari hasil terakhir ${rr.length} murid. Rata-rata per bagian: ${persec}</p>${tbl(['Soal','Bagian','No.','Benar'],top.map(d=>`<tr><td>${esc(d.id)}</td><td>${esc(SECN(d.sec))}</td><td>${d.no}</td><td>${pill(d.p)}</td></tr>`).join(''),'')}<p class="small muted">15 soal dengan persen benar paling rendah. Bahas soal ini di kelas.</p>`:'<p class="muted small">Belum ada rincian per soal untuk paket ini (hasil lama sebelum 20 Nov tidak menyimpan rincian).</p>'}`;
+  }
   const per={};H.forEach(x=>{const o=per[x.k]||(per[x.k]={k:x.k,n:0,ids:new Set(),sum:0,lulus:0});o.n++;o.ids.add(x.id);const e=est(x.sc);o.sum+=e;if(e>=200)o.lulus++});
   const ring=Object.values(per).sort((a,b)=>b.n-a.n).map(o=>`<tr><td><b>${esc(o.k.slice(3))}</b></td><td>${o.n}x</td><td>${o.ids.size}</td><td>${Math.round(o.sum/o.n)}</td><td>${o.lulus}</td></tr>`).join('');
   const rows=H.slice(0,200).map(x=>{const sc=x.sc||{};const e=Math.round(est(sc));
     return `<tr><td>${fm(x.t)}</td><td class="wrap-t"><b>${esc(x.nama)}</b></td><td>${esc(String(x.k).slice(3))}</td>${['M','K','C','D'].map(k=>`<td>${sc[k]?pill(pct(sc[k][0],sc[k][1])):'-'}</td>`).join('')}<td><b>${e}</b> / 250</td><td>${x.ok}/${x.n}</td><td>${x.dur!=null?mm(x.dur):'-'}</td><td>${x.auto?'<span class="badge wait">Waktu habis</span>':'Selesai'}${x.gagal?' <span class="badge no">'+x.gagal+' gagal</span>':''}</td></tr>`}).join('');
-  const tbl=(head,body,kosong)=>body?`<div class="tw xl"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`:`<p class="muted small">${kosong}</p>`;
   return `<section class="card"><h2>Paket TO untuk murid</h2><p class="small muted">Centang paket yang boleh dikerjakan murid di menu Simulasi TO. Perubahan langsung berlaku, tanpa terbit ulang. Paket yang masih punya soal ditahan atau Choukai tanpa audio tidak bisa dibuka. Kalau kunci Choukai satu paket ternyata salah, cukup hilangkan centangnya.</p>
    <div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${toggles}</div>
    <div class="actions"><button type="button" class="btn ghost sm" data-tod-bkall="def">Buka semua yang layak (${bukaDef().length})</button><button type="button" class="btn ghost sm" data-tod-bkall="none">Tutup semua</button></div><p class="small muted" id="tod-bkmsg" role="status"></p></section>
+  <section class="card"><h2>Kelas</h2>${ringkasK}<p class="small muted">Skor perkiraan, bukan nilai resmi: tiap bagian 62,5 poin, lulus A2 sekitar 200.</p></section>
+  <section class="card"><h2>Per murid dan strategi</h2><p class="small muted">Diurutkan dari skor terakhir terendah. Persen per bagian = 3 percobaan terakhir.</p>${tbl(['Murid','Coba','Skor terakhir','Terbaik','Naik/turun','Moji','Kaiwa','Choukai','Dokkai','Status','Strategi'],mRows,'Belum ada data murid.')}</section>
+  <section class="card"><h2>Titik rawan per nomor soal</h2>${rawan||'<p class="muted small">Belum ada data.</p>'}</section>
   <section class="card"><h2>Ringkasan per paket</h2>${tbl(['Paket','Percobaan','Murid','Rata-rata skor perkiraan','Lulus (≥200)'],ring,'Belum ada murid yang menyelesaikan paket TO.')}</section>
-  <section class="card"><h2>Hasil murid (200 terbaru)</h2><p class="small muted">Skor perkiraan, bukan nilai resmi: tiap bagian 62,5 poin. Hasil yang sama juga masuk tab Pantauan.</p>${tbl(['Waktu','Murid','Paket','Moji','Kaiwa','Choukai','Dokkai','Skor perkiraan','Benar','Durasi','Ket.'],rows,'Belum ada hasil.')}</section>`;
+  <section class="card"><h2>Riwayat hasil (200 terbaru)</h2>${tbl(['Waktu','Murid','Paket','Moji','Kaiwa','Choukai','Dokkai','Skor perkiraan','Benar','Durasi','Ket.'],rows,'Belum ada hasil.')}</section>`;
 }
 async function simpanBuka(list){
   const o={buka:list,at:Date.now()};window.TOCFG=o;
@@ -14548,7 +14582,7 @@ async function simpanBuka(list){
 }
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-bk]'))return;
   const cur=new Set(buka());t.checked?cur.add(t.dataset.todBk):cur.delete(t.dataset.todBk);simpanBuka([...cur])});
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-tod-bkall]');if(!t)return;simpanBuka(t.dataset.todBkall==='def'?bukaDef():[])});
+document.addEventListener('click',e=>{const ps=e.target.closest&&e.target.closest('[data-tod-psel]');if(ps){PSEL=ps.dataset.todPsel;redraw();return}const t=e.target.closest&&e.target.closest('[data-tod-bkall]');if(!t)return;simpanBuka(t.dataset.todBkall==='def'?bukaDef():[])});
 window.TODRAF={html,buka,layak,bukaDef,act,panel,_st:()=>({E,R,saved})};
 })();
 
