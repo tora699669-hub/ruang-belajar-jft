@@ -1509,7 +1509,7 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261125-0123"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261125-0136"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -15886,7 +15886,7 @@ const MENU=[
  ['Hafalan siswa',[['hafalan','Hafalan JFT A2','暗']]],
  ['Aktivitas',[['live','Live','灯']]],
  ['Akses pengguna',[['akun','Akun dan aktivitas','鍵'],['akses','Permintaan akses','許'],['hadiah','Dompet','財']]],
- ['Irodori',[['irodori','Penilaian Irodori (menunggu video)','桜']]]
+ ['Irodori',[['irodori','Penilaian Irodori','桜']]]
 ];
 function sidebar(GT,badge){
   const b=k=>badge&&badge[k]?`<em class="pn-b">${badge[k]}</em>`:'';
@@ -15926,7 +15926,8 @@ function pertama(rows){
   });
   return out;
 }
-const namaPaket=k=>String(k).replace(/^to:/,'').replace(/^pd:/,'Pondasi ').replace(/^hf:/,'Hafalan ');
+const SECN={M:'Moji-goi',K:'Kaiwa',C:'Choukai',D:'Dokkai'};
+const namaPaket=k=>{k=String(k);const m=/^ub:(\d\d)([MKCD])$/.exec(k);if(m)return 'Bab '+m[1]+' '+SECN[m[2]];return k.replace(/^to:/,'').replace(/^pd:/,'Pondasi ').replace(/^hf:/,'Hafalan ')};
 const tgl=t=>{try{return new Date(t).toLocaleDateString('id-ID',{day:'numeric',month:'short'})}catch(e){return ''}};
 function csv(list){
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
@@ -15976,6 +15977,18 @@ function rapnilai(rows){
   const err=ST.korErr?`<p class="status warn" role="alert">${esc(ST.korErr)}</p>`:'';
   const note=`<p class="small muted">Yang dihitung hanya <b>percobaan pertama</b> tiap murid di tiap paket, jadi mengulang tidak mengubah rapor. Sel merah/kuning/hijau: di bawah 60, 60-74, 75 ke atas. Ketuk angka untuk mengoreksi (ditandai ✎).</p>`;
   return head+kpis+err+editor+`<section class="card pn-card0">${note}${tbl}</section>`;
+}
+
+
+function irodori(rows){
+  X.kor=ST.kor||{};
+  const all=pertama(rows).filter(a=>/^ub:/.test(a.k));
+  const bab={};all.forEach(a=>{const b=a.k.slice(3,5);(bab[b]=bab[b]||[]).push(a)});
+  const kartu=['13','14','15','16','17','18'].map(b=>{const L=bab[b]||[];const v=L.map(a=>a.akhir).filter(v=>v!=null);const avg=v.length?Math.round(v.reduce((x,y)=>x+y,0)/v.length):null;const tuntas=v.length?Math.round(v.filter(x=>x>=70).length/v.length*100):null;
+    return `<div class="pn-kpi ${heat(avg)==='bad'?'bad':heat(avg)==='ok'?'ok':'warn'}"><span>Bab ${b}</span><b>${avg==null?'-':avg+'%'}</b><span>${new Set(L.map(a=>a.id)).size} murid · tuntas ${tuntas==null?'-':tuntas+'%'}</span></div>`}).join('');
+  ST.rap.tipe='Bab 13-18';
+  const info='<section class="card"><h2>Penilaian Irodori A2.2 (Bab 13-18)</h2><p class="small muted">Dipisah dari ujian JFT A2. Nilai = percobaan pertama murid di tiap latihan bab dan section. Ketuk angka di tabel untuk koreksi, hasilnya tercatat dengan alasan. Tombol Kelola soal ada di menu Latihan dan ujian.</p></section>';
+  return info+`<div class="pn-kpis">${kartu}</div>`+rapnilai(rows);
 }
 
 /* ---------- akun dan aktivitas ---------- */
@@ -16032,7 +16045,7 @@ document.addEventListener('input',e=>{const t=e.target;if(!t||!X)return;
   if(t.id==='pn-q'){ST.rap.q=t.value;const p=t.selectionStart;X.redraw();const n=document.getElementById('pn-q');if(n){n.focus();try{n.setSelectionRange(p,p)}catch(er){}}}
   else if(t.id==='pn-cari'){ST.cari=t.value;const p=t.selectionStart;X.redraw();const n=document.getElementById('pn-cari');if(n){n.focus();try{n.setSelectionRange(p,p)}catch(er){}}}});
 
-window.PANEL={init:c=>{X=c},wrap,rapnilai,akun,MENU,reset(){ST.akun=null;ST.kor=null;ST.korLoad=false}};
+window.PANEL={init:c=>{X=c},wrap,rapnilai,irodori,akun,MENU,reset(){ST.akun=null;ST.kor=null;ST.korLoad=false}};
 })();
 
 </script>
@@ -17091,7 +17104,7 @@ function guruHTML(){
   let body;
   if(GT==='rapnilai')body=PANEL.rapnilai(rows);
   else if(GT==='akun')body=PANEL.akun();
-  else if(GT==='irodori')body='<section class="card"><h2>Penilaian Irodori</h2><p class="muted">Menu ini menunggu video sistem penilaian dari Sensei. Setelah videonya dikirim, penilaian dan koreksi Irodori dibuat di sini, terpisah dari ujian JFT A2.</p></section>';
+  else if(GT==='irodori')body=PANEL.irodori(rows);
   else if(GT==='hafalan')body=hafalanSiswa(rows);
   else if(GT==='section')body=pantauHTML(rows);
   else body=guruHTML1(true);
