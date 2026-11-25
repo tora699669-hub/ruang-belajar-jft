@@ -1451,6 +1451,53 @@ body.pw-lock{overflow:hidden}
 .gstk .apibox{display:inline-flex;align-items:center}.gstk .apin{white-space:nowrap}.gstk .apiteks{min-width:0}.gstk .apiw{margin:-6px 0 -8px -4px}
 .apibox .apin small{font-weight:600;font-size:13px}
 .api-demo{display:flex;gap:14px;flex-wrap:wrap;padding:14px;background:var(--card)}
+/* Panel Sensei: sidebar kiri, tabel rapor */
+.pn-wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:16px;align-items:start}
+.pn-side{position:sticky;top:8px;max-height:calc(100vh - 90px);overflow:auto;background:#12204a;color:#e8edff;border-radius:18px;padding:12px 10px;display:flex;flex-direction:column;gap:10px}
+.pn-gl{font:700 11px/1 var(--f-hd);letter-spacing:.12em;text-transform:uppercase;opacity:.55;padding:6px 10px}
+.pn-i{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:0;color:inherit;font:600 14px/1.25 var(--f-hd);padding:9px 10px;border-radius:12px;cursor:pointer;transition:background .2s,transform .2s}
+.pn-i i{font:700 17px var(--f-jp);width:22px;text-align:center;opacity:.9;font-style:normal}
+.pn-i:hover{background:#ffffff1c;transform:translateX(2px)}
+.pn-i.on{background:#2f55d4;color:#fff;box-shadow:0 4px 14px #0006}
+.pn-i:focus-visible{outline:3px solid #ffd966;outline-offset:1px}
+.pn-b{margin-left:auto;font-style:normal;background:#d9342b;color:#fff;border-radius:999px;font-size:11px;padding:1px 7px}
+.pn-main{min-width:0}
+.pn-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.pn-tabs{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.pn-q{max-width:220px;margin:0}
+.pn-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:8px 0}
+.pn-kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.pn-kpi b{font:800 26px/1.1 var(--f-hd);font-variant-numeric:tabular-nums}.pn-kpi span{font-size:12px;opacity:.7}
+.pn-kpi.ok b{color:var(--ok)}.pn-kpi.warn b{color:var(--warn)}.pn-kpi.bad b{color:var(--bad)}
+.pn-card0{padding:12px}
+.pn-scroll{overflow:auto;max-width:100%;border-radius:12px}
+.pn-t{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.pn-t th,.pn-t td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+.pn-t thead th{position:sticky;top:0;background:var(--card);z-index:2;font-weight:700}
+.pn-t th.pn-sticky,.pn-t tbody th{text-align:left;position:sticky;left:0;background:var(--card);z-index:1;font-weight:600;white-space:normal;min-width:130px}
+.pn-t tfoot th,.pn-t tfoot td{font-weight:700;border-top:2px solid var(--line)}
+.pn-c.ok{background:color-mix(in srgb,var(--ok) 20%,transparent)}.pn-c.warn{background:color-mix(in srgb,var(--warn) 22%,transparent)}.pn-c.bad{background:color-mix(in srgb,var(--bad) 20%,transparent)}
+.pn-c0{opacity:.35}
+.pn-c.kor{outline:2px dashed var(--accent);outline-offset:-3px}
+.pn-cb{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:2px 6px;border-radius:8px}
+.pn-cb:hover{background:#00000014}
+.pn-act{white-space:normal!important;text-align:left!important}
+.pn-ed{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.bad{color:var(--bad)}
+@media (max-width:860px){
+ .pn-wrap{grid-template-columns:1fr}
+ .pn-side{position:static;max-height:none;flex-direction:row;overflow-x:auto;padding:8px;gap:6px;border-radius:14px}
+ .pn-g{display:flex;gap:4px;align-items:center;flex:none}.pn-gl{display:none}
+ .pn-i{width:auto;white-space:nowrap;padding:8px 12px}.pn-i i{display:none}
+}
+@media (prefers-reduced-motion:reduce){.pn-i{transition:none}}
+@media(min-width:900px){body.lms-admin .lms-top,body.lms-admin #lms-main{max-width:1500px!important}}
+.pn-t button,.pn-cb,.pn-i{min-height:0!important}
+.pn-t .linkb{background:none;border:0;padding:0;color:inherit;font:inherit;font-weight:700;cursor:pointer;text-decoration:underline dotted}
+.pn-t th,.pn-t td{padding:6px 9px;height:auto;line-height:1.3}
+.pn-cb{display:block;width:100%;padding:3px 6px}
+.pn-t tbody th{font-weight:600}
+.pn-urut{display:flex;gap:6px;align-items:center;margin:6px 0 2px}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -1462,7 +1509,7 @@ body.pw-lock{overflow:hidden}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261124-1755"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261125-0123"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -15819,6 +15866,177 @@ window.GERAK={apiHTML,apiSVG,ujianCard,pasang,pop,masuk,hitung,tier,saya:()=>SAY
 
 </script>
 <script>
+/* PANEL: layout Panel Sensei (sidebar kiri) + Rapor Otomatis (percobaan pertama + koreksi) + Akun dan Aktivitas.
+   Tidak mengubah rumus nilai: nilai dibaca dari log murid (plog), koreksi disimpan terpisah di rapor/koreksi. */
+(function(){
+'use strict';
+let X=null;/* konteks dari shell.js: {DB,esc,est,slCat,redraw,rows,go} */
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const lvl=t=>t>=200?['A2.2','ok']:t>=175?['A2.1','warn']:t>=145?['A1','warn']:['di bawah A1','bad'];
+const heat=p=>p==null?'':p>=75?'ok':p>=60?'warn':'bad';
+const SEC=[['M','Moji'],['K','Kaiwa'],['C','Choukai'],['D','Dokkai']];
+const ST={rap:{tipe:'to',q:'',urut:'nama',dir:1,edit:null},kor:null,korLoad:false,korErr:'',akun:null,akunErr:'',prev:null,cfg:null,msg:'',hapusAsk:'',cari:''};
+
+/* ---------- menu sidebar ---------- */
+const MENU=[
+ ['Utama',[['ringkas','Dashboard','⌂']]],
+ ['Murid',[['murid','Per murid','人'],['rapnilai','Rapor otomatis','表'],['kelas','Rekap kelas','組'],['rapor','Rapor resmi','印']]],
+ ['Latihan dan ujian',[['semua','Semua latihan','練'],['to','Paket TO','試'],['pantau','Pantauan','視'],['go:kelola','Kelola soal','編']]],
+ ['Per section',[['section','Moji · Kaiwa · Choukai · Dokkai','節']]],
+ ['Hafalan siswa',[['hafalan','Hafalan JFT A2','暗']]],
+ ['Aktivitas',[['live','Live','灯']]],
+ ['Akses pengguna',[['akun','Akun dan aktivitas','鍵'],['akses','Permintaan akses','許'],['hadiah','Dompet','財']]],
+ ['Irodori',[['irodori','Penilaian Irodori (menunggu video)','桜']]]
+];
+function sidebar(GT,badge){
+  const b=k=>badge&&badge[k]?`<em class="pn-b">${badge[k]}</em>`:'';
+  return `<nav class="pn-side" aria-label="Menu Panel Sensei">${MENU.map(([g,it])=>`<div class="pn-g"><div class="pn-gl">${esc(g)}</div>${it.map(([k,l,ic])=>{
+    const go=k.indexOf('go:')===0;
+    return `<button type="button" class="pn-i${GT===k?' on':''}" ${go?`data-lms="go" data-r="${k.slice(3)}"`:`data-lms="gtab" data-t="${k}"`} ${GT===k?'aria-current="page"':''}><i aria-hidden="true">${ic}</i><span>${esc(l)}</span>${b(k)}</button>`}).join('')}</div>`).join('')}</nav>`;
+}
+function wrap(GT,badge,body,head){
+  return `<div class="pn-wrap">${sidebar(GT,badge)}<div class="pn-main">${head||''}${body}</div></div>`;
+}
+
+/* ---------- rapor otomatis ---------- */
+function korKey(id,k){return id+'|'+k}
+async function korMuat(){
+  if(ST.korLoad||!X.DB)return;ST.korLoad=true;
+  try{const s=await X.DB.doc('rapor/koreksi').get();ST.kor=(s&&s.exists?(s.data()||{}):{});ST.korErr=''}catch(e){ST.kor={};ST.korErr='Koreksi belum bisa dimuat.'}
+  X.redraw();
+}
+async function korSimpan(id,k,val,cat){
+  if(!X.DB)return;
+  const d=Object.assign({},ST.kor||{});
+  if(val==null||val==='')delete d[korKey(id,k)];else d[korKey(id,k)]={n:+val,cat:String(cat||'').slice(0,200),t:Date.now()};
+  try{await X.DB.doc('rapor/koreksi').set(d);ST.kor=d;ST.korErr=''}catch(e){ST.korErr='Koreksi gagal disimpan. Cek sinyal lalu coba lagi.'}
+  ST.rap.edit=null;X.redraw();
+}
+/* percobaan pertama per murid x paket (paling awal menurut waktu) */
+function pertama(rows){
+  const out=[];
+  rows.forEach(g=>{const pl=(g.map&&g.map.pl)||[];const per={};
+    pl.forEach(x=>{if(!x||!x.k||!x.n&&!x.sc)return;const t=+x.t||0;if(!per[x.k]||t<per[x.k].t)per[x.k]=Object.assign({},x,{t})});
+    Object.keys(per).forEach(k=>{const x=per[k];const isTO=/^to:/.test(k);
+      let nilai,sec={};
+      if(isTO){nilai=X.est(x.sc);['M','K','C','D'].forEach(s=>{const v=x.sc&&x.sc[s];sec[s]=v&&v[1]?Math.round(v[0]/v[1]*100):null})}
+      else nilai=x.n?Math.round(x.ok/x.n*100):null;
+      const kk=X.kor&&X.kor[korKey(g.id,k)];
+      out.push({id:g.id,nama:g.nama,k,kat:isTO?'Try Out dan Simulasi':X.slCat(k),isTO,t:x.t,nilai,sec,kor:kk||null,akhir:kk?kk.n:nilai})});
+  });
+  return out;
+}
+const namaPaket=k=>String(k).replace(/^to:/,'').replace(/^pd:/,'Pondasi ').replace(/^hf:/,'Hafalan ');
+const tgl=t=>{try{return new Date(t).toLocaleDateString('id-ID',{day:'numeric',month:'short'})}catch(e){return ''}};
+function csv(list){
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const h=['Murid','Paket','Kategori','Tanggal percobaan pertama','Nilai percobaan pertama','Koreksi Sensei','Nilai akhir','Moji %','Kaiwa %','Choukai %','Dokkai %','Catatan koreksi'];
+  const r=list.map(x=>[x.nama,namaPaket(x.k),x.kat,x.t?new Date(x.t).toISOString().slice(0,10):'',x.nilai,x.kor?x.kor.n:'',x.akhir,x.sec.M,x.sec.K,x.sec.C,x.sec.D,x.kor?x.kor.cat:''].map(q).join(','));
+  return '﻿'+[h.map(q).join(',')].concat(r).join('\n');
+}
+function rapnilai(rows){
+  if(ST.kor===null){korMuat()}
+  X.kor=ST.kor||{};
+  const all=pertama(rows);
+  const tipe=ST.rap.tipe,q=ST.rap.q.trim().toLowerCase();
+  const kats=[...new Set(all.map(a=>a.kat))].sort();
+  const list=all.filter(a=>(tipe==='semua'||(tipe==='to'?a.isTO:a.kat===tipe))&&(!q||String(a.nama).toLowerCase().includes(q)));
+  const pk=[...new Set(list.map(a=>a.k))].sort((a,b)=>a.localeCompare(b,'id',{numeric:true}));
+  const mur=[...new Set(list.map(a=>a.id))].map(id=>({id,nama:(rows.find(r=>r.id===id)||{}).nama||'?'}));
+  const by={};list.forEach(a=>{(by[a.id]=by[a.id]||{})[a.k]=a});
+  const rataM=id=>{const v=Object.values(by[id]||{}).map(a=>a.akhir).filter(v=>v!=null);return v.length?Math.round(v.reduce((s,x)=>s+x,0)/v.length):null};
+  mur.forEach(m=>{m.avg=rataM(m.id)});
+  mur.sort((a,b)=>ST.rap.urut==='nilai'?ST.rap.dir*((a.avg==null?-1:a.avg)-(b.avg==null?-1:b.avg)):ST.rap.dir*String(a.nama).localeCompare(String(b.nama),'id',{sensitivity:'base'}));
+  const isTO=tipe==='to';
+  /* ringkasan kelas */
+  const nilaiAda=list.map(a=>a.akhir).filter(v=>v!=null);
+  const rata=nilaiAda.length?Math.round(nilaiAda.reduce((s,x)=>s+x,0)/nilaiAda.length):null;
+  const lulus=isTO?list.filter(a=>a.akhir!=null&&a.akhir>=200).length:list.filter(a=>a.akhir!=null&&a.akhir>=70).length;
+  const secRata={};SEC.forEach(([s])=>{const v=list.map(a=>a.sec[s]).filter(v=>v!=null);secRata[s]=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null});
+  const lemah=SEC.filter(([s])=>secRata[s]!=null).sort((a,b)=>secRata[a[0]]-secRata[b[0]])[0];
+  const kpi=(v,l,c)=>`<div class="pn-kpi ${c||''}"><b>${v}</b><span>${l}</span></div>`;
+  const tabs=[['to','Try Out dan Simulasi'],...kats.filter(k=>k!=='Try Out dan Simulasi').map(k=>[k,k])];
+  const head=`<div class="pn-bar"><div class="pn-tabs" role="tablist">${tabs.map(([k,l])=>`<button type="button" class="chipb${tipe===k?' on':''}" data-pn="tipe" data-v="${esc(k)}" aria-pressed="${tipe===k}">${esc(l)}</button>`).join('')}</div>
+   <input class="fc-sel pn-q" type="search" id="pn-q" placeholder="Cari nama murid" value="${esc(ST.rap.q)}" aria-label="Cari nama murid"><button type="button" class="btn sm" data-pn="csv">Unduh CSV</button></div>`;
+  const kpis=`<div class="pn-kpis">${kpi(mur.length,'murid punya data')}${kpi(list.length,'percobaan pertama')}${kpi(rata==null?'-':rata+(isTO?'':'%'),'rata-rata nilai akhir')}${kpi(nilaiAda.length?Math.round(lulus/nilaiAda.length*100)+'%':'-',isTO?'lulus A2 (≥200)':'tuntas (≥70%)',lulus/(nilaiAda.length||1)>=.6?'ok':'warn')}${isTO&&lemah?kpi(lemah[1]+' '+secRata[lemah[0]]+'%','section paling lemah','bad'):''}</div>`;
+  if(!list.length)return head+kpis+'<section class="card"><p class="muted">Belum ada percobaan pertama untuk filter ini.</p></section>';
+  const cell=(a)=>{
+    if(!a)return '<td class="pn-c0">–</td>';
+    const v=a.akhir,p=isTO?(v==null?null:Math.round(v/250*100)):v;const ed=ST.rap.edit===korKey(a.id,a.k);
+    return `<td class="pn-c ${heat(p)}${a.kor?' kor':''}"><button type="button" class="pn-cb" data-pn="edit" data-id="${esc(a.id)}" data-k="${esc(a.k)}" title="${a.kor?'Dikoreksi Sensei. Asli '+a.nilai:'Percobaan pertama '+tgl(a.t)+'. Ketuk untuk koreksi'}">${v==null?'-':v}${a.kor?'<sup>✎</sup>':''}</button></td>`};
+  const tbl=`<div class="pn-scroll"><table class="pn-t"><thead><tr><th class="pn-sticky"><button type="button" class="linkb" data-pn="urut" data-v="nama">Murid</button></th>${pk.map(k=>`<th title="${esc(k)}">${esc(namaPaket(k))}</th>`).join('')}<th><button type="button" class="linkb" data-pn="urut" data-v="nilai">Rata-rata</button></th>${isTO?SEC.map(([,l])=>`<th>${l} %</th>`).join('')+'<th>Level</th>':''}</tr></thead><tbody>
+   ${mur.map(m=>{const row=by[m.id]||{};const tos=Object.values(row);const sr=s=>{const v=tos.map(a=>a.sec[s]).filter(v=>v!=null);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null};
+     return `<tr><th class="pn-sticky" scope="row">${esc(m.nama)}</th>${pk.map(k=>cell(row[k])).join('')}<td class="pn-c ${heat(isTO&&m.avg!=null?Math.round(m.avg/250*100):m.avg)}"><b>${m.avg==null?'-':m.avg}</b></td>${isTO?SEC.map(([s])=>{const v=sr(s);return `<td class="pn-c ${heat(v)}">${v==null?'-':v+'%'}</td>`}).join('')+`<td>${m.avg==null?'-':`<span class="badge ${lvl(m.avg)[1]}">${lvl(m.avg)[0]}</span>`}</td>`:''}</tr>`}).join('')}
+   </tbody>${isTO?`<tfoot><tr><th class="pn-sticky">Rata-rata kelas</th>${pk.map(k=>{const v=list.filter(a=>a.k===k).map(a=>a.akhir).filter(v=>v!=null);return `<td>${v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):'-'}</td>`}).join('')}<td><b>${rata==null?'-':rata}</b></td>${SEC.map(([s])=>`<td>${secRata[s]==null?'-':secRata[s]+'%'}</td>`).join('')}<td></td></tr></tfoot>`:''}</table></div>`;
+  let editor='';
+  if(ST.rap.edit){const [id,...r]=ST.rap.edit.split('|');const k=r.join('|');const a=all.find(z=>z.id===id&&z.k===k);
+    if(a)editor=`<section class="card pn-edit"><h3>Koreksi nilai · ${esc(a.nama)} · ${esc(namaPaket(a.k))}</h3><p class="small muted">Nilai percobaan pertama: <b>${a.nilai==null?'-':a.nilai}${a.isTO?' / 250':'%'}</b>. Koreksi hanya mengubah rapor, bukan jawaban murid.</p>
+     <div class="pn-ed"><label class="fld">Nilai akhir${a.isTO?' (10-250)':' (0-100)'}<input id="pn-kn" type="number" inputmode="numeric" min="0" max="${a.isTO?250:100}" value="${a.kor?a.kor.n:(a.nilai==null?'':a.nilai)}"></label><label class="fld">Alasan koreksi<input id="pn-kc" type="text" maxlength="200" value="${esc(a.kor?a.kor.cat:'')}" placeholder="Contoh: soal 12 salah kunci"></label></div>
+     <div class="actions"><button type="button" class="btn" data-pn="kor-simpan" data-id="${esc(a.id)}" data-k="${esc(a.k)}" data-to="${a.isTO?1:0}">Simpan koreksi</button>${a.kor?`<button type="button" class="btn ghost" data-pn="kor-hapus" data-id="${esc(a.id)}" data-k="${esc(a.k)}">Kembalikan ke nilai asli</button>`:''}<button type="button" class="btn ghost" data-pn="edit-tutup">Batal</button></div></section>`}
+  const err=ST.korErr?`<p class="status warn" role="alert">${esc(ST.korErr)}</p>`:'';
+  const note=`<p class="small muted">Yang dihitung hanya <b>percobaan pertama</b> tiap murid di tiap paket, jadi mengulang tidak mengubah rapor. Sel merah/kuning/hijau: di bawah 60, 60-74, 75 ke atas. Ketuk angka untuk mengoreksi (ditandai ✎).</p>`;
+  return head+kpis+err+editor+`<section class="card pn-card0">${note}${tbl}</section>`;
+}
+
+/* ---------- akun dan aktivitas ---------- */
+async function akunMuat(){
+  if(!window.lmsRPC)return;
+  ST.akunErr='';
+  try{const r=await lmsRPC('akun_aktivitas');if(r.error)throw r.error;ST.akun=Array.isArray(r.data)?r.data:[]}catch(e){ST.akun=[];ST.akunErr='Daftar akun belum bisa dimuat. Pastikan SQL panel Sensei sudah dijalankan.'}
+  try{const c=await lmsRPC('bersih_tidak_aktif',{p_kering:true});ST.prev=(c&&c.data&&Array.isArray(c.data.akun))?c.data.akun:[]}catch(e){ST.prev=[]}
+  try{const c2=await lmsRPC('status_hapus_otomatis');ST.cfgAktif=!!(c2&&c2.data&&c2.data.aktif)}catch(e){}
+  X.redraw();
+}
+const ago=t=>{if(!t)return 'belum pernah';const d=(Date.now()-new Date(t).getTime())/864e5;return d<1?'hari ini':d<2?'kemarin':Math.floor(d)+' hari lalu'};
+function akun(){
+  if(ST.akun===null){akunMuat();return '<section class="card" aria-busy="true"><p class="muted">Memuat akun…</p></section>'}
+  const L=ST.akun.filter(x=>!x.guru).slice().sort((a,b)=>new Date(a.terakhir||0)-new Date(b.terakhir||0));
+  const lama=x=>(Date.now()-new Date(x.terakhir||0).getTime())/864e5;
+  const q=ST.cari.trim().toLowerCase();
+  const sel=L.filter(x=>!q||String(x.nama).toLowerCase().includes(q)||String(x.email).toLowerCase().includes(q));
+  const luar=L.filter(x=>!x.di_jadwal).length,idle=L.filter(x=>lama(x)>=7).length;
+  const kpi=(v,l,c)=>`<div class="pn-kpi ${c||''}"><b>${v}</b><span>${l}</span></div>`;
+  const row=x=>{const e=esc(x.email),id=esc(x.user_id),ask=ST.hapusAsk===x.user_id;const idle7=lama(x)>=7;
+    return `<tr><th scope="row">${esc(x.nama)}<br><small class="muted">${e}</small></th><td>${x.di_jadwal?'<span class="badge ok">di jadwal tes</span>':'<span class="badge warn">di luar kelas</span>'}</td><td class="${idle7?'bad':''}">${ago(x.terakhir)}</td><td>${esc(x.status||'-')}</td>
+     <td class="pn-act">${ask?`<b class="bad">Hapus permanen akun ini dan semua datanya?</b> <button type="button" class="btn sm bad" data-pn="hapus-ya" data-id="${id}">Ya, hapus</button> <button type="button" class="btn sm ghost" data-pn="hapus-tidak">Batal</button>`:
+     `<button type="button" class="btn sm ghost" data-pn="cabut" data-e="${e}">Cabut akses</button> <button type="button" class="btn sm ghost" data-pn="hapus" data-id="${id}">Hapus akun</button>`}</td></tr>`};
+  const prev=(ST.prev||[]);
+  const auto=`<section class="card"><h2>Hapus otomatis akun tidak aktif</h2><p class="small muted">Akun yang tidak masuk 7 hari penuh dihapus sendiri tiap malam. Murid di jadwal tes dan akun guru <b>tidak pernah</b> ikut terhapus otomatis (mereka hanya bisa dihapus manual). Saat ini: <b>${ST.cfgAktif?'AKTIF':'MATI'}</b>.</p>
+   ${prev.length?`<p class="small">Kalau dinyalakan, akun ini terhapus berikutnya:</p><ul class="small">${prev.map(p=>`<li>${esc(p.email)} · terakhir ${ago(p.terakhir)}</li>`).join('')}</ul>`:'<p class="small muted">Tidak ada akun di luar kelas yang tidak aktif 7 hari.</p>'}
+   <div class="actions"><button type="button" class="btn sm ${ST.cfgAktif?'ghost':''}" data-pn="auto" data-v="${ST.cfgAktif?0:1}">${ST.cfgAktif?'Matikan hapus otomatis':'Nyalakan hapus otomatis'}</button></div></section>`;
+  return `<div class="pn-kpis">${kpi(L.length,'akun murid')}${kpi(luar,'di luar jadwal tes',luar?'warn':'')}${kpi(idle,'tidak aktif ≥7 hari',idle?'warn':'ok')}</div>${ST.msg?`<p class="status" role="status">${esc(ST.msg)}</p>`:''}${ST.akunErr?`<p class="status warn" role="alert">${esc(ST.akunErr)}</p>`:''}${auto}
+  <section class="card pn-card0"><div class="pn-bar"><h2 style="margin:0">Semua akun</h2><input class="fc-sel pn-q" type="search" id="pn-cari" placeholder="Cari nama atau email" value="${esc(ST.cari)}" aria-label="Cari akun"></div><div class="pn-scroll"><table class="pn-t"><thead><tr><th>Akun</th><th>Kelas</th><th>Terakhir aktif</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${sel.map(row).join('')}</tbody></table></div></section>`;
+}
+
+document.addEventListener('click',async e=>{
+  const b=e.target.closest&&e.target.closest('[data-pn]');if(!b||!X)return;
+  const a=b.dataset.pn;
+  if(a==='tipe'){ST.rap.tipe=b.dataset.v;ST.rap.edit=null;X.redraw()}
+  else if(a==='urut'){const v=b.dataset.v;if(ST.rap.urut===v)ST.rap.dir*=-1;else{ST.rap.urut=v;ST.rap.dir=v==='nilai'?-1:1}X.redraw()}
+  else if(a==='edit'){ST.rap.edit=korKey(b.dataset.id,b.dataset.k);X.redraw();setTimeout(()=>{const i=document.getElementById('pn-kn');if(i)i.focus()},50)}
+  else if(a==='edit-tutup'){ST.rap.edit=null;X.redraw()}
+  else if(a==='kor-simpan'){const n=document.getElementById('pn-kn'),c=document.getElementById('pn-kc');const v=n&&n.value.trim();const mx=b.dataset.to==='1'?250:100;
+    if(v===''||isNaN(+v)||+v<0||+v>mx){ST.korErr='Nilai harus angka 0 sampai '+mx+'.';X.redraw();return}
+    if(!c||!c.value.trim()){ST.korErr='Tulis alasan koreksi supaya bisa dilacak.';X.redraw();return}
+    korSimpan(b.dataset.id,b.dataset.k,+v,c.value.trim())}
+  else if(a==='kor-hapus'){korSimpan(b.dataset.id,b.dataset.k,null)}
+  else if(a==='csv'){const rows=X.rows();X.kor=ST.kor||{};const l=pertama(rows);const bl=new Blob([csv(l)],{type:'text/csv;charset=utf-8'});const u=URL.createObjectURL(bl);const z=document.createElement('a');z.href=u;z.download='rapor-percobaan-pertama.csv';document.body.appendChild(z);z.click();setTimeout(()=>{URL.revokeObjectURL(u);z.remove()},500)}
+  else if(a==='cabut'){ST.msg='';try{const ok=await window.lmsAccess.decide(b.dataset.e,false);ST.msg=ok?'Akses '+b.dataset.e+' dicabut.':'Gagal mencabut akses.'}catch(er){ST.msg='Gagal mencabut akses.'}ST.akun=null;X.redraw()}
+  else if(a==='hapus'){ST.hapusAsk=b.dataset.id;X.redraw()}
+  else if(a==='hapus-tidak'){ST.hapusAsk='';X.redraw()}
+  else if(a==='hapus-ya'){ST.msg='';try{const r=await lmsRPC('hapus_akun_murid',{p_user:b.dataset.id});const d=r&&r.data;ST.msg=d&&d.ok?'Akun '+d.email+' dihapus ('+d.docs+' data ikut dibersihkan).':(d&&d.err==='akun_guru'?'Akun guru tidak bisa dihapus.':'Gagal menghapus akun.')}catch(er){ST.msg='Gagal menghapus akun.'}ST.hapusAsk='';ST.akun=null;X.redraw()}
+  else if(a==='auto'){
+    try{const on=b.dataset.v==='1';const r=await lmsRPC('atur_hapus_otomatis',{p_aktif:on});ST.cfgAktif=!!(r&&r.data&&r.data.aktif);ST.msg=ST.cfgAktif?'Hapus otomatis DINYALAKAN.':'Hapus otomatis dimatikan.'}catch(er){ST.msg='Gagal mengubah pengaturan.'}X.redraw()}
+});
+document.addEventListener('input',e=>{const t=e.target;if(!t||!X)return;
+  if(t.id==='pn-q'){ST.rap.q=t.value;const p=t.selectionStart;X.redraw();const n=document.getElementById('pn-q');if(n){n.focus();try{n.setSelectionRange(p,p)}catch(er){}}}
+  else if(t.id==='pn-cari'){ST.cari=t.value;const p=t.selectionStart;X.redraw();const n=document.getElementById('pn-cari');if(n){n.focus();try{n.setSelectionRange(p,p)}catch(er){}}}});
+
+window.PANEL={init:c=>{X=c},wrap,rapnilai,akun,MENU,reset(){ST.akun=null;ST.kor=null;ST.korLoad=false}};
+})();
+
+</script>
+<script>
 const THEMES=[["duo","Klasik","Hijau biru"],["sakura","Sakura Pop","Kelopak jatuh"],["matcha","Matcha Lofi","Gelembung naik"],["langit","Langit Pastel","Awan melayang"],["neon","Neon Tokyo","Grid bercahaya"],["bintang","Bintang Malam","Bintang jatuh"],["aurora","Aurora","Cahaya mengalir"]];
 const lsx=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}};
 function getTheme(){const t=lsx('lms:aes','duo');return THEMES.some(x=>x[0]===t)?t:'duo'}
@@ -16864,10 +17082,31 @@ document.addEventListener('input',e=>{const t=e.target;if(!t||t.id!=='rp-q')retu
 let G_URUT='a';
 function guruHTML(){
   if(!OWNER)return guruHTML0();
+  if(!window.PANEL)return guruHTML1(false);
+  PANEL.init({DB,esc,est:plEst,slCat,redraw:()=>renderPage(),rows:guruRows});
+  if(window.lmsAccess&&ACC.list===null)accLoad();
+  const rows=guruRows().sort((a,b)=>(G_URUT==='z'?-1:1)*String(a.nama||'').localeCompare(String(b.nama||''),'id',{sensitivity:'base'}));
+  const urutBtn=`<div class="pn-urut"><span class="small muted">Urut nama:</span><button type="button" class="chipb${G_URUT==='a'?' on':''}" data-lms="gurut" data-u="a" aria-pressed="${G_URUT==='a'}">A–Z</button><button type="button" class="chipb${G_URUT==='z'?' on':''}" data-lms="gurut" data-u="z" aria-pressed="${G_URUT==='z'}">Z–A</button></div>`;
+  const head='<div class="tora-head"><span class="tora-kj" aria-hidden="true">師</span><div><h1 class="pgt">Panel Tora 先生</h1><p class="small muted">Pantau murid, nilai, dan akun kelas.</p></div></div>'+urutBtn;
+  let body;
+  if(GT==='rapnilai')body=PANEL.rapnilai(rows);
+  else if(GT==='akun')body=PANEL.akun();
+  else if(GT==='irodori')body='<section class="card"><h2>Penilaian Irodori</h2><p class="muted">Menu ini menunggu video sistem penilaian dari Sensei. Setelah videonya dikirim, penilaian dan koreksi Irodori dibuat di sini, terpisah dari ujian JFT A2.</p></section>';
+  else if(GT==='hafalan')body=hafalanSiswa(rows);
+  else if(GT==='section')body=pantauHTML(rows);
+  else body=guruHTML1(true);
+  return PANEL.wrap(GT,{akses:accPend()||0},body,head);
+}
+function hafalanSiswa(rows){
+  const L=rows.map(g=>{const pl=((g.map&&g.map.pl)||[]).filter(x=>/^hf:/.test(x.k||''));const per={};pl.forEach(x=>{(per[x.k]=per[x.k]||[]).push(x)});const ok=pl.reduce((a,x)=>a+(x.ok||0),0),n=pl.reduce((a,x)=>a+(x.n||0),0);return {nama:g.nama,sesi:pl.length,paket:Object.keys(per).length,p:n?Math.round(ok/n*100):null,last:pl.length?Math.max(...pl.map(x=>+x.t||0)):0}}).sort((a,b)=>b.sesi-a.sesi);
+  const ago=t=>{if(!t)return '-';const d=Math.floor((Date.now()-t)/864e5);return d<1?'hari ini':d+' hari lalu'};
+  return `<section class="card pn-card0"><h2>Hafalan JFT A2 per murid</h2><p class="small muted">Sesi hafalan yang dikerjakan tiap murid. Murid dengan 0 sesi perlu diingatkan.</p><div class="pn-scroll"><table class="pn-t"><thead><tr><th>Murid</th><th>Sesi</th><th>Kategori dicoba</th><th>Benar</th><th>Terakhir</th></tr></thead><tbody>${L.map(x=>`<tr><th scope="row">${esc(x.nama)}</th><td class="pn-c ${x.sesi?'':'bad'}">${x.sesi}</td><td>${x.paket}</td><td class="pn-c ${x.p==null?'':x.p>=75?'ok':x.p>=60?'warn':'bad'}">${x.p==null?'-':x.p+'%'}</td><td>${ago(x.last)}</td></tr>`).join('')}</tbody></table></div></section>`;
+}
+function guruHTML1(P){
   if(window.lmsAccess&&ACC.list===null)accLoad();
   const rows=guruRows().sort((a,b)=>(G_URUT==='z'?-1:1)*String(a.nama||'').localeCompare(String(b.nama||''),'id',{sensitivity:'base'}));
   const tabs=[['ringkas','Ringkasan'],['semua','Semua latihan'],['live','Live'],['murid','Per murid'],['kelas','Rekap kelas'],['pantau','Pantauan'],...(TO_ON?[['to','Paket TO']]:[]),['rapor','Rapor resmi'],...(window.lmsHosted?[['akses','Akses'+(accPend()?' ('+accPend()+')':'')],['hadiah','Dompet']]:[])].map(t=>`<button type="button" class="chipb${GT===t[0]?' on':''}" data-lms="gtab" data-t="${t[0]}" aria-pressed="${GT===t[0]}">${t[1]}</button>`).join('')+`<span class="small muted" style="margin-left:8px">Urut nama:</span><button type="button" class="chipb${G_URUT==='a'?' on':''}" data-lms="gurut" data-u="a" aria-pressed="${G_URUT==='a'}">A–Z</button><button type="button" class="chipb${G_URUT==='z'?' on':''}" data-lms="gurut" data-u="z" aria-pressed="${G_URUT==='z'}">Z–A</button>`;
-  const top=`<div class="tora-head"><span class="tora-kj" aria-hidden="true">師</span><div><h1 class="pgt">Panel Tora 先生</h1><p class="small muted">Pantau murid, nilai, dan dompet kelas dari satu tempat.</p><button type="button" class="btn sm" data-lms="go" data-r="kelola">Kelola Soal</button> ${DRAF_ON?'<button type="button" class="btn sm ghost" data-lms="go" data-r="ubabdraf">Ujian Bab 13-18 (draf)</button> <button type="button" class="btn sm ghost" data-lms="go" data-r="simdraf">Simulasi JFT A2 (draf)</button>':''}${TO_ON?' <button type="button" class="btn sm ghost" data-lms="go" data-r="todraf">Paket TO JFT A2 (draf)</button>':''}</div></div><div class="chips gtabbar" role="tablist" aria-label="Bagian panel">${tabs}</div>`;
+  const top=P?'':`<div class="tora-head"><span class="tora-kj" aria-hidden="true">師</span><div><h1 class="pgt">Panel Tora 先生</h1><p class="small muted">Pantau murid, nilai, dan dompet kelas dari satu tempat.</p><button type="button" class="btn sm" data-lms="go" data-r="kelola">Kelola Soal</button> ${DRAF_ON?'<button type="button" class="btn sm ghost" data-lms="go" data-r="ubabdraf">Ujian Bab 13-18 (draf)</button> <button type="button" class="btn sm ghost" data-lms="go" data-r="simdraf">Simulasi JFT A2 (draf)</button>':''}${TO_ON?' <button type="button" class="btn sm ghost" data-lms="go" data-r="todraf">Paket TO JFT A2 (draf)</button>':''}</div></div><div class="chips gtabbar" role="tablist" aria-label="Bagian panel">${tabs}</div>`;
   const pb=accPend()&&GT!=='akses'?`<section class="card" style="border-color:var(--accent)"><b>${accPend()} murid menunggu persetujuan akses</b><div class="actions"><button type="button" class="btn sm" data-lms="gtab" data-t="akses">Buka daftar</button></div></section>`:'';
   if(GT==='akses')return top+aksesHTML();
   if(GT==='rapor')return top+raporHTML(rows);
