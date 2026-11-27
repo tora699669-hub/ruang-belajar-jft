@@ -1824,7 +1824,7 @@ html:has(#ar-root){overflow-anchor:none}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261127-0538"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261127-0556"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -16035,7 +16035,7 @@ function resultHTML(){
   const L=lv(R.total);
   const bars=SEC.filter(s=>R.per[s[0]]).map(s=>{const v=R.per[s[0]],p=Math.round(v.ok/v.n*100);return `<div class="slbar"><span class="slbar-l">${esc(s[1])}</span><span class="slbar-t"><i style="width:${p}%"></i></span><b class="slbar-v">${p}%</b><small class="muted">${v.ok}/${v.n} benar · ${fp(v.poin)} / ${fp(v.maks)} poin</small></div>`}).join('');
   return `<section class="card"><h2>Hasil ${esc(R.nama)} (perkiraan)</h2>${R.auto?'<p class="status warn">Waktu 60 menit habis, jawaban dikirim otomatis.</p>':''}${R.gagal?`<p class="status warn">${R.gagal} jawaban gagal dinilai karena koneksi. Skor di bawah belum lengkap. <button type="button" class="btn sm" data-tod-retry="1" ${busy?'disabled':''}>${busy?'Mengirim...':'Kirim ulang'}</button></p>`:''}
-   <p style="font-size:30px;margin:6px 0"><b>${R.total}</b> <small>/ 250</small> · <b>${esc(L[0])}</b></p><p class="small muted">${esc(L[1])}. Skor resmi JFT memakai penskalaan yang tidak dipublikasi, jadi angka ini hanya perkiraan: poin tiap bagian paket lengkap: Moji-goi 48, Kaiwa 48, Choukai 66, Dokkai 88 (total 250), lulus A2 = 200 ke atas. Waktu ${mm(R.dur)}.</p>
+   <p style="font-size:30px;margin:6px 0"><b>${R.total}</b> <small>/ 250</small> · <b>${esc(L[0])}</b></p><p class="small muted">${esc(L[1])}. Skor resmi JFT adalah satu skor total hasil penyetaraan yang tidak dipublikasi dan <b>tidak punya poin per bagian</b>, jadi angka ini hanya perkiraan. Untuk menghitungnya, aplikasi memakai bobot internal belajar (Moji-goi 48, Kaiwa 48, Choukai 66, Dokkai 88 dari 250), bukan bobot resmi. Lulus A2 = 200 ke atas. Waktu ${mm(R.dur)}.</p>
    <h3>Persentase benar per bagian</h3><div class="slbars">${bars}</div></section>${window.SERT?SERT.dari(R):''}<section class="card" style="margin-top:0;border-top:0">
    ${R.tahan?`<p class="small muted">${R.tahan} soal Choukai ditahan karena audionya belum ada, tetap ikut dihitung sebagai soal.</p>`:''}
    <div class="actions">${R.mode==='m'?'':`<button type="button" class="btn" data-tod-start="${esc(R.kode)}">Ulangi paket ini</button>`}<button type="button" class="btn ghost" data-tod-home="1">Pilih paket lain</button></div>
@@ -16220,7 +16220,7 @@ function panel(PL,RS){
   return `<section class="card"><h2>Paket TO untuk murid</h2><p class="small muted">Centang paket yang boleh dikerjakan murid di menu Simulasi TO, atau isi tanggal jadwal buka (paket terbuka otomatis pada tanggal itu, waktu WIB). Perubahan langsung berlaku, tanpa terbit ulang. Paket yang masih punya soal ditahan atau Choukai tanpa audio tidak bisa dibuka. Kalau kunci Choukai satu paket ternyata salah, cukup hilangkan centangnya.</p>
    ${toggles}
    <div class="actions"><button type="button" class="btn ghost sm" data-tod-bkall="def">Buka semua yang layak (${bukaDef().length})</button><button type="button" class="btn ghost sm" data-tod-bkall="none">Tutup semua</button></div><p class="small muted" id="tod-bkmsg" role="status"></p></section>
-  <section class="card"><h2>Kelas</h2>${ringkasK}<p class="small muted">Skor perkiraan, bukan nilai resmi: Moji 48, Kaiwa 48, Choukai 66, Dokkai 88 untuk paket lengkap (paket tidak lengkap disesuaikan ke total 250). Lulus A2 sekitar 200.</p></section>
+  <section class="card"><h2>Kelas</h2>${ringkasK}<p class="small muted">Skor perkiraan, bukan nilai resmi. JFT-Basic tidak punya poin per bagian; bobot Moji 48, Kaiwa 48, Choukai 66, Dokkai 88 hanya bobot internal aplikasi (paket tidak lengkap disesuaikan ke total 250). Lulus A2 = 200.</p></section>
   ${TMUR?raporMurid(TMUR,H,pill,tbl,fm):''}
   <section class="card"><h2>Per murid dan strategi</h2>${kontrol(H)}<p class="small muted">${TPAK?'Hanya paket '+esc(TPAK)+'. ':'Semua paket. '}Lulus = skor terakhir ≥200. Persen per bagian = 3 percobaan terakhir. Ketuk nama untuk membuka rapor TO murid itu.</p>${tbl(['Murid','Coba','Skor terakhir','Terbaik','Naik/turun','Moji','Kaiwa','Choukai','Dokkai','Status','Strategi'],mRows,'Belum ada data murid.')}</section>
   <section class="card"><h2>Titik rawan per nomor soal</h2>${rawan||'<p class="muted small">Belum ada data.</p>'}</section>
@@ -18035,7 +18035,7 @@ const warnaP=p=>p==null?'#8a93a8':p>=70?'#2f9e5b':p>=40?'#d99a1c':'#d9342b';
 const YAKIN={tinggi:'Keyakinan tinggi',sedang:'Keyakinan sedang',rendah:'Keyakinan rendah (data masih sedikit)',belum:''};
 function rinciP(o){const q=o.peluang;if(!q||q.p==null)return '';
   const s=q.sumber.map(x=>`${esc(x.nama)} ${x.bobot}%`).join(' · ');
-  const lv=q.level?`<p style="margin:6px 0 0">Perkiraan tingkatmu di hari tes: <b>${q.level.nama}</b>${q.level.pasti?'':' <span class="small muted">(dekat batas: antara '+q.level.antara+')</span>'}</p>`:'';
+  const lv=q.level?`<p style="margin:6px 0 0">Perkiraan tingkatmu di hari tes: <b>${q.level.nama}</b>${q.level.kode===0?' <span class="small muted">(di rapor resmi tampil ＊)</span>':''}${q.level.pasti?'':' <span class="small muted">(dekat batas: antara '+q.level.antara+')</span>'}</p>`:'';
   return lv+`<details class="small muted" style="margin:6px 0 0"><summary>Dari mana angka ini? · ${YAKIN[q.yakin]||''} · kisaran ${q.pLo}–${q.pHi}%</summary><p style="margin:4px 0">Sumber dan bobotnya: ${s}.${q.geser?` Geseran kecil dari kesiapan Pondasi dan Hafalan: ${q.geser>0?'+':''}${q.geser} poin.`:''}</p>${q.catatan.length?`<ul style="margin:4px 0 0;padding-left:18px">${q.catatan.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`:''}</details>`}
 /* ---------- Beranda murid ---------- */
 let TG=undefined,TGBUSY=false,SRV=null,SRVBUSY=false;
@@ -18133,7 +18133,7 @@ function panelHTML(rows){
     const tbS=rata.map(x=>`<tr><th scope="row">${x.n}</th><td><b>${x.to==null?'-':x.to+'%'}</b> <span class="small muted">(${x.mT} murid)</span></td><td><b>${x.la==null?'-':x.la+'%'}</b> <span class="small muted">(${x.mL} murid)</span></td><td>${x.m} dari ${data.length}</td><td class="small">${x.rendah.length?esc(x.rendah.join(', ')):'<span class="muted">tidak ada</span>'}</td></tr>`).join('');
     const tbL=dist.map(x=>`<tr><th scope="row">${x.nm}</th><td><b>${x.ada.length}</b>${x.batas?' <span class="small muted">('+x.batas+' dekat batas)</span>':''}</td><td class="small">${x.ada.length?esc(x.ada.map(d=>d.r.nama).join(', ')):'<span class="muted">-</span>'}</td></tr>`).join('');
     const saran=lemah?`Fokuskan sesi kelas ke <b>${lemah.n}</b> (rata-rata ${lemah.v}%)${lemah.rendah.length?', terutama untuk '+esc(lemah.rendah.slice(0,6).join(', '))+(lemah.rendah.length>6?' dan '+(lemah.rendah.length-6)+' lainnya':''):''}. Bagian terkuat: ${kuatS.n} (${kuatS.v}%).`:'Belum ada data per bagian.';
-    return `<section class="card"><h2>Rekomendasi kelas dan tingkat murid</h2><p class="small muted">Tingkat dari perkiraan nilai di hari tes (Belum A1 di bawah 145, A1 145–174, A2.1 175–199, A2.2 mulai 200). Tanda "dekat batas" berarti kisaran nilainya menyeberang dua tingkat. Peluang dihitung sesuai tanggal ujian tiap murid.</p>
+    return `<section class="card"><h2>Rekomendasi kelas dan tingkat murid</h2><p class="small muted">Tingkat dari perkiraan nilai di hari tes (Belum A1 di bawah 145, A1 145–174, A2.1 175–199, A2.2 mulai 200). Tanda "dekat batas" berarti kisaran nilainya menyeberang dua tingkat. Peluang dihitung sesuai tanggal ujian tiap murid. Persen per bagian adalah persentase benar sebagai acuan belajar: JFT-Basic resmi tidak punya poin atau batas lulus per bagian, hanya satu skor total 10–250.</p>
     <p><b>Rata-rata peluang lulus kelas: ${rataP==null?'-':rataP+'%'}</b>${ada.length?' · perkiraan murid lulus sekitar '+lulusSekitar.toFixed(1)+' dari '+ada.length+' yang punya data':''}${tanpa.length?' · belum ada data: '+tanpa.length+' murid':''}</p>
     <p>${saran}</p>
     <div class="pn-scroll"><table class="pn-t"><thead><tr><th>Bagian</th><th>Rata-rata Try Out</th><th>Rata-rata latihan biasa</th><th>Murid berdata</th><th>Di bawah 60%</th></tr></thead><tbody>${tbS}</tbody></table></div>
@@ -18170,7 +18170,7 @@ window.TINDAK={ringkasHTML,analisaSaya,prioDek,rencana,tUjian,sisaSaya,plSaya,an
 'use strict';
 let X=null;/* konteks dari shell.js: {DB,esc,est,slCat,redraw,rows,go} */
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const lvl=t=>t>=200?['A2.2','ok']:t>=175?['A2.1','warn']:t>=145?['A1','warn']:['di bawah A1','bad'];
+const lvl=t=>t>=200?['A2.2','ok']:t>=175?['A2.1','warn']:t>=145?['A1','warn']:['Belum A1','bad'];
 const heat=p=>p==null?'':p>=75?'ok':p>=60?'warn':'bad';
 const SEC=[['M','Moji'],['K','Kaiwa'],['C','Choukai'],['D','Dokkai']];
 const ST={rap:{kat:'semua',q:'',urut:'nama',dir:1,sel:null},kor:null,korLoad:false,korErr:'',akun:null,akunErr:'',prev:null,cfg:null,msg:'',hapusAsk:'',cari:''};
@@ -18343,7 +18343,7 @@ function dataTO(rows){
 }
 const rataA=v=>v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null;
 function bins(D){
-  const b=[{l:'< 145',s:'di bawah A1',c:'#d9342b',f:v=>v<145},{l:'145-174',s:'level A1',c:'#e0782a',f:v=>v>=145&&v<175},{l:'175-199',s:'A2.1, hampir lulus',c:'#d99a1c',f:v=>v>=175&&v<200},{l:'≥ 200',s:'lulus A2',c:'#2f9e5b',f:v=>v>=200}];
+  const b=[{l:'< 145',s:'Belum A1 (＊ di rapor resmi)',c:'#d9342b',f:v=>v<145},{l:'145-174',s:'level A1',c:'#e0782a',f:v=>v>=145&&v<175},{l:'175-199',s:'A2.1, hampir lulus',c:'#d99a1c',f:v=>v>=175&&v<200},{l:'≥ 200',s:'lulus A2',c:'#2f9e5b',f:v=>v>=200}];
   return b.map(x=>({n:D.murid.filter(m=>x.f(m.last)).length,l:x.l,s:x.s,c:x.c}));
 }
 function bagSection(D){
@@ -19106,7 +19106,7 @@ function simulasiHTML(){
   <section class="card sim-hero"><div class="sim-big" aria-hidden="true">総</div><div><b>${dl>0?dl+' hari menuju ujianmu'+(own0?' ('+own0.tglTeks+')':' paling awal 16 Desember'):'Hari ujian sudah lewat'}</b><p class="small muted">${best==null?'Belum ada simulasi. Mulai dari paket CBT tahap Dasar, lalu naik ke Simulasi Penuh 1–4.':'Skor terbaik '+best+(avg3?' · rata-rata 3 terakhir '+avg3:'')+'. '+need}</p></div></section>
   ${window.SIM_PDF_UI?SIM_PDF_UI.menuHTML():''}
   <section class="card"><h2>Format ujian asli</h2><div class="facts"><div><b>±50</b><span>soal</span></div><div><b>60</b><span>menit</span></div><div><b>200</b><span>skor lulus A2</span></div></div>
-  <ul class="small simul"><li>Empat bagian, masing-masing sekitar 12 soal: Moji-goi, Kaiwa-hyougen, Choukai, Dokkai.</li><li>Skor 10–250 hasil penyetaraan, bukan jumlah benar. Aman targetkan sekitar 80% benar atau lebih.</li><li>Setelah pindah ke bagian berikutnya, kamu tidak bisa kembali. Jawab semua soal, jangan ada yang kosong.</li><li>Rentang skor: A2 200–250, A2.1 175–199, A1 145–174.</li></ul>
+  <ul class="small simul"><li>Empat bagian, masing-masing sekitar 12 soal: Moji-goi (文字・語彙), Kaiwa-hyougen (会話・表現), Choukai (聴解), Dokkai (読解). Tidak ada batas waktu per bagian, hanya 60 menit total.</li><li>Skor 10–250 adalah <b>satu skor total</b> hasil penyetaraan (equating), bukan jumlah benar. <b>Tidak ada poin atau batas lulus per bagian</b>: di rapor resmi tiap bagian hanya menampilkan persentase benar sebagai info tambahan. Aman targetkan sekitar 80% benar atau lebih.</li><li>Skor di bawah 145 tidak diberi tingkat dan tampil “＊” di rapor resmi (di aplikasi ini kami sebut Belum A1).</li><li>Setelah pindah ke bagian berikutnya, kamu tidak bisa kembali. Jawab semua soal, jangan ada yang kosong.</li><li>Rentang skor: A2 (A2.2) 200–250, A2.1 175–199, A1 145–174.</li></ul><p class="small muted">Sumber: Japan Foundation, <a href="https://www.jpf.go.jp/jft-basic/about/index.html" target="_blank" rel="noopener">jpf.go.jp/jft-basic</a>.</p>
   <p class="small muted">Ujian per bab, Fukushuu, dan Satu Buku ada di menu <b>Irodori</b>. Menu ini khusus perkembangan JFT A2.</p><div class="actions"><button type="button" class="btn ghost" data-lms="go" data-r="irodori">Buka menu Irodori</button></div>
 </section>
   <section class="card"><h2>Paket latihan per bagian</h2><p class="muted small">Latihan dibagi per bagian JFT. Buka paketnya untuk melihat nilai dan peringkat sebelum mulai. Simulasi Penuh di bawah menggabungkan beberapa bagian.</p><div class="tw"><table><thead><tr><th>Bagian</th><th>Isi</th><th></th></tr></thead><tbody><tr><td>Moji-goi</td><td>Paket kosakata dan kanji</td><td><button type="button" class="btn sm" data-lms="go" data-r="moji">Buka</button></td></tr><tr><td>Kaiwa-hyougen</td><td>Paket ungkapan percakapan</td><td><button type="button" class="btn sm" data-lms="go" data-r="kaiwa">Buka</button></td></tr><tr><td>Dokkai</td><td>Paket membaca</td><td><button type="button" class="btn sm" data-lms="go" data-r="dokkai">Buka</button></td></tr><tr><td>Choukai</td><td>Menunggu audio</td><td><button type="button" class="btn sm ghost" disabled>Segera</button></td></tr></tbody></table></div></section>
@@ -19561,7 +19561,7 @@ document.addEventListener('input',e=>{const t=e.target;if(!t||t.id!=='pt-q')retu
 let RAPOR={d:null,load:false,err:'',sort:'total',dir:-1,f:'semua'};
 const RP_SEC=[['M','Moji-goi','文字・語彙'],['K','Kaiwa','会話・表現'],['C','Choukai','聴解'],['D','Dokkai','読解']];
 async function raporLoad(){if(RAPOR.load||!DB)return;RAPOR.load=true;try{const s=await DB.doc('rapor/resmi-13-18').get();RAPOR.d=s&&s.exists?(s.data()||{}):{rows:[]};RAPOR.err=''}catch(e){RAPOR.err='Rapor belum bisa dimuat. Coba buka tab ini lagi.'}RAPOR.load=false;if(CUR==='guru'&&GT==='rapor')renderPage()}
-function rpStat(t,b){return t>=b.A2?['lulus','Lulus A2','A2']:t>=b.A1?['perlu','Perlu perhatian',t>=b.A21?'A2.1':'A1']:['belum','Belum','di bawah A1']}
+function rpStat(t,b){return t>=b.A2?['lulus','Lulus A2','A2']:t>=b.A1?['perlu','Perlu perhatian',t>=b.A21?'A2.1':'A1']:['belum','Belum','Belum A1']}
 function rpSisa(d){if(!d)return null;const t=new Date(d+'T00:00:00');if(isNaN(t))return null;return Math.ceil((t-new Date().setHours(0,0,0,0))/864e5)}
 function raporHTML(rows){
   if(!DB)return '<section class="card"><h2>Rapor resmi</h2><p class="muted">Rapor resmi hanya ada di versi online.</p></section>';
