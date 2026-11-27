@@ -1824,7 +1824,7 @@ html:has(#ar-root){overflow-anchor:none}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261127-0556"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261127-0613"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -15762,9 +15762,9 @@ const redraw=()=>{try{if(window.LMS_REDRAW)window.LMS_REDRAW(0)}catch(e){}};
 const SEC=[['M','Kosakata dan Huruf','文字・語彙'],['K','Percakapan dan Ungkapan','会話・表現'],['C','Mendengar (Choukai)','聴解'],['D','Membaca (Dokkai)','読解']];
 const SECN=k=>(SEC.find(s=>s[0]===k)||[k,k])[1];
 const LIM=60*60,MAXPLAY=2;
-/* Poin per bagian untuk paket LENGKAP (empat bagian): Moji 48, Kaiwa 48, Choukai 66, Dokkai 88 = 250.
-   Paket yang tidak punya semua bagian: total tetap 250 dan dibagi menurut perbandingan 48:48:66:88 antar bagian yang ada. */
-const BOT={M:48,K:48,C:66,D:88};
+/* Perkiraan skor total 250: empat bagian berbobot sama (62,5 tiap bagian untuk paket lengkap). Resmi tidak ada poin per bagian.
+   Paket yang tidak punya semua bagian: total tetap 250 dan dibagi rata antar bagian yang ada. */
+const BOT={M:1,K:1,C:1,D:1};   /* bobot sama: tiap bagian ±12 soal dan JFT-Basic resmi tidak punya poin per bagian (v104) */
 const bobotDari=ks=>{const t=ks.reduce((a,k)=>a+(BOT[k]||0),0)||1;return k=>250*(BOT[k]||0)/t};
 const estSc=sc=>{const ks=Object.keys(sc||{}).filter(k=>sc[k]&&sc[k][1]);const w=bobotDari(ks);return ks.reduce((t,k)=>t+w(k)*sc[k][0]/sc[k][1],0)};
 window.TO_POIN=sc=>Math.round(estSc(sc));
@@ -16033,9 +16033,9 @@ function reviewHTML(){
 }
 function resultHTML(){
   const L=lv(R.total);
-  const bars=SEC.filter(s=>R.per[s[0]]).map(s=>{const v=R.per[s[0]],p=Math.round(v.ok/v.n*100);return `<div class="slbar"><span class="slbar-l">${esc(s[1])}</span><span class="slbar-t"><i style="width:${p}%"></i></span><b class="slbar-v">${p}%</b><small class="muted">${v.ok}/${v.n} benar · ${fp(v.poin)} / ${fp(v.maks)} poin</small></div>`}).join('');
+  const bars=SEC.filter(s=>R.per[s[0]]).map(s=>{const v=R.per[s[0]],p=Math.round(v.ok/v.n*100);return `<div class="slbar"><span class="slbar-l">${esc(s[1])}</span><span class="slbar-t"><i style="width:${p}%"></i></span><b class="slbar-v">${p}%</b><small class="muted">${v.ok}/${v.n} benar</small></div>`}).join('');
   return `<section class="card"><h2>Hasil ${esc(R.nama)} (perkiraan)</h2>${R.auto?'<p class="status warn">Waktu 60 menit habis, jawaban dikirim otomatis.</p>':''}${R.gagal?`<p class="status warn">${R.gagal} jawaban gagal dinilai karena koneksi. Skor di bawah belum lengkap. <button type="button" class="btn sm" data-tod-retry="1" ${busy?'disabled':''}>${busy?'Mengirim...':'Kirim ulang'}</button></p>`:''}
-   <p style="font-size:30px;margin:6px 0"><b>${R.total}</b> <small>/ 250</small> · <b>${esc(L[0])}</b></p><p class="small muted">${esc(L[1])}. Skor resmi JFT adalah satu skor total hasil penyetaraan yang tidak dipublikasi dan <b>tidak punya poin per bagian</b>, jadi angka ini hanya perkiraan. Untuk menghitungnya, aplikasi memakai bobot internal belajar (Moji-goi 48, Kaiwa 48, Choukai 66, Dokkai 88 dari 250), bukan bobot resmi. Lulus A2 = 200 ke atas. Waktu ${mm(R.dur)}.</p>
+   <p style="font-size:30px;margin:6px 0"><b>${R.total}</b> <small>/ 250</small> · <b>${esc(L[0])}</b></p><p class="small muted">${esc(L[1])}. Skor resmi JFT adalah satu skor total hasil penyetaraan yang tidak dipublikasi dan <b>tidak punya poin per bagian</b>, jadi angka ini hanya perkiraan. Untuk memperkirakan skor total, aplikasi memberi bobot sama pada keempat bagian (tiap bagian sekitar 12 soal), karena bobot resmi tidak dipublikasi. Lulus A2 = 200 ke atas. Waktu ${mm(R.dur)}.</p>
    <h3>Persentase benar per bagian</h3><div class="slbars">${bars}</div></section>${window.SERT?SERT.dari(R):''}<section class="card" style="margin-top:0;border-top:0">
    ${R.tahan?`<p class="small muted">${R.tahan} soal Choukai ditahan karena audionya belum ada, tetap ikut dihitung sebagai soal.</p>`:''}
    <div class="actions">${R.mode==='m'?'':`<button type="button" class="btn" data-tod-start="${esc(R.kode)}">Ulangi paket ini</button>`}<button type="button" class="btn ghost" data-tod-home="1">Pilih paket lain</button></div>
@@ -16220,7 +16220,7 @@ function panel(PL,RS){
   return `<section class="card"><h2>Paket TO untuk murid</h2><p class="small muted">Centang paket yang boleh dikerjakan murid di menu Simulasi TO, atau isi tanggal jadwal buka (paket terbuka otomatis pada tanggal itu, waktu WIB). Perubahan langsung berlaku, tanpa terbit ulang. Paket yang masih punya soal ditahan atau Choukai tanpa audio tidak bisa dibuka. Kalau kunci Choukai satu paket ternyata salah, cukup hilangkan centangnya.</p>
    ${toggles}
    <div class="actions"><button type="button" class="btn ghost sm" data-tod-bkall="def">Buka semua yang layak (${bukaDef().length})</button><button type="button" class="btn ghost sm" data-tod-bkall="none">Tutup semua</button></div><p class="small muted" id="tod-bkmsg" role="status"></p></section>
-  <section class="card"><h2>Kelas</h2>${ringkasK}<p class="small muted">Skor perkiraan, bukan nilai resmi. JFT-Basic tidak punya poin per bagian; bobot Moji 48, Kaiwa 48, Choukai 66, Dokkai 88 hanya bobot internal aplikasi (paket tidak lengkap disesuaikan ke total 250). Lulus A2 = 200.</p></section>
+  <section class="card"><h2>Kelas</h2>${ringkasK}<p class="small muted">Skor perkiraan, bukan nilai resmi. JFT-Basic tidak punya poin per bagian; aplikasi memberi bobot sama pada tiap bagian (paket tidak lengkap disesuaikan ke total 250). Lulus A2 = 200.</p></section>
   ${TMUR?raporMurid(TMUR,H,pill,tbl,fm):''}
   <section class="card"><h2>Per murid dan strategi</h2>${kontrol(H)}<p class="small muted">${TPAK?'Hanya paket '+esc(TPAK)+'. ':'Semua paket. '}Lulus = skor terakhir ≥200. Persen per bagian = 3 percobaan terakhir. Ketuk nama untuk membuka rapor TO murid itu.</p>${tbl(['Murid','Coba','Skor terakhir','Terbaik','Naik/turun','Moji','Kaiwa','Choukai','Dokkai','Status','Strategi'],mRows,'Belum ada data murid.')}</section>
   <section class="card"><h2>Titik rawan per nomor soal</h2>${rawan||'<p class="muted small">Belum ada data.</p>'}</section>
