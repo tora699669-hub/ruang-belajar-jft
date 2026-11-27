@@ -1824,7 +1824,7 @@ html:has(#ar-root){overflow-anchor:none}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261127-0654"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261127-1333"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -15888,8 +15888,11 @@ const jadwalK=j=>/^\d{4}-\d\d-\d\d$/.test(j||'')?j+'T00:00':(j||'');
 const sudahTiba=j=>!!j&&jadwalK(j)<=nowWIB();
 const jadwalP=p=>{const c=window.TOCFG;return (c&&c.jadwal&&c.jadwal[p.kode])||p.jadwal||''};
 const tglF=j=>{const m=/^(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d))?$/.exec(j||'');return m?(+m[3])+' '+['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][+m[2]-1]+(m[4]&&(m[4]+m[5])!=='0000'?' pukul '+m[4]+'.'+m[5]+' WIB':''):''};
-const bukaGlobal=()=>{const c=window.TOCFG||{};const bk=Array.isArray(c.buka)?c.buka:null,tt=Array.isArray(c.tutup)?c.tutup:[];
+/* Paket "paksa buka": Sensei membuka paket untuk SEMUA murid sekarang, melewati jatah Palet (config/to.paksa). */
+const paksaL=()=>{const c=window.TOCFG;return c&&Array.isArray(c.paksa)?c.paksa:[]};
+const bukaGlobal=()=>{const c=window.TOCFG||{};const bk=Array.isArray(c.buka)?c.buka:null,tt=Array.isArray(c.tutup)?c.tutup:[],pk=paksaL();
   return PK().filter(p=>{if(layak(p)||tt.includes(p.kode))return false;
+    if(pk.includes(p.kode))return true;
     if(jadwalP(p))return !!(bk&&bk.includes(p.kode))||sudahTiba(jadwalP(p));
     return bk?bk.includes(p.kode):true}).map(p=>p.kode)};
 /* ---- Palet TO per murid (lms/palet.js): paket dibuka menurut hari ujian dan kemampuan murid itu. Tanpa tanggal ujian atau mode guru: jadwal umum lama. ---- */
@@ -15903,14 +15906,15 @@ function paletSaya(){
     const sel=Object.values(first).map(x=>({kode:x.k.slice(3),t:x.t||0,nilai:window.TO_POIN?TO_POIN(x.sc):null})).filter(x=>x.nilai!=null).sort((a,b)=>a.t-b.t);
     const l3=sel.slice(-3).map(x=>x.nilai),nilai=l3.length?l3.reduce((a,b)=>a+b,0)/l3.length:null;
     const tt=(window.TOCFG&&Array.isArray(window.TOCFG.tutup))?window.TOCFG.tutup:[];
-    const paket=PK().filter(p=>!layak(p)&&!tt.includes(p.kode)).map(p=>({kode:p.kode,nama:p.nama,level:levelP(p),n:p.sections.reduce((a,s)=>a+s.n,0)}));
-    const v=PALET_TO.susun({tUjian:z.tgl,paket,selesai:sel,nilai,now:Date.now()});v.tUjian=z.tgl;v.sudah=sel.map(x=>x.kode);
+    const pk=paksaL();   /* paket paksa-buka di luar Palet: tidak dijadwalkan ulang dan tidak memakai jatah slot */
+    const paket=PK().filter(p=>!layak(p)&&!tt.includes(p.kode)&&!pk.includes(p.kode)).map(p=>({kode:p.kode,nama:p.nama,level:levelP(p),n:p.sections.reduce((a,s)=>a+s.n,0)}));
+    const v=PALET_TO.susun({tUjian:z.tgl,paket,selesai:sel.filter(x=>!pk.includes(x.kode)),nilai,now:Date.now()});v.tUjian=z.tgl;v.sudah=sel.map(x=>x.kode);
     PC={key,v};return v}catch(e){return null}}
 const buka=()=>{const pt=paletSaya();if(!pt)return bukaGlobal();
   const tt=(window.TOCFG&&Array.isArray(window.TOCFG.tutup))?window.TOCFG.tutup:[];
   const ada=new Set(PK().filter(p=>!layak(p)&&!tt.includes(p.kode)).map(p=>p.kode));
   let jalan=[];try{jalan=Object.keys(lokalM())}catch(e){}   /* sesi yang sedang berjalan tetap boleh dilanjutkan */
-  return Array.from(new Set(pt.buka.concat(pt.sudah,jalan))).filter(k=>ada.has(k))};
+  return Array.from(new Set(pt.buka.concat(pt.sudah,jalan,paksaL()))).filter(k=>ada.has(k))};
 const menunggu=()=>PK().filter(p=>!layak(p)&&jadwalP(p)&&!sudahTiba(jadwalP(p))&&!buka().includes(p.kode)&&!((window.TOCFG&&window.TOCFG.tutup)||[]).includes(p.kode));
 /* Jadwal rilis (hanya baca, dipakai jalur belajar): paket yang layak dan tidak ditutup. t = waktu buka (epoch ms, jadwal dibaca sebagai WIB), 0 = tanpa jadwal. */
 const rilis=()=>{const tt=(window.TOCFG&&Array.isArray(window.TOCFG.tutup))?window.TOCFG.tutup:[],bk=buka();
@@ -16253,10 +16257,11 @@ function panel(PL,RS){
   const pill=p=>p==null?'-':`<span class="badge ${p>=75?'ok':'no'}" style="${p>=60&&p<75?'background:var(--warn-soft);color:var(--warn)':''}">${p}%</span>`;
   const tbl=(head,body,kosong)=>body?`<div class="tw xl"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`:`<p class="muted small">${kosong}</p>`;
   const jd=p=>{const j=jadwalP(p);return j?`<br><label class="small muted">Jadwal buka <input type="datetime-local" data-tod-jd="${esc(p.kode)}" value="${esc(jadwalK(j))}" style="font:inherit"></label>`:`<br><label class="small muted">Jadwal buka <input type="datetime-local" data-tod-jd="${esc(p.kode)}" value="" style="font:inherit"></label>`};
-  const stat=(p,why,on)=>why?'Tidak bisa dibuka: '+esc(why):on?'Terbuka untuk murid':jadwalP(p)&&!sudahTiba(jadwalP(p))&&!((window.TOCFG&&window.TOCFG.tutup)||[]).includes(p.kode)?'Terjadwal, buka '+esc(tglF(jadwalP(p))):'Tertutup';
+  const stat=(p,why,on)=>{const tut=((window.TOCFG&&window.TOCFG.tutup)||[]).includes(p.kode);
+    return why?'Tidak bisa dibuka: '+esc(why):paksaL().includes(p.kode)?'<b>Dipaksa terbuka untuk SEMUA murid</b> (melewati Palet)':on?'Terbuka untuk murid tanpa tanggal ujian. Murid ber-Palet menerimanya bertahap menurut jatah; centang "Paksa buka" supaya langsung muncul untuk semua.':jadwalP(p)&&!sudahTiba(jadwalP(p))&&!tut?'Terjadwal, buka '+esc(tglF(jadwalP(p))):tut?'Tertutup':'Belum dicentang (paket baru?). Centang untuk membuka.'};
   const toggles=LEVELS.map(lv=>{const A=PK().filter(p=>levelP(p)===lv);if(!A.length)return '';
     return `<h3 style="margin:12px 0 6px">Level ${esc(lv)} <span class="small muted">· ${A.length} paket · ${A.filter(p=>B.includes(p.kode)).length} terbuka</span></h3><div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${A.map(p=>{const why=layak(p),on=B.includes(p.kode),tot=p.sections.reduce((a,s)=>a+s.n,0);
-    return `<div class="card" style="display:flex;gap:10px;align-items:flex-start;padding:10px;${why?'opacity:.65':''}"><input type="checkbox" data-tod-bk="${esc(p.kode)}" aria-label="Buka ${esc(p.nama)}" ${on?'checked':''} ${why?'disabled':''} style="margin-top:4px"><span><b>${esc(p.nama)}</b> <span class="small muted">· ${tot} soal</span><br><span class="small ${why?'':'muted'}">${stat(p,why,on)}</span>${why?'':jd(p)}</span></div>`}).join('')}</div>`}).join('');
+    return `<div class="card" style="display:flex;gap:10px;align-items:flex-start;padding:10px;${why?'opacity:.65':''}"><input type="checkbox" data-tod-bk="${esc(p.kode)}" aria-label="Buka ${esc(p.nama)}" ${on?'checked':''} ${why?'disabled':''} style="margin-top:4px"><span><b>${esc(p.nama)}</b> <span class="small muted">· ${tot} soal</span><br><span class="small ${why?'':'muted'}">${stat(p,why,on)}</span>${why?'':`<br><label class="small"><input type="checkbox" data-tod-pk="${esc(p.kode)}" ${paksaL().includes(p.kode)?'checked':''}> Paksa buka untuk semua murid</label>`}${why?'':jd(p)}</span></div>`}).join('')}</div>`}).join('');
   /* kelas: lulus, rata-rata per bagian (hasil terakhir tiap murid per paket) */
   const last={};H.forEach(x=>{const k=x.id+'|'+x.k;if(!last[k])last[k]=x});
   const L=Object.values(last);
@@ -16289,7 +16294,7 @@ function panel(PL,RS){
   const ring=Object.values(per).sort((a,b)=>b.n-a.n).map(o=>`<tr><td><b>${esc(o.k.slice(3))}</b></td><td>${o.n}x</td><td>${o.ids.size}</td><td>${Math.round(o.sum/o.n)}</td><td>${o.lulus}</td></tr>`).join('');
   const rows=H.slice(0,200).map(x=>{const sc=x.sc||{};const e=Math.round(est(sc));
     return `<tr><td>${fm(x.t)}</td><td class="wrap-t"><b>${esc(x.nama)}</b></td><td>${esc(String(x.k).slice(3))}</td>${['M','K','C','D'].map(k=>`<td>${sc[k]?pill(pct(sc[k][0],sc[k][1])):'-'}</td>`).join('')}<td><b>${e}</b> / 250</td><td>${x.ok}/${x.n}</td><td>${x.dur!=null?mm(x.dur):'-'}</td><td>${x.auto?'<span class="badge wait">Waktu habis</span>':'Selesai'}${x.gagal?' <span class="badge no">'+x.gagal+' gagal</span>':''}</td></tr>`}).join('');
-  return `<section class="card"><h2>Paket TO untuk murid</h2><p class="small muted"><b>Murid yang tanggal ujiannya sudah terisi memakai Palet TO pribadi</b> (paket dan tanggal buka disusun menurut hari ujian dan kemampuan masing-masing, lihat tab Tindak lanjut); pengaturan di bawah ini berlaku untuk murid tanpa tanggal ujian dan sebagai penutup (tutup paket) untuk semua. Centang paket yang boleh dikerjakan murid di menu Simulasi TO, atau isi tanggal jadwal buka (paket terbuka otomatis pada tanggal itu, waktu WIB). Perubahan langsung berlaku, tanpa terbit ulang. Paket yang masih punya soal ditahan atau Choukai tanpa audio tidak bisa dibuka. Kalau kunci Choukai satu paket ternyata salah, cukup hilangkan centangnya.</p>
+  return `<section class="card"><h2>Paket TO untuk murid</h2><p class="small muted"><b>Murid yang tanggal ujiannya sudah terisi memakai Palet TO pribadi</b> (paket dan tanggal buka disusun menurut hari ujian dan kemampuan masing-masing, lihat tab Tindak lanjut); pengaturan di bawah ini berlaku untuk murid tanpa tanggal ujian dan sebagai penutup (tutup paket) untuk semua. Murid ber-Palet hanya melihat paket sesuai jatah slotnya (centang biasa belum membuatnya muncul untuk mereka). Mau paket langsung muncul untuk SEMUA murid? Centang <b>Paksa buka untuk semua murid</b> di kartu paketnya; paket itu tidak memakai jatah Palet. Centang paket yang boleh dikerjakan murid di menu Simulasi TO, atau isi tanggal jadwal buka (paket terbuka otomatis pada tanggal itu, waktu WIB). Perubahan langsung berlaku, tanpa terbit ulang. Paket yang masih punya soal ditahan atau Choukai tanpa audio tidak bisa dibuka. Kalau kunci Choukai satu paket ternyata salah, cukup hilangkan centangnya.</p>
    ${toggles}
    <div class="actions"><button type="button" class="btn ghost sm" data-tod-bkall="def">Buka semua yang layak (${bukaDef().length})</button><button type="button" class="btn ghost sm" data-tod-bkall="none">Tutup semua</button></div><p class="small muted" id="tod-bkmsg" role="status"></p></section>
   <section class="card"><h2>Kelas</h2>${ringkasK}<p class="small muted">Skor perkiraan, bukan nilai resmi. JFT-Basic tidak punya poin per bagian; aplikasi memberi bobot sama pada tiap bagian (paket tidak lengkap disesuaikan ke total 250). Lulus A2 = 200.</p></section>
@@ -16307,6 +16312,9 @@ async function simpanBuka(list,mut){
 document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.matches('[data-tod-tsort]')){TSORT=t.value;redraw();return}if(t&&t.matches&&t.matches('[data-tod-tpak]')){TPAK=t.value;redraw();return}if(!t||!t.matches||!t.matches('[data-tod-bk]'))return;
   const cur=new Set(buka());const kd=t.dataset.todBk;t.checked?cur.add(kd):cur.delete(kd);
   simpanBuka([...cur],o=>{const tt=new Set(o.tutup||[]);t.checked?tt.delete(kd):tt.add(kd);o.tutup=[...tt]})});
+document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-pk]'))return;
+  const kd=t.dataset.todPk,on=t.checked;
+  simpanBuka(Array.from(new Set(buka().concat(on?[kd]:[]))),o=>{const s=new Set(Array.isArray(o.paksa)?o.paksa:[]);on?s.add(kd):s.delete(kd);o.paksa=[...s];if(on)o.tutup=(o.tutup||[]).filter(k=>k!==kd)})});
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-jd]'))return;
   const kd=t.dataset.todJd,v=t.value;simpanBuka(buka(),o=>{o.jadwal=Object.assign({},o.jadwal||{});if(v)o.jadwal[kd]=v;else o.jadwal[kd]='';o.tutup=(o.tutup||[]).filter(k=>k!==kd);o.buka=(o.buka||[]).filter(k=>k!==kd||(v&&sudahTiba(v)))})});
 document.addEventListener('click',e=>{const mr=e.target.closest&&e.target.closest('[data-tod-tmur]');if(mr){TMUR=mr.dataset.todTmur||'';redraw();if(TMUR)setTimeout(()=>{const r=document.getElementById('tod-rapor');if(r)r.scrollIntoView({block:'start'})},60);return}const ps=e.target.closest&&e.target.closest('[data-tod-psel]');if(ps){PSEL=ps.dataset.todPsel;redraw();return}const t=e.target.closest&&e.target.closest('[data-tod-bkall]');if(!t)return;t.dataset.todBkall==='def'?simpanBuka(bukaDef(),o=>{o.tutup=[]}):simpanBuka([],o=>{o.tutup=PK().map(p=>p.kode)})});
