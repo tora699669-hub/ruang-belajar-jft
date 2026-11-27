@@ -5,9 +5,19 @@
      Tanpa ini pustaka menganggap sesi rusak lalu mengeluarkan murid ke halaman login. Di sini refresh diulang
      beberapa kali; kalau tetap gagal, dianggap gangguan jaringan sehingga sesi dipertahankan dan dicoba lagi nanti. */
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  /* Data ditolak 401 = token kedaluwarsa tapi pustaka mengira masih sah (jam HP/laptop meleset, tab tertidur).
+     Perpanjang token sekali (satu kali untuk semua permintaan yang gagal bersamaan), lalu ulangi permintaan dengan token baru.
+     Tanpa ini murid melihat layar "Koneksi bermasalah" atau terlempar ke layar masuk. */
+  let lastTok=Date.now(),tokJob=null;
+  const freshToken=()=>tokJob||(tokJob=(async()=>{try{const r=await sb.auth.refreshSession();return r&&r.data&&r.data.session&&r.data.session.access_token||null}catch(e){return null}finally{setTimeout(()=>{tokJob=null},1500)}})());
   async function rfetch(url,opts){
     const u=typeof url==='string'?url:(url&&url.url)||'';
-    if(!/\/auth\/v1\/token\?grant_type=refresh_token/.test(u))return fetch(url,opts);
+    if(!/\/auth\/v1\/token\?grant_type=refresh_token/.test(u)){
+      const r=await fetch(url,opts);
+      if(r.status!==401||!/\/rest\/v1\//.test(u))return r;
+      const tok=await freshToken();if(!tok)return r;
+      const h=new Headers((opts&&opts.headers)||(typeof url!=='string'&&url&&url.headers)||{});h.set('Authorization','Bearer '+tok);
+      return fetch(url,Object.assign({},opts,{headers:h}))}
     for(let i=0;i<4;i++){
       try{const r=await fetch(url,opts);if(r.status<500)return r}catch(e){if(e&&e.name==='AbortError')throw e}
       if(i<3)await sleep(700*Math.pow(2,i));
@@ -156,10 +166,14 @@
     if(ev==='SIGNED_OUT'){ready=null;if(manualOut)return;clearTimeout(outTimer);
       outTimer=setTimeout(async()=>{try{const r=await sb.auth.getSession();if(r&&r.data&&r.data.session){ready=null;return}}catch(e){return}
         session=null;landScreen(()=>loginScreen('Sesimu terputus (biasanya karena sinyal). Masuk lagi sekali ya, hasil belajarmu aman tersimpan.'))},2500)}
-    else if(ev==='SIGNED_IN'||ev==='TOKEN_REFRESHED'){clearTimeout(outTimer);if(ses)session=ses}
+    else if(ev==='SIGNED_IN'||ev==='TOKEN_REFRESHED'){clearTimeout(outTimer);lastTok=Date.now();if(ses)session=ses}
   });
+  /* Perbarui token tiap ~40 menit berdasarkan selang waktu (bukan jam perangkat), jauh sebelum token 1 jam habis */
+  const REF_MS=40*60*1000;
+  const stale=()=>!document.hidden&&navigator.onLine!==false&&session&&Date.now()-lastTok>REF_MS;
+  setInterval(()=>{if(stale()){lastTok=Date.now();freshToken()}},60000);
   /* Saat tab kembali aktif atau internet pulih, segarkan token lebih dulu supaya tidak kedaluwarsa saat tab tertidur */
-  const wake=()=>{if(!document.hidden&&navigator.onLine!==false)sb.auth.getSession().catch(()=>{})};
+  const wake=()=>{if(!document.hidden&&navigator.onLine!==false){if(stale()){lastTok=Date.now();freshToken()}else sb.auth.getSession().catch(()=>{})}};
   document.addEventListener('visibilitychange',wake);addEventListener('online',wake);
   /* ---- user ---- */
   const userApi=()=>({
