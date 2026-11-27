@@ -1824,7 +1824,7 @@ html:has(#ar-root){overflow-anchor:none}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261127-0446"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261127-0510"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -1836,14 +1836,14 @@ const LMS={active:null,mods:{},dummy:document.createElement('div'),
 </script>
 <script>
 /* ===== Periode tes JFT A2: SATU sumber tanggal untuk semua fitur (hitung mundur, kalender, prediksi, jalur belajar, teks).
-   Pasti (dari Sensei, 26 Nov 2026): tes paling awal 16 Des 2026, paling akhir 12 Jan 2027.
+   Pasti (dari Sensei, 26 Nov 2026): tes paling awal 15 Des 2026 (jadwal fiks Sensei, 27 Nov 2026), paling akhir 12 Jan 2027.
    Tanggal per murid (tabel jadwal_tes) masih bisa berubah: dianggap perkiraan sampai Sensei memastikan.
    Kalau periode berubah lagi, ubah HANYA tiga angka di bawah ini. ===== */
 (function(root){'use strict';
 const HARI=864e5;
-const MULAI=new Date(2026,11,16,0,0,0).getTime();          // tes paling awal
+const MULAI=new Date(2026,11,15,0,0,0).getTime();          // tes paling awal
 const AKHIR=new Date(2027,0,12,23,59,59).getTime();        // tes paling akhir
-const AMAN=new Date(2026,11,15,23,59,59).getTime();        // semua materi baru harus beres sebelum ini
+const AMAN=new Date(2026,11,14,23,59,59).getTime();        // semua materi baru harus beres sebelum ini
 const LIBUR=['2026-12-24','2026-12-25'];                   // tidak ada tes
 const BL=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const BLP=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -1859,8 +1859,8 @@ const digeser=t=>!!t&&t>AKHIR&&t<=JAN_BATAS;
 const dalamPeriode=t=>!!t&&t>=MULAI&&t<=AKHIR;
 /* sisa hari sampai akhir hari tes (0 = hari ini atau sudah lewat) */
 function sisa(t,now){now=now==null?Date.now():now;return Math.max(0,Math.ceil((awalHari(t)+HARI-1-now)/HARI))}
-const teks='16 Des 2026 sampai 12 Jan 2027';
-const teksPendek='16 Des–12 Jan';
+const teks='15 Des 2026 sampai 12 Jan 2027';
+const teksPendek='15 Des–12 Jan';
 root.JFT_PERIODE={MULAI,AKHIR,AMAN,LIBUR,HARI,BL,BLP,tgl,tglPendek,awalHari,efektif,digeser,dalamPeriode,sisa,teks,teksPendek};
 })(typeof window!=='undefined'?window:globalThis);
 
@@ -17345,7 +17345,7 @@ const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorag
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const SPRING='cubic-bezier(.34,1.56,.64,1)',SMOOTH='cubic-bezier(.22,1,.36,1)';
 const P=window.JFT_PERIODE;
-const UJIAN_MULAI=new Date(P?P.MULAI:new Date(2026,11,16,0,0,0).getTime()),UJIAN_AKHIR=new Date(P?P.AKHIR:new Date(2027,0,12,23,59,59).getTime());
+const UJIAN_MULAI=new Date(P?P.MULAI:new Date(2026,11,15,0,0,0).getTime()),UJIAN_AKHIR=new Date(P?P.AKHIR:new Date(2027,0,12,23,59,59).getTime());
 const LIBUR=['2026-12-24','2026-12-25'];
 const BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const HARI=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
@@ -17451,7 +17451,7 @@ function sisaWaktu(){
 function kalenderHTML(){
   const per={};(JADWAL||[]).forEach(x=>{if(x.t){(per[x.t]=per[x.t]||[]).push(x)}});
   const hariIni=kunci(new Date());
-  const awal=new Date(2026,11,14);// Senin sebelum 16 Des
+  const awal=new Date(2026,11,14);// Senin sebelum 15 Des
   let sel='';
   for(let i=0;i<35;i++){
     const d=new Date(awal.getFullYear(),awal.getMonth(),awal.getDate()+i),k=kunci(d);
@@ -17469,7 +17469,7 @@ function ujianCard(){
   const kepala=w.selesai?'Periode tes JFT sudah selesai':w.mulai?'Periode tes JFT sedang berjalan':'Hitung mundur tes JFT pertama';
   const jam=w.mulai?'':`<div class="cd-g" id="gk-cd"><div><b id="gk-h">${w.hari}</b><small>hari</small></div><div><b id="gk-j">${pad(w.jam)}</b><small>jam</small></div><div><b id="gk-m">${pad(w.mnt)}</b><small>menit</small></div><div><b id="gk-s">${pad(w.dtk)}</b><small>detik</small></div></div>`;
   return `<section class="card gk-ujian"><div class="gk-top"><div><div class="gk-eyebrow">試験 · JFT-Basic A2</div><h2>${kepala}</h2></div><div class="gk-hanko" aria-hidden="true">合格</div></div>${jam}
-  <p class="small muted">Tes 16 Des 2026 sampai 12 Jan 2027. Tanggal 24 dan 25 Des tidak ada tes.</p>
+  <p class="small muted">Tes 15 Des 2026 sampai 12 Jan 2027. Tanggal 24 dan 25 Des tidak ada tes.</p>
   <details class="gk-kal"><summary>Kalender tes kelas</summary><div id="gk-kal">${kalenderHTML()}</div></details></section>`;
 }
 let TIMER=0;
@@ -17621,7 +17621,7 @@ cek();
 'use strict';
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const DAY=864e5;
-const UJIAN=window.JFT_PERIODE?JFT_PERIODE.MULAI:new Date(2026,11,16).getTime();
+const UJIAN=window.JFT_PERIODE?JFT_PERIODE.MULAI:new Date(2026,11,15).getTime();
 const BL=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const tg=t=>{const d=new Date(t);return d.getDate()+' '+BL[d.getMonth()]};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -17718,13 +17718,14 @@ const LULUS=200,BAGIAN=['M','K','C','D'],SKALA=62.5,DISKON_LATIHAN=.93;
 const pLulus=(e,sd)=>1-cdf((LULUS-e)/sd);
 
 /* sumber 1: Try Out. pred = hasil GRAFIK.prediksi (sudah regresi dan dibatasi); n = jumlah TO */
+const tambahHari=inp=>Math.min(30,.4*Math.max(0,(inp.hari||0)-3));   /* makin jauh hari ujian, makin lebar ketidakpastian */
 function sumberTO(inp){
   const to=inp.to||[];if(!to.length)return null;
   const n=to.length,pr=inp.pred;
   const sdDasar=n>=4?16:n===3?20:n===2?24:30;
   if(pr&&pr.cukup&&pr.pred!=null){const sdReg=pr.sd!=null?pr.sd:sdDasar;return {id:'to',nama:'Try Out (tren)',nilai:pr.pred,sd:Math.max(sdDasar,Math.min(sdReg,45)),n}}
   const rata=to.reduce((a,x)=>a+x.nilai,0)/n;
-  return {id:'to',nama:'Try Out',nilai:rata,sd:sdDasar,n}}
+  return {id:'to',nama:'Try Out',nilai:rata,sd:Math.hypot(sdDasar,tambahHari(inp)),n}}
 
 /* sumber 2: latihan per bagian. Bagian tanpa data memakai rata-rata bagian lain dikurangi 8% dan menambah ketidakpastian */
 function sumberLatihan(inp){
@@ -17734,7 +17735,7 @@ function sumberLatihan(inp){
   const rata=BAGIAN.reduce((a,s)=>a+(acc[s]||0),0)/ada;
   const bolong=BAGIAN.length-ada;
   const nilai=BAGIAN.reduce((a,s)=>a+(acc[s]!=null?acc[s]:rata*.92)*SKALA,0)*DISKON_LATIHAN;
-  const sd=32*Math.sqrt(1+40/Math.max(soal,1))+bolong*4;
+  const sd=Math.hypot(32*Math.sqrt(1+40/Math.max(soal,1))+bolong*4,tambahHari(inp));
   return {id:'lat',nama:'Latihan per bagian',nilai,sd,n:soal,bolong}}
 
 /* sumber 3: kesiapan. Dipakai hanya sebagai geseran kecil (maks 5 poin), bukan bukti utama */
@@ -17744,6 +17745,11 @@ function geseran(inp){
   if(inp.hafDek&&(inp.hafSesi||0)>0){const r=(inp.hafDicoba||0)/inp.hafDek;g+=(r-.5)*4;cat.push('Hafalan '+(inp.hafDicoba||0)+'/'+inp.hafDek+' dek')}
   return {g:clamp(g,-5,5),cat}}
 
+/* tingkat dari perkiraan nilai (skala 250). Batas sama dengan Panel: 145, 175, 200 */
+const NAMA_TINGKAT=['Belum A1','A1','A2.1','A2.2'];
+const tingkat=n=>n>=200?3:n>=175?2:n>=145?1:0;
+function levelDari(e,sd){const a=tingkat(e),lo=tingkat(e-.5*sd),hi=tingkat(e+.5*sd);
+  return {nama:NAMA_TINGKAT[a],kode:a,pasti:lo===hi,antara:lo===hi?null:NAMA_TINGKAT[lo]+' dan '+NAMA_TINGKAT[hi]}}
 function hitung(inp){
   inp=inp||{};const S=[sumberTO(inp),sumberLatihan(inp)].filter(Boolean);
   const nTO=(inp.to||[]).length,gs=geseran(inp);
@@ -17767,9 +17773,9 @@ function hitung(inp){
   if(nTO&&bolongTO)catatan.push(bolongTO+' bagian belum tersentuh Try Out.');
   if(gs.cat.length)catatan.push('Geseran kecil dari '+gs.cat.join(' dan ')+'.');
   const wp=S.map((x,i)=>({id:x.id,nama:x.nama,nilai:Math.round(x.nilai),bobot:Math.round(w[i]/W*100),n:x.n}));
-  return {p,pLo:Math.min(lo,p),pHi:Math.max(hi,p),nilai:Math.round(e),nLo:Math.round(clamp(e-1.28*sd,10,250)),nHi:Math.round(clamp(e+1.28*sd,10,250)),sd:Math.round(sd),n:nTO,yakin,sumber:wp,geser:Math.round(gs.g*10)/10,catatan,cukup:nTO>=2}}
+  return {p,hari:inp.hari==null?null:inp.hari,level:levelDari(e,sd),pLo:Math.min(lo,p),pHi:Math.max(hi,p),nilai:Math.round(e),nLo:Math.round(clamp(e-1.28*sd,10,250)),nHi:Math.round(clamp(e+1.28*sd,10,250)),sd:Math.round(sd),n:nTO,yakin,sumber:wp,geser:Math.round(gs.g*10)/10,catatan,cukup:nTO>=2}}
 
-window.PELUANG={hitung,pLulus,LULUS};
+window.PELUANG={hitung,pLulus,LULUS,tingkat,NAMA_TINGKAT};
 })();
 
 </script>
@@ -17964,7 +17970,7 @@ function analisa(pl,tUjian){
   const sisa=PJ?PJ.sisa(tUjian,now):Math.max(0,Math.ceil((tUjian-now)/DAY));
   const o={to,sec,lat,pred,pond,haf,belum,idle,sisa,tUjian,totalTO:buka.length+0,lastT,n:pl.length};
   /* peluang lulus gabungan banyak sumber (TO, latihan per bagian, Pondasi, Hafalan); nilai prediksi TO tetap dari GRAFIK */
-  try{if(window.PELUANG){const pl2=PELUANG.hitung({to:to.filter(a=>a.nilai!=null).map(a=>({t:a.t,nilai:a.nilai})),pred,secTO:sec,lat,pondLulus:pond.lulus,pondTotal:pond.total,pondCoba:pl.some(x=>/^pd:/.test(x.k)&&x.n),hafDicoba:haf.dicoba,hafDek:haf.dek,hafSesi:haf.sesi});
+  try{if(window.PELUANG){const pl2=PELUANG.hitung({to:to.filter(a=>a.nilai!=null).map(a=>({t:a.t,nilai:a.nilai})),pred,secTO:sec,lat,pondLulus:pond.lulus,pondTotal:pond.total,pondCoba:pl.some(x=>/^pd:/.test(x.k)&&x.n),hafDicoba:haf.dicoba,hafDek:haf.dek,hafSesi:haf.sesi,hari:sisa});
     o.peluang=pl2;if(pl2.p!=null){o.pred=Object.assign({},pred||{n:to.length,cukup:false},{pTO:pred?pred.p:null,p:pl2.p,lo:pl2.nLo,hi:pl2.nHi,pred:pl2.nilai,cukup:pl2.cukup,gabungan:true})}}}catch(e){}
   o.saran=saran(o);o.rencana=rencana(o);
   try{if(window.JALUR){o.jalur=JALUR.susun(jalurIn(o,tAsli));const h0=o.jalur.semuaHari[0],b0=h0?h0.blok.filter(b=>b.r):[];
@@ -18027,7 +18033,8 @@ const warnaP=p=>p==null?'#8a93a8':p>=70?'#2f9e5b':p>=40?'#d99a1c':'#d9342b';
 const YAKIN={tinggi:'Keyakinan tinggi',sedang:'Keyakinan sedang',rendah:'Keyakinan rendah (data masih sedikit)',belum:''};
 function rinciP(o){const q=o.peluang;if(!q||q.p==null)return '';
   const s=q.sumber.map(x=>`${esc(x.nama)} ${x.bobot}%`).join(' · ');
-  return `<details class="small muted" style="margin:6px 0 0"><summary>Dari mana angka ini? · ${YAKIN[q.yakin]||''} · kisaran ${q.pLo}–${q.pHi}%</summary><p style="margin:4px 0">Sumber dan bobotnya: ${s}.${q.geser?` Geseran kecil dari kesiapan Pondasi dan Hafalan: ${q.geser>0?'+':''}${q.geser} poin.`:''}</p>${q.catatan.length?`<ul style="margin:4px 0 0;padding-left:18px">${q.catatan.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`:''}</details>`}
+  const lv=q.level?`<p style="margin:6px 0 0">Perkiraan tingkatmu di hari tes: <b>${q.level.nama}</b>${q.level.pasti?'':' <span class="small muted">(dekat batas: antara '+q.level.antara+')</span>'}</p>`:'';
+  return lv+`<details class="small muted" style="margin:6px 0 0"><summary>Dari mana angka ini? · ${YAKIN[q.yakin]||''} · kisaran ${q.pLo}–${q.pHi}%</summary><p style="margin:4px 0">Sumber dan bobotnya: ${s}.${q.geser?` Geseran kecil dari kesiapan Pondasi dan Hafalan: ${q.geser>0?'+':''}${q.geser} poin.`:''}</p>${q.catatan.length?`<ul style="margin:4px 0 0;padding-left:18px">${q.catatan.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`:''}</details>`}
 /* ---------- Beranda murid ---------- */
 let TG=undefined,TGBUSY=false,SRV=null,SRVBUSY=false;
 function muatJadwal(){if(TG!==undefined||TGBUSY||!window.lmsRPC)return;TGBUSY=true;Promise.resolve(lmsRPC('jadwal_saya')).then(r=>{TG=(r&&r.data)?parse(r.data):null}).catch(()=>{TG=null}).then(()=>{TGBUSY=false;try{window.LMS_TOP&&LMS_TOP();window.LMS_REDRAW&&LMS_REDRAW(0)}catch(e){}})}
@@ -18087,6 +18094,7 @@ function pesan(nama,pl,tUjian,panggilan){
     L.push(`• Nilai terakhir: ${last.nilai} di ${last.nama}`)}
   else L.push('• Try Out: belum ada yang dikerjakan');
   if(o.pred&&o.pred.p!=null)L.push(o.pred.cukup?`• Perkiraan nilai di hari tes${tUjian?' ('+tglS(o.tUjian)+')':''}: sekitar ${o.pred.pred} (kisaran ${o.pred.lo}–${o.pred.hi}), peluang lulus sekitar ${o.pred.p}%${o.peluang?' (kisaran '+o.peluang.pLo+'–'+o.peluang.pHi+'%, '+(YAKIN[o.peluang.yakin]||'').toLowerCase()+')':''} (${labelP(o.pred.p)})`:`• Peluang lulus kasar sekitar ${o.pred.p}% (${o.to.length?'baru '+o.to.length+' TO':'belum ada TO, hanya dari latihan'}, belum akurat)`);
+  if(o.peluang&&o.peluang.level&&o.peluang.p!=null)L.push(`• Perkiraan tingkat di hari tes: ${o.peluang.level.nama}${o.peluang.level.pasti?'':' (dekat batas, antara '+o.peluang.level.antara+')'}`);
   const sb=SEC.map(([s,n])=>{const v=kuat(o,s);return v==null?null:`${n} ${v}%`}).filter(Boolean);
   L.push('• Per bagian: '+(sb.length?sb.join(' · '):'belum ada data'));
   L.push(`• Pondasi: ${o.pond.lulus} dari ${o.pond.total} tahap lolos · Hafalan JFT A2: ${o.haf.dicoba} dari ${o.haf.dek} dek dicoba${o.haf.minggu?'':' (belum ada sesi minggu ini)'}`);
@@ -18111,17 +18119,34 @@ function infoMurid(id){
 function panelHTML(rows){
   muatGuru();
   const q=CARI.trim().toLowerCase();
-  const data=rows.filter(r=>!q||String(r.nama).toLowerCase().includes(q)).map(r=>{const inf=infoMurid(r.id),pl=(r.pl)||[];const o=analisa(pl,inf.tUjian||null);return {r,inf,o,txt:pesan(r.nama,pl,inf.tUjian,inf.panggilan)}});
+  const semua=rows.filter(r=>!q||String(r.nama).toLowerCase().includes(q)).map(r=>{const inf=infoMurid(r.id),pl=(r.pl)||[];const o=analisa(pl,inf.tUjian||null);return {r,inf,o,luar:/BUKAN BATCH/i.test(inf.catatan||''),txt:pesan(r.nama,pl,inf.tUjian,inf.panggilan)}});
+  const data=semua.filter(d=>!d.luar),luar=semua.filter(d=>d.luar);
   data.sort((a,b)=>(a.o.pred&&a.o.pred.p!=null?a.o.pred.p:-1)-(b.o.pred&&b.o.pred.p!=null?b.o.pred.p:-1));
+  const rekKelas=(()=>{const ada=data.filter(d=>d.o.peluang&&d.o.peluang.p!=null);
+    const rata=SEC.map(([s,n])=>{const v=data.map(d=>kuat(d.o,s)).filter(x=>x!=null);return {s,n,v:v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null,m:v.length,rendah:data.filter(d=>{const x=kuat(d.o,s);return x!=null&&x<60}).map(d=>d.r.nama)}});
+    const dist=['A2.2','A2.1','A1','Belum A1'].map(nm=>({nm,ada:ada.filter(d=>d.o.peluang.level.nama===nm),batas:ada.filter(d=>d.o.peluang.level.nama===nm&&!d.o.peluang.level.pasti).length}));
+    const tanpa=data.filter(d=>!(d.o.peluang&&d.o.peluang.p!=null));
+    const lemah=rata.filter(x=>x.v!=null).sort((a,b)=>a.v-b.v)[0],kuatS=rata.filter(x=>x.v!=null).sort((a,b)=>b.v-a.v)[0];
+    const rataP=ada.length?Math.round(ada.reduce((a,d)=>a+d.o.peluang.p,0)/ada.length):null,lulusSekitar=ada.reduce((a,d)=>a+d.o.peluang.p/100,0);
+    const tbS=rata.map(x=>`<tr><th scope="row">${x.n}</th><td><b>${x.v==null?'-':x.v+'%'}</b></td><td>${x.m} dari ${data.length}</td><td class="small">${x.rendah.length?esc(x.rendah.join(', ')):'<span class="muted">tidak ada</span>'}</td></tr>`).join('');
+    const tbL=dist.map(x=>`<tr><th scope="row">${x.nm}</th><td><b>${x.ada.length}</b>${x.batas?' <span class="small muted">('+x.batas+' dekat batas)</span>':''}</td><td class="small">${x.ada.length?esc(x.ada.map(d=>d.r.nama).join(', ')):'<span class="muted">-</span>'}</td></tr>`).join('');
+    const saran=lemah?`Fokuskan sesi kelas ke <b>${lemah.n}</b> (rata-rata ${lemah.v}%)${lemah.rendah.length?', terutama untuk '+esc(lemah.rendah.slice(0,6).join(', '))+(lemah.rendah.length>6?' dan '+(lemah.rendah.length-6)+' lainnya':''):''}. Bagian terkuat: ${kuatS.n} (${kuatS.v}%).`:'Belum ada data per bagian.';
+    return `<section class="card"><h2>Rekomendasi kelas dan tingkat murid</h2><p class="small muted">Tingkat dari perkiraan nilai di hari tes (Belum A1 di bawah 145, A1 145–174, A2.1 175–199, A2.2 mulai 200). Tanda "dekat batas" berarti kisaran nilainya menyeberang dua tingkat. Peluang dihitung sesuai tanggal ujian tiap murid.</p>
+    <p><b>Rata-rata peluang lulus kelas: ${rataP==null?'-':rataP+'%'}</b>${ada.length?' · perkiraan murid lulus sekitar '+lulusSekitar.toFixed(1)+' dari '+ada.length+' yang punya data':''}${tanpa.length?' · belum ada data: '+tanpa.length+' murid':''}</p>
+    <p>${saran}</p>
+    <div class="pn-scroll"><table class="pn-t"><thead><tr><th>Bagian</th><th>Rata-rata kelas</th><th>Murid berdata</th><th>Di bawah 60%</th></tr></thead><tbody>${tbS}</tbody></table></div>
+    <div class="pn-scroll" style="margin-top:8px"><table class="pn-t"><thead><tr><th>Tingkat</th><th>Jumlah</th><th>Murid</th></tr></thead><tbody>${tbL}</tbody></table></div>
+    ${luar.length?`<p class="small muted">Tidak dihitung (bukan batch ujian Des–Jan): ${esc(luar.map(d=>d.r.nama).join(', '))}.</p>`:''}</section>`})();
   const peta=window.JALUR&&data.length?(()=>{const rk=JALUR.ringkasKelas(data.filter(d=>d.o.jalur).map(d=>({nama:d.r.nama,plan:d.o.jalur})));
     const baris=rk.komponen.map(k=>`<tr><th scope="row">${esc(k.nama)}</th><td>${k.bolong.length} dari ${rk.n}</td><td class="small">${k.bolong.length?esc(k.bolong.join(', ')):'<span class="muted">lengkap</span>'}</td></tr>`).join('');
     return `<section class="card"><h2>Peta data kelas: siapa yang masih bolong</h2><p class="small muted">Bagian yang belum pernah dikerjakan murid <b>tidak dihitung 0%</b> dan tidak ikut rata-rata. Rata-rata keseluruhan kelas: <b>${rk.keseluruhan.p==null?'-':rk.keseluruhan.p+'%'}</b> dari ${rk.keseluruhan.murid} dari ${rk.n} murid yang sudah punya data bagian. Data lengkap di semua komponen: ${rk.lengkap} murid. Periode tes: ${esc(JFT_PERIODE.teks)}; tanggal tes per murid masih perkiraan.</p><div class="pn-scroll"><table class="pn-t"><thead><tr><th>Komponen</th><th>Belum dikerjakan</th><th>Murid</th></tr></thead><tbody>${baris}</tbody></table></div></section>`})():'';
   const kartu=data.map(d=>{const p=d.o.pred&&d.o.pred.p!=null?d.o.pred.p:null,w=warnaP(p);
-    return `<details class="card pn-lipat" style="border-left:5px solid ${w}"><summary><b>${esc(d.r.nama)}</b> <span class="small muted">· ${d.o.to.length} TO · data ${d.o.jalur?d.o.jalur.cakupan.ada+'/7':'-'} · peluang lulus ${p==null?'belum ada data':p+'%'} · ${d.inf.tUjian?'ujian '+tglS(d.inf.tUjian):'tanggal ujian belum ada'}</span></summary>
+    return `<details class="card pn-lipat" style="border-left:5px solid ${w}"><summary><b>${esc(d.r.nama)}</b> <span class="small muted">· ${d.o.to.length} TO · data ${d.o.jalur?d.o.jalur.cakupan.ada+'/7':'-'} · peluang lulus ${p==null?'belum ada data':p+'%'}${d.o.peluang&&d.o.peluang.p!=null?' · '+d.o.peluang.level.nama+(d.o.peluang.level.pasti?'':'?'):''} · ${d.inf.tUjian?'ujian '+tglS(d.inf.tUjian):'tanggal ujian belum ada'}</span></summary>
     <textarea readonly rows="${Math.min(22,d.txt.split('\n').length+1)}" style="width:100%;font:14px/1.45 system-ui,sans-serif;padding:10px;border-radius:10px;border:1px solid #cfd6e0" id="ti-${esc(d.r.id)}" aria-label="Pesan untuk ${esc(d.r.nama)}">${esc(d.txt)}</textarea>
     <div class="actions"><button type="button" class="btn" data-ti="salin" data-id="${esc(d.r.id)}">Salin pesan</button><span class="small muted" data-ti-msg="${esc(d.r.id)}"></span></div></details>`}).join('');
   return `<div class="pn-bar"><h2 style="margin:0">Pesan WhatsApp tindak lanjut</h2><input class="fc-sel pn-q" type="search" id="ti-q" placeholder="Cari nama murid" value="${esc(CARI)}" aria-label="Cari nama murid"></div>
   <section class="card"><p class="small muted">Pesan dibuat otomatis dari data tiap murid: nilai TO percobaan pertama, kekuatan per bagian, Pondasi, Hafalan, dan peluang lulus sampai tanggal ujian masing-masing. Buka nama murid, tekan Salin pesan, lalu tempel di WhatsApp. Urut dari peluang lulus paling rendah. ${AKUN&&JDW?'':'<b>Memuat tanggal ujian...</b>'}</p></section>
+  ${rekKelas}
   ${peta}
   ${kartu||'<section class="card"><p class="muted">Tidak ada murid.</p></section>'}`}
 function salin(id){
@@ -18331,7 +18356,7 @@ function ringkasPred(D){
 const kpiG=(v,l,c)=>`<div class="pn-kpi ${c||''}"><b>${v}</b><span>${l}</span></div>`;
 const predTxt=pr=>pr&&pr.cukup?`<span class="pn-pred ${pr.p>=70?'ok':pr.p>=40?'warn':'bad'}">${pr.pred}</span> <small class="muted">(${pr.lo}-${pr.hi})</small>`:'<small class="muted">butuh ≥2 TO</small>';
 function kartu(j,sub,body){return `<section class="card"><h3>${j}</h3>${sub?`<p class="small muted">${sub}</p>`:''}${body}</section>`}
-const NOTE_PRED='Prediksi = perkiraan dari tren nilai Try Out/Simulasi (percobaan pertama) sampai hari tes masing-masing murid (periode 16 Des 2026 sampai 12 Jan 2027; tanggal per murid masih perkiraan). Ini perkiraan, bukan jaminan: makin banyak TO dikerjakan, makin akurat.';
+const NOTE_PRED='Prediksi = perkiraan dari tren nilai Try Out/Simulasi (percobaan pertama) sampai hari tes masing-masing murid (periode 15 Des 2026 sampai 12 Jan 2027; tanggal per murid masih perkiraan). Ini perkiraan, bukan jaminan: makin banyak TO dikerjakan, makin akurat.';
 
 function dashboard(rows,extra){
   const D=dataTO(rows);const R=ringkasPred(D);const dl=Math.ceil((GF().UJIAN-Date.now())/864e5);
