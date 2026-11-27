@@ -1824,7 +1824,7 @@ html:has(#ar-root){overflow-anchor:none}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261127-0510"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261127-0538"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -17986,6 +17986,8 @@ function jalurIn(o,tAsli){const PJ=window.JFT_PERIODE;let rilis=[];try{rilis=win
 
 /* kekuatan satu bagian: gabungan TO pertama dan latihan section (TO diutamakan) */
 const kuat=(o,s)=>{const t=o.sec[s],l=o.lat[s];if(t.n)return t.p;if(l[1])return pc(l[0],l[1]);return null};
+const pisah=(o,s)=>{const a=o.sec[s].n?o.sec[s].p:null,l=o.lat[s][1]?pc(o.lat[s][0],o.lat[s][1]):null;return {to:a,lat:l,nTO:o.sec[s].n,nLat:o.lat[s][1]}};
+const fp=v=>v==null?'–':v+'%';
 const SECRUTE={M:'Latihan per section > Moji-goi',K:'Latihan per section > Kaiwa-hyougen',C:'Latihan per section > Choukai',D:'Latihan per section > Dokkai'};
 const SECHAF={M:'dek Kosakata wajib, Baca kanji dan Kata kerja di Hafalan JFT A2',K:'dek Hyougen dan Pola bunpou di Hafalan JFT A2',C:'dek Kata keterangan dan onomatope di Hafalan JFT A2, lalu dengarkan ulang audio TO',D:'dek Pola bunpou dan Kosakata wajib di Hafalan JFT A2 supaya cepat membaca'};
 function saran(o){
@@ -18053,7 +18055,7 @@ function berandaHTML(){
   const nilai=o.to.length?o.to[o.to.length-1].nilai:null;
   const bar=(v,c)=>`<span style="display:block;height:10px;border-radius:6px;background:#e6ecf2;overflow:hidden"><i style="display:block;height:100%;width:${v==null?0:Math.max(2,Math.min(100,v))}%;background:${c}"></i></span>`;
   const peluang=p==null?`<p class="small muted" style="margin:6px 0">Peluang lulus muncul setelah kamu mengerjakan Try Out. Mulai dari 1 paket TO.</p>`:`<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><b style="font-size:38px;line-height:1;color:${w}">${p}%</b><span><b>peluang lulus JFT A2</b> <span class="small muted">· ${labelP(p)}</span></span></div>${bar(p,w)}<p class="small muted" style="margin:6px 0 0">${o.pred.cukup?`Perkiraan nilai di hari tes: <b>${o.pred.pred}</b> (kisaran ${o.pred.lo}–${o.pred.hi}). Batas lulus 200 dari 250.`:'Perkiraan kasar, makin banyak TO makin akurat.'} Ini perkiraan hati-hati, bukan jaminan.</p>${rinciP(o)}`;
-  const sb=SEC.map(([s,n])=>{const v=kuat(o,s);const c=v==null?'#b8c0cc':v>=75?'#63be7b':v>=60?'#ffc84d':'#f8696b';return `<div style="display:grid;grid-template-columns:96px 1fr 44px;gap:8px;align-items:center;margin:5px 0"><span class="small">${n}</span>${bar(v,c)}<b class="small" style="text-align:right">${v==null?'-':v+'%'}</b></div>`}).join('');
+  const sb=SEC.map(([s,n])=>{const v=kuat(o,s);const c=v==null?'#b8c0cc':v>=75?'#63be7b':v>=60?'#ffc84d':'#f8696b';return `<div style="display:grid;grid-template-columns:96px 1fr 44px;gap:8px;align-items:center;margin:5px 0"><span class="small">${n}</span>${bar(v,c)}<b class="small" style="text-align:right">${v==null?'-':v+'%'}</b></div><div class="small muted" style="margin:-2px 0 4px 104px">Try Out ${fp(pisah(o,s).to)} · Latihan ${fp(pisah(o,s).lat)}</div>`}).join('');
   const rute={simto:'simto',psec:'psec',pondasi:'pondasi',hjft:'hjft',harian:'harian'};
   const langkah=o.saran.slice(0,3).map((s,i)=>`<li style="margin:8px 0;display:flex;gap:10px;align-items:flex-start"><button type="button" class="btn sm" style="flex:none" data-lms="nav" data-r="${rute[s.r]||'latihan'}">Gas</button><span style="min-width:0"><b>${esc(s.j)}</b><span class="small muted" style="display:block">${esc(s.d)}</span></span></li>`).join('');
   const hariIni=o.rencana.map((s,i)=>`<li style="margin:8px 0;display:flex;gap:10px;align-items:flex-start"><button type="button" class="btn sm" style="flex:none" data-lms="nav" data-r="${rute[s.r]||s.r}">${i+1}. Gas</button><span style="min-width:0"><b>${esc(s.j)}</b> <span class="small muted">· ±${s.m} menit</span><span class="small muted" style="display:block">${esc(s.d)}</span></span></li>`).join('');
@@ -18064,7 +18066,7 @@ function berandaHTML(){
   <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span aria-hidden="true">${ava}</span><div style="flex:1;min-width:180px"><h2 style="margin:0">Progres menuju lulus JFT A2${nama?' · '+esc(nama):''}</h2><span class="small muted">${TG?'Tesmu (perkiraan) '+tglS(o.tUjian)+' · ':''}tinggal ${o.sisa} hari</span></div><button type="button" class="btn sm ghost" data-lms="nav" data-r="karakter">Ganti foto profil</button></div>
   ${peluang}
   <div class="pn-kpis" style="margin-top:10px">${mini(o.to.length,'TO dikerjakan'+(o.totalTO?' dari '+o.totalTO+' terbuka':''))}${mini(nilai==null?'-':nilai,'nilai TO terakhir')}${mini(o.pond.lulus+'/'+o.pond.total,'tahap Pondasi lolos')}${mini(o.haf.dicoba+'/'+(o.haf.dek||0),'dek Hafalan dicoba')}</div>
-  <h3 style="margin:12px 0 4px">Kekuatan per bagian</h3>${sb}<p class="small muted" style="margin:2px 0 0">Hijau ≥75% · kuning 60–74% · merah di bawah 60%. Dihitung dari Try Out percobaan pertama; bagian yang belum ada TO-nya memakai latihan terakhir. Tanda “-” = belum ada data, bukan 0%.${kesT}</p>
+  <h3 style="margin:12px 0 4px">Kekuatan per bagian</h3>${sb}<p class="small muted" style="margin:2px 0 0">Hijau ≥75% · kuning 60–74% · merah di bawah 60%. Batang = Try Out percobaan pertama; bagian yang belum ada TO-nya memakai latihan. Di bawahnya hasil Try Out dan latihan biasa dipisah. Tanda “-” = belum ada data, bukan 0%.${kesT}</p>
   <h3 style="margin:12px 0 4px">Rencana belajarmu hari ini <small class="muted">(berubah mengikuti nilaimu)</small></h3><ol style="padding-left:0;margin:0;list-style:none">${hariIni}</ol></section>${jalurH}`}
 
 
@@ -18078,7 +18080,7 @@ function ringkasHTML(){
   const sub=(TG?'Tesmu (perkiraan) '+tglS(o.tUjian)+' ('+(o.sisa>0?o.sisa+' hari lagi':o.sisa===0?'hari ini':'sudah lewat')+'). ':'')+(lem?lem.n+' masih paling lemah ('+lem.v+'%).':'Mulai dari 1 paket Try Out supaya peluang lulusmu terhitung.');
   const c=L[0],cta=c?`<button type="button" class="hm-cta" data-lms="nav" data-r="${c.r}"><span><b>Mulai sekarang</b><small>${esc(c.j)} · ${c.m} menit</small></span><i aria-hidden="true">▶</i></button>`:'';
   const rows=L.slice(0,3).map((x,i)=>`<li><button type="button" data-lms="nav" data-r="${x.r}"><span class="hm-n">${i+1}</span><b>${esc(x.j)}</b><em>${x.m} mnt</em></button></li>`).join('');
-  const bars=SEC.map(([s,n])=>{const v=kuat(o,s),c2=v==null?'#b8c0cc':v>=75?'#3fa66a':v>=60?'#e0a21f':'#d9534f';return `<div class="hm-br"><span>${n}</span><span class="hm-bt"><i style="width:${v==null?0:Math.max(3,Math.min(100,v))}%;background:${c2}"></i></span><b>${v==null?'-':v+'%'}</b></div>`}).join('');
+  const bars=SEC.map(([s,n])=>{const v=kuat(o,s),c2=v==null?'#b8c0cc':v>=75?'#3fa66a':v>=60?'#e0a21f':'#d9534f';return `<div class="hm-br"><span>${n}</span><span class="hm-bt"><i style="width:${v==null?0:Math.max(3,Math.min(100,v))}%;background:${c2}"></i></span><b>${v==null?'-':v+'%'}</b><small class="muted" style="grid-column:1/-1">TO ${fp(pisah(o,s).to)} · Latihan ${fp(pisah(o,s).lat)}</small></div>`}).join('');
   return `<section class="card hm-hero" aria-label="Ringkasan belajarmu" style="--w:${w}"><div class="hm-top"><div class="hm-ring" style="--p:${p==null?0:p};--w:${w}" role="img" aria-label="Peluang lulus ${p==null?'belum terhitung':p+' persen'}"><i>${p==null?'?':`<b data-hitung="${p}">${p}</b>%`}<small>peluang</small></i></div><div class="hm-tx"><h1>${n1?'Halo '+esc(n1)+', ayo lanjut':'Ayo lanjut belajar'}</h1><p>${esc(sub)}</p></div></div>${cta}</section>
   <div class="hm-cols"><section class="card"><div class="hm-hd"><h2>Rencana hari ini</h2><button type="button" class="lnk" data-lms="nav" data-r="semua">Semua menu</button></div><ol class="hm-plan">${rows||'<li class="muted small">Belum ada rencana. Kerjakan 1 paket Try Out dulu.</li>'}</ol></section>
   <section class="card"><div class="hm-hd"><h2>Kekuatan per bagian</h2><button type="button" class="lnk" data-lms="nav" data-r="progres">Rapor</button></div>${bars}</section></div>`}
@@ -18095,8 +18097,8 @@ function pesan(nama,pl,tUjian,panggilan){
   else L.push('• Try Out: belum ada yang dikerjakan');
   if(o.pred&&o.pred.p!=null)L.push(o.pred.cukup?`• Perkiraan nilai di hari tes${tUjian?' ('+tglS(o.tUjian)+')':''}: sekitar ${o.pred.pred} (kisaran ${o.pred.lo}–${o.pred.hi}), peluang lulus sekitar ${o.pred.p}%${o.peluang?' (kisaran '+o.peluang.pLo+'–'+o.peluang.pHi+'%, '+(YAKIN[o.peluang.yakin]||'').toLowerCase()+')':''} (${labelP(o.pred.p)})`:`• Peluang lulus kasar sekitar ${o.pred.p}% (${o.to.length?'baru '+o.to.length+' TO':'belum ada TO, hanya dari latihan'}, belum akurat)`);
   if(o.peluang&&o.peluang.level&&o.peluang.p!=null)L.push(`• Perkiraan tingkat di hari tes: ${o.peluang.level.nama}${o.peluang.level.pasti?'':' (dekat batas, antara '+o.peluang.level.antara+')'}`);
-  const sb=SEC.map(([s,n])=>{const v=kuat(o,s);return v==null?null:`${n} ${v}%`}).filter(Boolean);
-  L.push('• Per bagian: '+(sb.length?sb.join(' · '):'belum ada data'));
+  const sT=SEC.map(([s,n])=>{const v=pisah(o,s).to;return v==null?null:`${n} ${v}%`}).filter(Boolean),sL=SEC.map(([s,n])=>{const v=pisah(o,s).lat;return v==null?null:`${n} ${v}%`}).filter(Boolean);
+  L.push('• Hasil Try Out per bagian: '+(sT.length?sT.join(' · '):'belum ada TO'));L.push('• Hasil latihan biasa per bagian: '+(sL.length?sL.join(' · '):'belum ada latihan'));
   L.push(`• Pondasi: ${o.pond.lulus} dari ${o.pond.total} tahap lolos · Hafalan JFT A2: ${o.haf.dicoba} dari ${o.haf.dek} dek dicoba${o.haf.minggu?'':' (belum ada sesi minggu ini)'}`);
   if(o.idle!=null)L.push(`• Terakhir belajar: ${o.idle===0?'hari ini':o.idle+' hari lalu'}`);
   L.push('');L.push('🎯 *Yang harus kamu kerjakan di web (urut prioritas)*');
@@ -18123,18 +18125,18 @@ function panelHTML(rows){
   const data=semua.filter(d=>!d.luar),luar=semua.filter(d=>d.luar);
   data.sort((a,b)=>(a.o.pred&&a.o.pred.p!=null?a.o.pred.p:-1)-(b.o.pred&&b.o.pred.p!=null?b.o.pred.p:-1));
   const rekKelas=(()=>{const ada=data.filter(d=>d.o.peluang&&d.o.peluang.p!=null);
-    const rata=SEC.map(([s,n])=>{const v=data.map(d=>kuat(d.o,s)).filter(x=>x!=null);return {s,n,v:v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null,m:v.length,rendah:data.filter(d=>{const x=kuat(d.o,s);return x!=null&&x<60}).map(d=>d.r.nama)}});
+    const rata=SEC.map(([s,n])=>{const v=data.map(d=>kuat(d.o,s)).filter(x=>x!=null);const rt=x=>x.length?Math.round(x.reduce((a,b)=>a+b,0)/x.length):null,vT=data.map(d=>pisah(d.o,s).to).filter(x=>x!=null),vL=data.map(d=>pisah(d.o,s).lat).filter(x=>x!=null);return {s,n,v:rt(v),to:rt(vT),la:rt(vL),mT:vT.length,mL:vL.length,m:v.length,rendah:data.filter(d=>{const x=kuat(d.o,s);return x!=null&&x<60}).map(d=>d.r.nama)}});
     const dist=['A2.2','A2.1','A1','Belum A1'].map(nm=>({nm,ada:ada.filter(d=>d.o.peluang.level.nama===nm),batas:ada.filter(d=>d.o.peluang.level.nama===nm&&!d.o.peluang.level.pasti).length}));
     const tanpa=data.filter(d=>!(d.o.peluang&&d.o.peluang.p!=null));
     const lemah=rata.filter(x=>x.v!=null).sort((a,b)=>a.v-b.v)[0],kuatS=rata.filter(x=>x.v!=null).sort((a,b)=>b.v-a.v)[0];
     const rataP=ada.length?Math.round(ada.reduce((a,d)=>a+d.o.peluang.p,0)/ada.length):null,lulusSekitar=ada.reduce((a,d)=>a+d.o.peluang.p/100,0);
-    const tbS=rata.map(x=>`<tr><th scope="row">${x.n}</th><td><b>${x.v==null?'-':x.v+'%'}</b></td><td>${x.m} dari ${data.length}</td><td class="small">${x.rendah.length?esc(x.rendah.join(', ')):'<span class="muted">tidak ada</span>'}</td></tr>`).join('');
+    const tbS=rata.map(x=>`<tr><th scope="row">${x.n}</th><td><b>${x.to==null?'-':x.to+'%'}</b> <span class="small muted">(${x.mT} murid)</span></td><td><b>${x.la==null?'-':x.la+'%'}</b> <span class="small muted">(${x.mL} murid)</span></td><td>${x.m} dari ${data.length}</td><td class="small">${x.rendah.length?esc(x.rendah.join(', ')):'<span class="muted">tidak ada</span>'}</td></tr>`).join('');
     const tbL=dist.map(x=>`<tr><th scope="row">${x.nm}</th><td><b>${x.ada.length}</b>${x.batas?' <span class="small muted">('+x.batas+' dekat batas)</span>':''}</td><td class="small">${x.ada.length?esc(x.ada.map(d=>d.r.nama).join(', ')):'<span class="muted">-</span>'}</td></tr>`).join('');
     const saran=lemah?`Fokuskan sesi kelas ke <b>${lemah.n}</b> (rata-rata ${lemah.v}%)${lemah.rendah.length?', terutama untuk '+esc(lemah.rendah.slice(0,6).join(', '))+(lemah.rendah.length>6?' dan '+(lemah.rendah.length-6)+' lainnya':''):''}. Bagian terkuat: ${kuatS.n} (${kuatS.v}%).`:'Belum ada data per bagian.';
     return `<section class="card"><h2>Rekomendasi kelas dan tingkat murid</h2><p class="small muted">Tingkat dari perkiraan nilai di hari tes (Belum A1 di bawah 145, A1 145–174, A2.1 175–199, A2.2 mulai 200). Tanda "dekat batas" berarti kisaran nilainya menyeberang dua tingkat. Peluang dihitung sesuai tanggal ujian tiap murid.</p>
     <p><b>Rata-rata peluang lulus kelas: ${rataP==null?'-':rataP+'%'}</b>${ada.length?' · perkiraan murid lulus sekitar '+lulusSekitar.toFixed(1)+' dari '+ada.length+' yang punya data':''}${tanpa.length?' · belum ada data: '+tanpa.length+' murid':''}</p>
     <p>${saran}</p>
-    <div class="pn-scroll"><table class="pn-t"><thead><tr><th>Bagian</th><th>Rata-rata kelas</th><th>Murid berdata</th><th>Di bawah 60%</th></tr></thead><tbody>${tbS}</tbody></table></div>
+    <div class="pn-scroll"><table class="pn-t"><thead><tr><th>Bagian</th><th>Rata-rata Try Out</th><th>Rata-rata latihan biasa</th><th>Murid berdata</th><th>Di bawah 60%</th></tr></thead><tbody>${tbS}</tbody></table></div>
     <div class="pn-scroll" style="margin-top:8px"><table class="pn-t"><thead><tr><th>Tingkat</th><th>Jumlah</th><th>Murid</th></tr></thead><tbody>${tbL}</tbody></table></div>
     ${luar.length?`<p class="small muted">Tidak dihitung (bukan batch ujian Des–Jan): ${esc(luar.map(d=>d.r.nama).join(', '))}.</p>`:''}</section>`})();
   const peta=window.JALUR&&data.length?(()=>{const rk=JALUR.ringkasKelas(data.filter(d=>d.o.jalur).map(d=>({nama:d.r.nama,plan:d.o.jalur})));
