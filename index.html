@@ -1824,7 +1824,7 @@ html:has(#ar-root){overflow-anchor:none}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261128-0156"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261128-0403"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -13027,16 +13027,22 @@ async function beat(force){
   try{await db.doc('data/users/'+id+'/live').set(doc);lastSend=now;lastKey=key}catch(e){}
   flushPl();
 }
+/* Batas isi log: SEMUA hasil Paket TO selalu disimpan (data rapor), log lain dibatasi 400 terakhir. */
+const PLCAP=a=>{const to=a.filter(x=>x&&/^to:/.test(x.k)),ot=a.filter(x=>!(x&&/^to:/.test(x.k)));return to.concat(ot.slice(-400)).sort((x,y)=>x.t-y.t)};
+let plErr=null,plOkAt=0;
 async function flushPl(){
   if(!dirtyPl||!cfg)return;const db=cfg.db(),id=cfg.id();if(!db||!id||cfg.owner())return;
   const mine=dirtyPl;
-  try{const ref=db.doc('data/users/'+id+'/plog');let rem=[];try{const s=await ref.get();if(s.exists)rem=(s.data()||{}).items||[]}catch(e){}
+  try{const ref=db.doc('data/users/'+id+'/plog');
+    /* gagal membaca server = berhenti dan coba lagi nanti; JANGAN menimpa riwayat server dengan log lokal saja */
+    const s=await ref.get();const rem=s&&s.exists?((s.data()||{}).items||[]):[];
     const m=new Map();rem.concat(mine).forEach(x=>{if(x&&x.t)m.set(x.t+'|'+x.k,x)});
-    const items=[...m.values()].sort((a,b)=>a.t-b.t).slice(-400);
+    const items=PLCAP([...m.values()]);
     await ref.set({uid:id,nama:cfg.nama(),items,at:Date.now()});
-    if(dirtyPl===mine)dirtyPl=null;
-  }catch(e){}
+    if(dirtyPl===mine)dirtyPl=null;plOkAt=Date.now();plErr=null;
+  }catch(e){plErr=String((e&&e.message)||e||'gagal')}
 }
+const syncStatus=()=>({skip:!!(cfg&&cfg.owner()),pending:!!dirtyPl,err:plErr,okAt:plOkAt});
 
 /* ---------- Jejak aktivitas (sisi murid): keluar aplikasi, pindah jendela, translate, salin/tempel ---------- */
 const BUSYK=['ujian','remedial','batsu','latihan'];
@@ -13075,6 +13081,8 @@ function init(c){
   window.addEventListener('online',()=>beat(true));
   setTimeout(()=>beat(true),1500);
   const l=lsGet('lms:plog');if(l&&l.length)dirtyPl=l;
+  setInterval(()=>{if(dirtyPl)flushPl()},15000);
+  window.addEventListener('pagehide',()=>{flushPl()});
 }
 
 /* ---------- Peta kelas (Dunia Akimichi) ---------- */
@@ -13093,7 +13101,7 @@ function peta(rows){
   svg+='</svg>';
   return `<div class="peta-w">${svg}</div><p class="small muted">${on.length} online. ${off.length?'Belum online: '+off.slice(0,24).map(r=>esc(r.nama)).join(', ')+(off.length>24?' dan lainnya':''):'Semua murid online.'}</p>`;
 }
-return {chart,xl,xl2,detail,build,csvRows,csvHead,csv,liveHTML,masalahHTML,peta,stOf,fmt,ago,pc,pill,esc,init,beat,pushPlog:l=>{dirtyPl=l;flushPl()},note:()=>beat(false)};
+return {chart,xl,xl2,detail,build,csvRows,csvHead,csv,liveHTML,masalahHTML,peta,stOf,fmt,ago,pc,pill,esc,init,beat,pushPlog:l=>{dirtyPl=l;flushPl()},syncStatus,kirimUlang:()=>flushPl(),note:()=>beat(false)};
 })();
 
 </script>
@@ -16111,17 +16119,26 @@ function resultHTML(){
    <p style="font-size:30px;margin:6px 0"><b>${R.total}</b> <small>/ 250</small> · <b>${esc(L[0])}</b></p><p class="small muted">${esc(L[1])}. Skor resmi JFT adalah satu skor total hasil penyetaraan yang tidak dipublikasi dan <b>tidak punya poin per bagian</b>, jadi angka ini hanya perkiraan. Untuk memperkirakan skor total, aplikasi memberi bobot sama pada keempat bagian (tiap bagian sekitar 12 soal), karena bobot resmi tidak dipublikasi. Lulus A2 = 200 ke atas. Waktu ${mm(R.dur)}.</p>
    <h3>Persentase benar per bagian</h3><div class="slbars">${bars}</div></section>${window.SERT?SERT.dari(R):''}<section class="card" style="margin-top:0;border-top:0">
    ${R.tahan?`<p class="small muted">${R.tahan} soal Choukai ditahan karena audionya belum ada, tetap ikut dihitung sebagai soal.</p>`:''}
+   ${R.mode==='m'?syncHTML():''}
    <div class="actions">${R.mode==='m'?'':`<button type="button" class="btn" data-tod-start="${esc(R.kode)}">Ulangi paket ini</button>`}<button type="button" class="btn ghost" data-tod-home="1">Pilih paket lain</button></div>
    ${LASTIT&&LASTIT.E0.kode===R.kode?`<div class="actions"><button type="button" class="btn" data-tod-rev="1" ${REV&&REV.muat?'disabled':''}>${REV&&REV.muat?'Memuat jawaban...':REV&&REV.buka?'Tutup jawaban':'Lihat jawaban dan pembahasan'}</button></div>${REV&&REV.err?`<p class="status warn">${esc(REV.err)}</p>`:''}`:''}</section>${reviewHTML()}`;
 }
+let DONE={};
+function selesaiSaya(){const m={};try{(TINDAK.plSaya()||[]).filter(x=>x&&/^to:/.test(x.k)&&(x.n||x.sc)).sort((x,y)=>(x.t||0)-(y.t||0)).forEach(x=>{const k=x.k.slice(3),v=window.TO_POIN?TO_POIN(x.sc):null;const o=m[k]||(m[k]={n:0,best:null,last:null,lemah:''});o.n++;o.last=v;o.lastT=x.t||0;if(v!=null&&(o.best==null||v>o.best))o.best=v;
+  let w=null;['M','K','C','D'].forEach(s0=>{const q=x.sc&&x.sc[s0];if(q&&q[1]){const pc=q[0]/q[1];if(!w||pc<w[1])w=[s0,pc]}});o.lemah=w?SECN(w[0]).split(' ')[0]+' '+Math.round(w[1]*100)+'%':''})}catch(e){}return m}
+const ketNilai=v=>v==null?'':v>=200?'Lulus A2':v>=175?'Hampir (A2.1)':'Perlu diulang';
+function syncHTML(){try{const st=window.PANTAU&&PANTAU.syncStatus?PANTAU.syncStatus():null;if(!st||st.skip)return '';
+  if(st.err||st.pending)return `<div class="status warn small" role="status" style="margin:8px 0"><b>${st.err?'Hasil TO belum terkirim ke Sensei.':'Hasil TO sedang dikirim ke Sensei...'}</b> Jangan tutup aplikasi dulu dan pastikan internet menyala. <button type="button" class="btn ghost sm" data-tod-kirim="1">Kirim ulang sekarang</button></div>`;
+  return '<div class="small" role="status" style="margin:8px 0;color:var(--ok,#2d7a3a)"><b>✓ Semua hasil TO-mu sudah terkirim ke Sensei.</b></div>'}catch(e){return ''}}
 function kartu(p,mode){
   const c={};p.sections.forEach(s=>c[s.sec]=s.n);const tot=p.sections.reduce((a,s)=>a+s.n,0);
   const th=p.sections.reduce((a,s)=>a+s.qs.filter(q=>q.tahan).length,0),au=p.sections.reduce((a,s)=>a+s.qs.filter(q=>q.audio).length,0);
   const sv=saved(p.kode,mode);
   const info=`<b>${esc(p.nama)}</b> <span class="small muted">· ${tot} soal · 60 menit${levelP(p)!=='Standar'?' · level '+levelP(p):''}</span><div class="small muted" style="margin-top:4px">${SEC.map(s=>s[1].split(' ')[0]+' '+(c[s[0]]||0)).join(' · ')}</div>${mode==='m'?'':`<div class="small" style="margin-top:4px">Choukai: ${au} soal ada audio${th?` · <span class="tier t2">${th} ditahan (audio belum ada)</span>`:''}</div>`}`;
-  if(!sv)return `<button type="button" class="card ujm-babcard" data-tod-start="${esc(p.kode)}" style="text-align:left;width:100%;cursor:pointer">${info}</button>`;
+  const dn=mode==='m'?DONE[p.kode]:null,tag=mode!=='m'?'':dn?`<div class="small" style="margin-top:6px"><b style="color:var(--ok,#2d7a3a)">✓ Sudah dikerjakan ${dn.n}x</b>${dn.last!=null?`<div style="margin-top:2px"><b>Nilai terakhir: ${Math.round(dn.last)}</b> / 250 · terbaik ${Math.round(dn.best)}${dn.last<200?` · <b style="color:var(--bad,#b3261e)">${ketNilai(dn.last)}</b>`:` · <b style="color:var(--ok,#2d7a3a)">${ketNilai(dn.last)}</b>`}</div>${dn.last<200&&dn.lemah?`<div class="muted">Paling lemah: ${esc(dn.lemah)}</div>`:''}`:''}</div>`:'<div class="small" style="margin-top:6px"><b>● Belum dikerjakan</b></div>';
+  if(!sv)return `<button type="button" class="card ujm-babcard" data-tod-start="${esc(p.kode)}" style="text-align:left;width:100%;cursor:pointer">${info}${tag}</button>`;
   const ask=ASK===p.kode;
-  return `<div class="card ujm-babcard" style="text-align:left">${info}<div class="status warn small" style="margin-top:6px">Ada sesi tersimpan · waktu berhenti di sisa <b>${mm(sv.sisa)}</b>.</div><div class="actions"><button type="button" class="btn sm" data-tod-resume="${esc(p.kode)}">▶ Lanjutkan</button>${ask?`<button type="button" class="btn sm" data-tod-fresh="${esc(p.kode)}">Yakin, mulai ulang (hapus sesi)</button><button type="button" class="btn ghost sm" data-tod-askno="1">Tidak</button>`:`<button type="button" class="btn ghost sm" data-tod-ask="${esc(p.kode)}">Mulai ulang</button>`}</div></div>`;
+  return `<div class="card ujm-babcard" style="text-align:left">${info}${tag}<div class="status warn small" style="margin-top:6px">Ada sesi tersimpan · waktu berhenti di sisa <b>${mm(sv.sisa)}</b>.</div><div class="actions"><button type="button" class="btn sm" data-tod-resume="${esc(p.kode)}">▶ Lanjutkan</button>${ask?`<button type="button" class="btn sm" data-tod-fresh="${esc(p.kode)}">Yakin, mulai ulang (hapus sesi)</button><button type="button" class="btn ghost sm" data-tod-askno="1">Tidak</button>`:`<button type="button" class="btn ghost sm" data-tod-ask="${esc(p.kode)}">Mulai ulang</button>`}</div></div>`;
 }
 const WIBt=ms=>{const d=new Date(ms+7*36e5);return d.getUTCDate()+' '+['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][d.getUTCMonth()]+' pukul '+String(d.getUTCHours()).padStart(2,'0')+'.'+String(d.getUTCMinutes()).padStart(2,'0')+' WIB'};
 function paletHTML(pt){
@@ -16132,12 +16149,14 @@ const tglAkhir=pt=>{const d=new Date(pt.akhirTO+7*36e5);return d.getUTCDate()+' 
 function menuHTML(mode){
   const L=mode==='m'?PK().filter(p=>buka().includes(p.kode)):PK();
   const pt=mode==='m'?paletSaya():null;
+  DONE=mode==='m'?selesaiSaya():{};const nSudah=L.filter(p=>DONE[p.kode]).length,ringkasDone=mode==='m'&&L.length?`<section class="card"><b>Progres TO-mu: ${nSudah} dari ${L.length} paket terbuka sudah dikerjakan</b>${nSudah<L.length?`<div class="small" style="margin-top:4px">Belum dikerjakan: ${L.filter(p=>!DONE[p.kode]).map(p=>esc(p.nama)).join(', ')}</div>`:'<div class="small" style="margin-top:4px">Semua paket yang terbuka sudah kamu kerjakan. Tunggu paket berikutnya.</div>'}</section>`:'';
   const nunggu=mode==='m'&&!pt?menunggu():[];
   const kunci=p=>`<div class="card ujm-babcard" style="text-align:left;opacity:.75"><b>${esc(p.nama)}</b> <span class="small muted">· ${p.sections.reduce((a,s)=>a+s.n,0)} soal · 60 menit</span><div class="small" style="margin-top:6px">🔒 Dibuka <b>${esc(tglF(jadwalP(p)))}</b></div></div>`;
   const cards=LEVELS.map(lv=>{const a=L.filter(p=>levelP(p)===lv),b=nunggu.filter(p=>levelP(p)===lv);if(!a.length&&!b.length)return '';
     return `<h2 class="small" style="margin:14px 0 6px">Level ${esc(lv)} <span class="muted">· ${a.length} paket${b.length?' · '+b.length+' terjadwal':''}</span></h2><div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${a.map(p=>kartu(p,mode)).join('')}${b.map(kunci).join('')}</div>`}).join('');
   if(mode==='m')return `<button type="button" class="backlink" data-lms="go" data-r="latihan">← Latihan</button><h1 class="pgt">Simulasi JFT A2 · Paket TO</h1>
   <section class="card"><p class="small muted">Aturan seperti ujian asli: 4 bagian berurutan (Moji-goi, Kaiwa, Choukai, Dokkai), total 60 menit. Bagian yang sudah ditinggalkan terkunci. Choukai tanpa kembali, audio maksimal 2 kali putar. Kalau kamu keluar dari paket, <b>waktu berhenti</b> dan bisa dilanjutkan dari sisa waktu. Kalau waktu habis, jawaban terkirim otomatis dan hasilnya muncul. Skor hanya perkiraan (empat bagian berbobot sama, total 250), lulus A2 = 200 ke atas. Setelah selesai kamu bisa membuka pembahasan tiap soal.</p><p class="small muted">Sesimu juga disimpan di server, jadi bisa dilanjutkan dari HP lain dengan akun yang sama.</p><p class="small muted">Bagian dengar (Choukai) masih dalam pengecekan guru.</p></section>
+  ${ringkasDone}${mode==='m'?syncHTML():''}
   ${pt?paletHTML(pt):''}
   ${awanErr?`<div class="status warn" role="alert">Cadangan sesi ke server belum berhasil. Sesi tetap tersimpan di HP ini. Jangan ganti HP di tengah paket.</div>`:''}
   ${err?`<div class="status warn" role="alert">${esc(err)}</div>`:''}
@@ -16255,9 +16274,11 @@ function raporMurid(id,H,pill,tbl,fm){
     return `<h3 style="margin-top:14px">${esc(kode)} · ${A.length} kali dikerjakan · terbaik ${Math.max(...sk)}</h3>${tbl(['Percobaan','Waktu','Moji','Kaiwa','Choukai','Dokkai','Skor','Naik/turun','Status'],rows,'')}${peta}`}).join('');
   const sec=['M','K','C','D'].map(s=>{const f=L.find(x=>x.sc&&x.sc[s]),l=[...L].reverse().find(x=>x.sc&&x.sc[s]);if(!f)return '';const a=pct(f.sc[s][0],f.sc[s][1]),b=pct(l.sc[s][0],l.sc[s][1]);return `<span class="chipf">${esc(SECN(s).split(' ')[0])}: ${a}% → ${b}%</span>`}).join(' ');
   return `<section class="card" id="tod-rapor" style="border-left:4px solid var(--accent,#1e6fb8)"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2>Rapor TO · ${esc(nama)}</h2><button type="button" class="btn ghost sm" data-tod-tmur="">Tutup</button></div>
-  <p class="small">${L.length} kali mengerjakan Paket TO. Perkembangan per bagian (percobaan pertama → terakhir): ${sec}</p>${blok}</section>`;
+  <p class="small">${(()=>{const d=window.TINDAK&&TINDAK.daftarTO?(TINDAK.daftarTO(LROWS)||[]).find(x=>x.id===id):null;return d?'<b>Belum dikerjakan ('+d.belum.length+'):</b> '+(d.belum.length?d.belum.map(x=>esc(x.nama)).join(', '):'semua paket terbuka sudah dikerjakan')+'<br>':''})()}${L.length} kali mengerjakan Paket TO. Perkembangan per bagian (percobaan pertama → terakhir): ${sec}</p>${blok}</section>`;
 }
+let LROWS=[];
 function panel(PL,RS,ROWS){
+  LROWS=ROWS||[];
   const H=hasil(PL,RS),B=buka(),fm=window.PANTAU?PANTAU.fmt:String;
   const pill=p=>p==null?'-':`<span class="badge ${p>=75?'ok':'no'}" style="${p>=60&&p<75?'background:var(--warn-soft);color:var(--warn)':''}">${p}%</span>`;
   const tbl=(head,body,kosong)=>body?`<div class="tw xl"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`:`<p class="muted small">${kosong}</p>`;
@@ -16267,6 +16288,8 @@ function panel(PL,RS,ROWS){
   const toggles=LEVELS.map(lv=>{const A=PK().filter(p=>levelP(p)===lv);if(!A.length)return '';
     return `<h3 style="margin:12px 0 6px">Level ${esc(lv)} <span class="small muted">· ${A.length} paket · ${A.filter(p=>B.includes(p.kode)).length} terbuka</span></h3><div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${A.map(p=>{const why=layak(p),on=B.includes(p.kode),tot=p.sections.reduce((a,s)=>a+s.n,0);
     return `<div class="card" style="display:flex;gap:10px;align-items:flex-start;padding:10px;${why?'opacity:.65':''}"><input type="checkbox" data-tod-bk="${esc(p.kode)}" aria-label="Buka ${esc(p.nama)}" ${on?'checked':''} ${why?'disabled':''} style="margin-top:4px"><span><b>${esc(p.nama)}</b> <span class="small muted">· ${tot} soal</span><br><span class="small ${why?'':'muted'}">${stat(p,why,on)}</span>${why?'':`<br><label class="small"><input type="checkbox" data-tod-pk="${esc(p.kode)}" ${paksaL().includes(p.kode)?'checked':''}> Paksa buka untuk semua murid</label>`}${why?'':jd(p)}${why||!on&&!paksaL().includes(p.kode)?'':`<br><button type="button" class="btn ghost sm" data-tod-link="${esc(p.kode)}">Salin tautan murid</button>`}</span></div>`}).join('')}</div>`}).join('');
+const DT=window.TINDAK&&TINDAK.daftarTO?TINDAK.daftarTO(ROWS||[]):null;
+  const cek=DT===null?'<p class="muted small">Memuat jadwal ujian murid...</p>':DT.length?`<div class="tw xl"><table><thead><tr><th>Murid</th><th>Sudah dikerjakan (nilai /250, ⚠ = terakhir di bawah 200)</th><th>Belum dikerjakan (sudah terbuka)</th></tr></thead><tbody>${DT.slice().sort((a,b)=>b.belum.length-a.belum.length||String(a.nama).localeCompare(String(b.nama),'id')).map(d=>`<tr><td class="wrap-t"><b>${esc(d.nama)}</b></td><td class="wrap-t small"><b>${d.sudah.length}</b>${d.sudah.length?': '+d.sudah.map(x=>esc(x.nama)+' <span class="muted">(terakhir '+(x.last!=null?Math.round(x.last):'-')+', terbaik '+(x.best!=null?Math.round(x.best):'-')+(x.n>1?', '+x.n+'x':'')+')</span>'+(x.last!=null&&x.last<200?' ⚠':'')).join('; '):''}</td><td class="wrap-t small"><b>${d.belum.length}</b>${d.belum.length?': '+d.belum.map(x=>esc(x.nama)).join(', '):' · semua terbuka sudah dikerjakan'}${d.menyusul?`<br><span class="muted">${d.menyusul} paket lagi menyusul sesuai Palet</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted small">Belum ada murid.</p>';
   const BT=window.TINDAK&&TINDAK.belumTerlihat?TINDAK.belumTerlihat(ROWS||[]):null;
   const sembunyi=BT===null?'<p class="muted small">Memuat jadwal ujian murid...</p>':(()=>{const ks=Object.keys(BT).filter(k=>PK().some(p=>p.kode===k));return ks.length?`<div class="tw xl"><table><thead><tr><th>Paket</th><th>Belum terlihat oleh</th><th>Tindakan</th></tr></thead><tbody>${ks.map(k=>{const p=PK().find(x=>x.kode===k);return `<tr><td><b>${esc(p.nama)}</b></td><td class="wrap-t small"><b>${BT[k].length}</b> murid: ${esc(BT[k].join(', '))}</td><td><button type="button" class="btn sm" data-tod-pkbtn="${esc(k)}">Paksa buka</button> <button type="button" class="btn ghost sm" data-tod-link="${esc(k)}">Salin tautan</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="small">Aman: semua paket yang terbuka sudah terlihat oleh murid ber-Palet.</p>'})();
   /* kelas: lulus, rata-rata per bagian (hasil terakhir tiap murid per paket) */
@@ -16302,6 +16325,7 @@ function panel(PL,RS,ROWS){
   const rows=H.slice(0,200).map(x=>{const sc=x.sc||{};const e=Math.round(est(sc));
     return `<tr><td>${fm(x.t)}</td><td class="wrap-t"><b>${esc(x.nama)}</b></td><td>${esc(String(x.k).slice(3))}</td>${['M','K','C','D'].map(k=>`<td>${sc[k]?pill(pct(sc[k][0],sc[k][1])):'-'}</td>`).join('')}<td><b>${e}</b> / 250</td><td>${x.ok}/${x.n}</td><td>${x.dur!=null?mm(x.dur):'-'}</td><td>${x.auto?'<span class="badge wait">Waktu habis</span>':'Selesai'}${x.gagal?' <span class="badge no">'+x.gagal+' gagal</span>':''}</td></tr>`}).join('');
   return `<section class="card"><h2>Paket TO untuk murid</h2><p class="small muted"><b>Murid yang tanggal ujiannya sudah terisi memakai Palet TO pribadi</b> (paket dan tanggal buka disusun menurut hari ujian dan kemampuan masing-masing, lihat tab Tindak lanjut); pengaturan di bawah ini berlaku untuk murid tanpa tanggal ujian dan sebagai penutup (tutup paket) untuk semua. Murid ber-Palet hanya melihat paket sesuai jatah slotnya (centang biasa belum membuatnya muncul untuk mereka). Mau paket langsung muncul untuk SEMUA murid? Centang <b>Paksa buka untuk semua murid</b> di kartu paketnya; paket itu tidak memakai jatah Palet. Centang paket yang boleh dikerjakan murid di menu Simulasi TO, atau isi tanggal jadwal buka (paket terbuka otomatis pada tanggal itu, waktu WIB). Perubahan langsung berlaku, tanpa terbit ulang. Paket yang masih punya soal ditahan atau Choukai tanpa audio tidak bisa dibuka. Kalau kunci Choukai satu paket ternyata salah, cukup hilangkan centangnya.</p>
+   <section class="card" id="tod-cek" style="border-left:4px solid var(--accent,#1e6fb8)"><h3>Checklist TO per murid: sudah dan belum dikerjakan</h3>${(()=>{const L0=window.LMS_PLIVE;if(!L0)return '<p class="small muted">Menunggu koneksi live ke server...</p>';const t=new Date(L0.at+7*36e5),jm=String(t.getUTCHours()).padStart(2,'0')+'.'+String(t.getUTCMinutes()).padStart(2,'0')+'.'+String(t.getUTCSeconds()).padStart(2,'0');return L0.err?'<p class="small" style="color:var(--bad,#b3261e)"><b>⚠ Koneksi live terputus.</b> Data bisa tertinggal. Muat ulang halaman. Terakhir tersambung '+jm+' WIB.</p>':'<p class="small" style="color:var(--ok,#2d7a3a)"><b>● Live</b> · data '+L0.n+' murid, diperbarui '+jm+' WIB. Hasil murid masuk otomatis begitu paketnya selesai.</p>'})()}<p class="small muted">Daftar ini sama dengan yang dilihat murid di menu Simulasi TO. Hanya paket yang sudah terbuka untuk murid itu yang dihitung "belum". Ketuk nama murid di tabel di bawah untuk rapor lengkapnya.</p>${cek}</section>
    <section class="card" id="tod-belum" style="border-left:4px solid var(--warn,#c77d00)"><h3>Paket terbuka tapi belum terlihat murid</h3><p class="small muted">Murid ber-Palet hanya melihat paket sesuai jatah slot. Kalau murid bilang paket tidak muncul, cek di sini lalu pakai Paksa buka.</p>${sembunyi}</section>
    ${toggles}
    <div class="actions"><button type="button" class="btn ghost sm" data-tod-bkall="def">Buka semua yang layak (${bukaDef().length})</button><button type="button" class="btn ghost sm" data-tod-bkall="none">Tutup semua</button></div><p class="small muted" id="tod-bkmsg" role="status"></p></section>
@@ -16328,7 +16352,8 @@ function salinTeks(t,fn){const fb=()=>{const a=document.createElement('textarea'
   try{navigator.clipboard.writeText(t).then(()=>fn(true),fb)}catch(e){fb()}}
 function tautanMurid(kd){const p=PK().find(x=>x.kode===kd);if(!p)return '';const u=location.origin+location.pathname;
   return 'Paket Try Out "'+p.nama+'" sudah dibuka untukmu. Buka '+u+' lalu masuk ke menu Simulasi TO dan pilih paket itu. Kalau belum muncul, muat ulang halaman (tarik layar ke bawah di HP). Semangat! 💪'}
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tod-pkbtn]');if(b){paksaBuka(b.dataset.todPkbtn);return}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-tod-kirim]')){try{PANTAU.kirimUlang();setTimeout(redraw,1500)}catch(x){}return}
+  const b=e.target.closest&&e.target.closest('[data-tod-pkbtn]');if(b){paksaBuka(b.dataset.todPkbtn);return}
   const l=e.target.closest&&e.target.closest('[data-tod-link]');if(!l)return;const tx=tautanMurid(l.dataset.todLink);if(!tx)return;
   salinTeks(tx,ok=>{const m=document.getElementById('tod-bkmsg');if(m)m.textContent=ok?'Tautan tersalin. Tempel di WhatsApp murid.':'Gagal menyalin. Pesan: '+tx})});
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-jd]'))return;
@@ -18228,8 +18253,20 @@ function lihatMurid(d){const o=d.o,p=o.peluang,pal=o.palet,pk=(pal&&pal.paksa)||
   <ul class="small" style="margin:6px 0 0 18px"><li>Ujian: ${d.inf.tUjian?tglS(d.inf.tUjian)+' ('+o.sisa+' hari lagi)':'tanggal belum ada, ia memakai jadwal umum'}</li>
   <li>Peluang lulus: ${p&&p.p!=null?p.p+'% · '+esc(p.level.nama)+(p.level.pasti?'':' (dekat batas)'):'belum ada data'}</li>
   <li>Paket TO yang terbuka untuknya (${buka.length}): ${lst}</li>
+  <li>Belum dikerjakan (dari yang terbuka): ${(()=>{const b=buka.filter(k=>!sudah.has(k));return b.length?b.map(k=>esc(TOnama('to:'+k))).join(', '):'semua paket terbuka sudah dikerjakan'})()}</li>
   <li>Paket Palet berikutnya: ${nx}</li>
   <li class="muted">★ dipaksa buka oleh Sensei · ✓ sudah dikerjakan</li></ul></div>`}
+/* Checklist TO per murid: yang sudah dikerjakan (percobaan pertama + skor) dan yang terbuka tapi belum dikerjakan. Sumber sama dengan tampilan murid. */
+function daftarTO(rows){
+  muatGuru();if(!JDW||!window.TODRAF)return null;
+  const layak=TODRAF.bukaDef();
+  return (rows||[]).filter(r=>!/BUKAN BATCH/i.test(infoMurid(r.id).catatan||'')).map(r=>{
+    const o=analisa(r.pl||[],infoMurid(r.id).tUjian||null),done=new Set(o.to.map(a=>a.k.slice(3))),bk=new Set(o.buka||[]);
+    return {id:r.id,nama:r.nama,
+      sudah:(()=>{const g={};(r.pl||[]).filter(x=>x&&/^to:/.test(x.k)&&(x.n||x.sc)).sort((a,b)=>(a.t||0)-(b.t||0)).forEach(x=>{(g[x.k]=g[x.k]||[]).push(x)});
+        return Object.keys(g).map(k=>{const A=g[k],v=A.map(x=>poin(x.sc)),ok=v.filter(y=>y!=null),lt=A[A.length-1];return {kode:k.slice(3),nama:TOnama(k),n:A.length,last:poin(lt.sc),best:ok.length?Math.max(...ok):null,lastT:lt.t||0}}).sort((a,b)=>a.lastT-b.lastT)})(),
+      belum:(o.buka||[]).filter(k=>!done.has(k)).map(k=>({kode:k,nama:TOnama('to:'+k)})),
+      menyusul:layak.filter(k=>!bk.has(k)&&!done.has(k)).length}})}
 /* Paket yang sudah dicentang/terbuka umum tetapi belum terlihat murid ber-Palet batch ini (jatah slot belum sampai). Dipakai panel Paket TO. */
 function belumTerlihat(rows){
   muatGuru();if(!JDW||!window.TODRAF)return null;
@@ -18281,7 +18318,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 document.addEventListener('input',e=>{const t=e.target;if(t&&t.id==='ti-q'){CARI=t.value;try{window.LMS_REDRAW&&LMS_REDRAW(0)}catch(x){}const n=document.getElementById('ti-q');if(n){n.focus();try{n.setSelectionRange(CARI.length,CARI.length)}catch(x){}}}});
 function tUjian(id){muatGuru();const inf=infoMurid(id);return inf.tUjian||undefined}
 function analisaSaya(){const z=sisaSaya();return analisa(plSaya(),z?z.tglAsli:null)}
-window.TINDAK={belumTerlihat,ringkasHTML,analisaSaya,prioDek,rencana,tUjian,sisaSaya,plSaya,analisa,berandaHTML,panelHTML,pesan,saran};
+window.TINDAK={daftarTO,belumTerlihat,ringkasHTML,analisaSaya,prioDek,rencana,tUjian,sisaSaya,plSaya,analisa,berandaHTML,panelHTML,pesan,saran};
 })();
 
 </script>
@@ -19071,7 +19108,7 @@ function curAct(){
 }
 function misSnap(){try{const d=me();return {done:d.done,k:!!d.ms[0].done,t:!!d.ms[1].done,r:!!d.ms[2].done,batsu:!!d.batsu,miss:d.miss||0,streak:d.streak,full:!!d.fullToday,day:d.ka.dkey()}}catch(e){return null}}
 /* ---- log latihan (lokal di perangkat murid) untuk Rapor per kategori ---- */
-window.lmsLog=function(k,ok,n,sc,ex){if(!n)return;const l=lsGet('lms:plog')||[];l.push(Object.assign({t:Date.now(),k,ok,n},sc?{sc}:{},ex||{}));const c=l.slice(-400);lsSet('lms:plog',c);try{PANTAU.pushPlog(c)}catch(e){}};
+window.lmsLog=function(k,ok,n,sc,ex){if(!n)return;const l=lsGet('lms:plog')||[];l.push(Object.assign({t:Date.now(),k,ok,n},sc?{sc}:{},ex||{}));const to=l.filter(x=>x&&/^to:/.test(x.k)),c=to.concat(l.filter(x=>!(x&&/^to:/.test(x.k))).slice(-400)).sort((a,b)=>a.t-b.t);lsSet('lms:plog',c);try{PANTAU.pushPlog(c)}catch(e){}};
 /* ---- kategori Latihan + layar petunjuk ---- */
 const LATCAT={kosa:['語','Kosakata dan Kanji','Latih arti, bacaan, dan kanji dari buku Irodori.'],tata:['文','Tata Bahasa dan Kalimat','Pola kalimat, partikel, susun kalimat, dan ungkapan.'],kata:['動','Kata Kerja dan Kata Sifat','Perubahan bentuk kata kerja dan latihan kata sifat.']};
 const PETS={
@@ -19948,7 +19985,7 @@ async function start(){
       try{dbx.doc('config/reset-'+LMS.account.id).onSnapshot(x=>{const at=x.exists?(+x.data().at||0):0;if(at&&at>(lsGet('lms:resetAt')||0)){applyReset(at)}},()=>{})}catch(e){}
     }
     if(dbx&&OWNER){
-      try{dbx.tree('data/users').onSnapshot(sn=>{const L={},P={};sn.docs.forEach(x=>{const m=/^([0-9a-f-]{36})\/(live|plog)$/.exec(x.id);if(!m)return;(m[2]==='live'?L:P)[m[1]]=x.data()});LIVE=L;PLOGS=P;if(CUR==='guru'&&GT!=='hadiah')softRender()},()=>{})}catch(e){}
+      try{dbx.tree('data/users').onSnapshot(sn=>{const L={},P={};sn.docs.forEach(x=>{const m=/^([0-9a-f-]{36})\/(live|plog)$/.exec(x.id);if(!m)return;(m[2]==='live'?L:P)[m[1]]=x.data()});LIVE=L;PLOGS=P;window.LMS_PLIVE={at:Date.now(),n:Object.keys(P).length,err:false};if(CUR==='guru'&&GT!=='hadiah')softRender()},()=>{window.LMS_PLIVE=Object.assign({},window.LMS_PLIVE||{},{err:true});if(CUR==='guru')softRender()})}catch(e){}
       try{dbx.collection('config').onSnapshot(sn=>{const R={};sn.docs.forEach(x=>{if(/^reset-/.test(x.id))R[x.id.slice(6)]=+(x.data()||{}).at||0});RESET=R;if(CUR==='guru')softRender()},()=>{})}catch(e){}
       setInterval(()=>{if(CUR==='guru'&&GT==='live'&&!document.hidden)softRender()},15000);
       setInterval(()=>{if(CUR==='guru'&&!document.hidden)accLoad()},20000);
