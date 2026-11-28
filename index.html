@@ -1824,7 +1824,7 @@ html:has(#ar-root){overflow-anchor:none}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261128-0107"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261128-0156"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -16257,7 +16257,7 @@ function raporMurid(id,H,pill,tbl,fm){
   return `<section class="card" id="tod-rapor" style="border-left:4px solid var(--accent,#1e6fb8)"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2>Rapor TO · ${esc(nama)}</h2><button type="button" class="btn ghost sm" data-tod-tmur="">Tutup</button></div>
   <p class="small">${L.length} kali mengerjakan Paket TO. Perkembangan per bagian (percobaan pertama → terakhir): ${sec}</p>${blok}</section>`;
 }
-function panel(PL,RS){
+function panel(PL,RS,ROWS){
   const H=hasil(PL,RS),B=buka(),fm=window.PANTAU?PANTAU.fmt:String;
   const pill=p=>p==null?'-':`<span class="badge ${p>=75?'ok':'no'}" style="${p>=60&&p<75?'background:var(--warn-soft);color:var(--warn)':''}">${p}%</span>`;
   const tbl=(head,body,kosong)=>body?`<div class="tw xl"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`:`<p class="muted small">${kosong}</p>`;
@@ -16266,7 +16266,9 @@ function panel(PL,RS){
     return why?'Tidak bisa dibuka: '+esc(why):paksaL().includes(p.kode)?'<b>Dipaksa terbuka untuk SEMUA murid</b> (melewati Palet)':on?'Terbuka untuk murid tanpa tanggal ujian. Murid ber-Palet menerimanya bertahap menurut jatah; centang "Paksa buka" supaya langsung muncul untuk semua.':jadwalP(p)&&!sudahTiba(jadwalP(p))&&!tut?'Terjadwal, buka '+esc(tglF(jadwalP(p))):tut?'Tertutup':'Belum dicentang (paket baru?). Centang untuk membuka.'};
   const toggles=LEVELS.map(lv=>{const A=PK().filter(p=>levelP(p)===lv);if(!A.length)return '';
     return `<h3 style="margin:12px 0 6px">Level ${esc(lv)} <span class="small muted">· ${A.length} paket · ${A.filter(p=>B.includes(p.kode)).length} terbuka</span></h3><div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">${A.map(p=>{const why=layak(p),on=B.includes(p.kode),tot=p.sections.reduce((a,s)=>a+s.n,0);
-    return `<div class="card" style="display:flex;gap:10px;align-items:flex-start;padding:10px;${why?'opacity:.65':''}"><input type="checkbox" data-tod-bk="${esc(p.kode)}" aria-label="Buka ${esc(p.nama)}" ${on?'checked':''} ${why?'disabled':''} style="margin-top:4px"><span><b>${esc(p.nama)}</b> <span class="small muted">· ${tot} soal</span><br><span class="small ${why?'':'muted'}">${stat(p,why,on)}</span>${why?'':`<br><label class="small"><input type="checkbox" data-tod-pk="${esc(p.kode)}" ${paksaL().includes(p.kode)?'checked':''}> Paksa buka untuk semua murid</label>`}${why?'':jd(p)}</span></div>`}).join('')}</div>`}).join('');
+    return `<div class="card" style="display:flex;gap:10px;align-items:flex-start;padding:10px;${why?'opacity:.65':''}"><input type="checkbox" data-tod-bk="${esc(p.kode)}" aria-label="Buka ${esc(p.nama)}" ${on?'checked':''} ${why?'disabled':''} style="margin-top:4px"><span><b>${esc(p.nama)}</b> <span class="small muted">· ${tot} soal</span><br><span class="small ${why?'':'muted'}">${stat(p,why,on)}</span>${why?'':`<br><label class="small"><input type="checkbox" data-tod-pk="${esc(p.kode)}" ${paksaL().includes(p.kode)?'checked':''}> Paksa buka untuk semua murid</label>`}${why?'':jd(p)}${why||!on&&!paksaL().includes(p.kode)?'':`<br><button type="button" class="btn ghost sm" data-tod-link="${esc(p.kode)}">Salin tautan murid</button>`}</span></div>`}).join('')}</div>`}).join('');
+  const BT=window.TINDAK&&TINDAK.belumTerlihat?TINDAK.belumTerlihat(ROWS||[]):null;
+  const sembunyi=BT===null?'<p class="muted small">Memuat jadwal ujian murid...</p>':(()=>{const ks=Object.keys(BT).filter(k=>PK().some(p=>p.kode===k));return ks.length?`<div class="tw xl"><table><thead><tr><th>Paket</th><th>Belum terlihat oleh</th><th>Tindakan</th></tr></thead><tbody>${ks.map(k=>{const p=PK().find(x=>x.kode===k);return `<tr><td><b>${esc(p.nama)}</b></td><td class="wrap-t small"><b>${BT[k].length}</b> murid: ${esc(BT[k].join(', '))}</td><td><button type="button" class="btn sm" data-tod-pkbtn="${esc(k)}">Paksa buka</button> <button type="button" class="btn ghost sm" data-tod-link="${esc(k)}">Salin tautan</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="small">Aman: semua paket yang terbuka sudah terlihat oleh murid ber-Palet.</p>'})();
   /* kelas: lulus, rata-rata per bagian (hasil terakhir tiap murid per paket) */
   const last={};H.forEach(x=>{const k=x.id+'|'+x.k;if(!last[k])last[k]=x});
   const L=Object.values(last);
@@ -16300,6 +16302,7 @@ function panel(PL,RS){
   const rows=H.slice(0,200).map(x=>{const sc=x.sc||{};const e=Math.round(est(sc));
     return `<tr><td>${fm(x.t)}</td><td class="wrap-t"><b>${esc(x.nama)}</b></td><td>${esc(String(x.k).slice(3))}</td>${['M','K','C','D'].map(k=>`<td>${sc[k]?pill(pct(sc[k][0],sc[k][1])):'-'}</td>`).join('')}<td><b>${e}</b> / 250</td><td>${x.ok}/${x.n}</td><td>${x.dur!=null?mm(x.dur):'-'}</td><td>${x.auto?'<span class="badge wait">Waktu habis</span>':'Selesai'}${x.gagal?' <span class="badge no">'+x.gagal+' gagal</span>':''}</td></tr>`}).join('');
   return `<section class="card"><h2>Paket TO untuk murid</h2><p class="small muted"><b>Murid yang tanggal ujiannya sudah terisi memakai Palet TO pribadi</b> (paket dan tanggal buka disusun menurut hari ujian dan kemampuan masing-masing, lihat tab Tindak lanjut); pengaturan di bawah ini berlaku untuk murid tanpa tanggal ujian dan sebagai penutup (tutup paket) untuk semua. Murid ber-Palet hanya melihat paket sesuai jatah slotnya (centang biasa belum membuatnya muncul untuk mereka). Mau paket langsung muncul untuk SEMUA murid? Centang <b>Paksa buka untuk semua murid</b> di kartu paketnya; paket itu tidak memakai jatah Palet. Centang paket yang boleh dikerjakan murid di menu Simulasi TO, atau isi tanggal jadwal buka (paket terbuka otomatis pada tanggal itu, waktu WIB). Perubahan langsung berlaku, tanpa terbit ulang. Paket yang masih punya soal ditahan atau Choukai tanpa audio tidak bisa dibuka. Kalau kunci Choukai satu paket ternyata salah, cukup hilangkan centangnya.</p>
+   <section class="card" id="tod-belum" style="border-left:4px solid var(--warn,#c77d00)"><h3>Paket terbuka tapi belum terlihat murid</h3><p class="small muted">Murid ber-Palet hanya melihat paket sesuai jatah slot. Kalau murid bilang paket tidak muncul, cek di sini lalu pakai Paksa buka.</p>${sembunyi}</section>
    ${toggles}
    <div class="actions"><button type="button" class="btn ghost sm" data-tod-bkall="def">Buka semua yang layak (${bukaDef().length})</button><button type="button" class="btn ghost sm" data-tod-bkall="none">Tutup semua</button></div><p class="small muted" id="tod-bkmsg" role="status"></p></section>
   <section class="card"><h2>Kelas</h2>${ringkasK}<p class="small muted">Skor perkiraan, bukan nilai resmi. JFT-Basic tidak punya poin per bagian; aplikasi memberi bobot sama pada tiap bagian (paket tidak lengkap disesuaikan ke total 250). Lulus A2 = 200.</p></section>
@@ -16320,10 +16323,18 @@ document.addEventListener('change',e=>{const t=e.target;if(t&&t.matches&&t.match
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-pk]'))return;
   const kd=t.dataset.todPk,on=t.checked;
   simpanBuka(Array.from(new Set(buka().concat(on?[kd]:[]))),o=>{const s=new Set(Array.isArray(o.paksa)?o.paksa:[]);on?s.add(kd):s.delete(kd);o.paksa=[...s];if(on)o.tutup=(o.tutup||[]).filter(k=>k!==kd)})});
+function paksaBuka(kd){simpanBuka(Array.from(new Set(buka().concat([kd]))),o=>{const s=new Set(Array.isArray(o.paksa)?o.paksa:[]);s.add(kd);o.paksa=[...s];o.tutup=(o.tutup||[]).filter(k=>k!==kd)})}
+function salinTeks(t,fn){const fb=()=>{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}a.remove();fn(ok)};
+  try{navigator.clipboard.writeText(t).then(()=>fn(true),fb)}catch(e){fb()}}
+function tautanMurid(kd){const p=PK().find(x=>x.kode===kd);if(!p)return '';const u=location.origin+location.pathname;
+  return 'Paket Try Out "'+p.nama+'" sudah dibuka untukmu. Buka '+u+' lalu masuk ke menu Simulasi TO dan pilih paket itu. Kalau belum muncul, muat ulang halaman (tarik layar ke bawah di HP). Semangat! 💪'}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tod-pkbtn]');if(b){paksaBuka(b.dataset.todPkbtn);return}
+  const l=e.target.closest&&e.target.closest('[data-tod-link]');if(!l)return;const tx=tautanMurid(l.dataset.todLink);if(!tx)return;
+  salinTeks(tx,ok=>{const m=document.getElementById('tod-bkmsg');if(m)m.textContent=ok?'Tautan tersalin. Tempel di WhatsApp murid.':'Gagal menyalin. Pesan: '+tx})});
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-jd]'))return;
   const kd=t.dataset.todJd,v=t.value;simpanBuka(buka(),o=>{o.jadwal=Object.assign({},o.jadwal||{});if(v)o.jadwal[kd]=v;else o.jadwal[kd]='';o.tutup=(o.tutup||[]).filter(k=>k!==kd);o.buka=(o.buka||[]).filter(k=>k!==kd||(v&&sudahTiba(v)))})});
 document.addEventListener('click',e=>{const mr=e.target.closest&&e.target.closest('[data-tod-tmur]');if(mr){TMUR=mr.dataset.todTmur||'';redraw();if(TMUR)setTimeout(()=>{const r=document.getElementById('tod-rapor');if(r)r.scrollIntoView({block:'start'})},60);return}const ps=e.target.closest&&e.target.closest('[data-tod-psel]');if(ps){PSEL=ps.dataset.todPsel;redraw();return}const t=e.target.closest&&e.target.closest('[data-tod-bkall]');if(!t)return;t.dataset.todBkall==='def'?simpanBuka(bukaDef(),o=>{o.tutup=[]}):simpanBuka([],o=>{o.tutup=PK().map(p=>p.kode)})});
-window.TODRAF={html,buka,bukaGlobal,palet:paletSaya,paletUntuk,bukaUntuk,layak,bukaDef,rilis,act,panel,sync:awanSync,_st:()=>({E,R,saved,AST})};
+window.TODRAF={tautanMurid,html,buka,bukaGlobal,palet:paletSaya,paletUntuk,bukaUntuk,layak,bukaDef,rilis,act,panel,sync:awanSync,_st:()=>({E,R,saved,AST})};
 })();
 
 </script>
@@ -18219,6 +18230,14 @@ function lihatMurid(d){const o=d.o,p=o.peluang,pal=o.palet,pk=(pal&&pal.paksa)||
   <li>Paket TO yang terbuka untuknya (${buka.length}): ${lst}</li>
   <li>Paket Palet berikutnya: ${nx}</li>
   <li class="muted">★ dipaksa buka oleh Sensei · ✓ sudah dikerjakan</li></ul></div>`}
+/* Paket yang sudah dicentang/terbuka umum tetapi belum terlihat murid ber-Palet batch ini (jatah slot belum sampai). Dipakai panel Paket TO. */
+function belumTerlihat(rows){
+  muatGuru();if(!JDW||!window.TODRAF)return null;
+  const glob=TODRAF.bukaGlobal(),hasil={};
+  (rows||[]).forEach(r=>{const inf=infoMurid(r.id);if(/BUKAN BATCH/i.test(inf.catatan||'')||!inf.tUjian)return;
+    const b=new Set(analisa(r.pl||[],inf.tUjian).buka||[]);
+    glob.forEach(k=>{if(!b.has(k))(hasil[k]=hasil[k]||[]).push(r.nama)})});
+  return hasil}
 function panelHTML(rows){
   muatGuru();
   const q=CARI.trim().toLowerCase();
@@ -18262,7 +18281,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 document.addEventListener('input',e=>{const t=e.target;if(t&&t.id==='ti-q'){CARI=t.value;try{window.LMS_REDRAW&&LMS_REDRAW(0)}catch(x){}const n=document.getElementById('ti-q');if(n){n.focus();try{n.setSelectionRange(CARI.length,CARI.length)}catch(x){}}}});
 function tUjian(id){muatGuru();const inf=infoMurid(id);return inf.tUjian||undefined}
 function analisaSaya(){const z=sisaSaya();return analisa(plSaya(),z?z.tglAsli:null)}
-window.TINDAK={ringkasHTML,analisaSaya,prioDek,rencana,tUjian,sisaSaya,plSaya,analisa,berandaHTML,panelHTML,pesan,saran};
+window.TINDAK={belumTerlihat,ringkasHTML,analisaSaya,prioDek,rencana,tUjian,sisaSaya,plSaya,analisa,berandaHTML,panelHTML,pesan,saran};
 })();
 
 </script>
@@ -19740,7 +19759,7 @@ function guruHTML1(P){
   if(GT==='akses')return top+aksesHTML();
   if(GT==='rapor')return top+raporHTML(rows);
   if(GT==='pantau')return top+pantauHTML(rows);
-  if(GT==='to')return top+(window.TODRAF&&TODRAF.panel?TODRAF.panel(PLOGS,RESET):'');
+  if(GT==='to')return top+(window.TODRAF&&TODRAF.panel?TODRAF.panel(PLOGS,RESET,guruRows()):'');
   if(GT==='ringkas')return top+pb+ringkasHTML(rows);
   if(GT==='hadiah')return top+GAME.senseiHTML();
   if(GT==='live')return top+`<section class="card"><h2>Peta kelas</h2><p class="small muted">Posisi murid di Dunia Akimichi sesuai yang sedang mereka kerjakan sekarang.</p>${PANTAU.peta?PANTAU.peta(rows):''}</section><section class="card"><h2>Pantau langsung</h2>${PANTAU.liveHTML(rows)}</section>`;
