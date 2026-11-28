@@ -1,21 +1,24 @@
 {
+ "id": "./",
  "name": "Kelas Akimichi · Ruang Belajar JFT",
  "short_name": "Akimichi",
+ "description": "Latihan JFT-Basic A2, Irodori, hafalan, dan simulasi TO. Nilai tersambung langsung ke Sensei.",
+ "lang": "id",
  "start_url": "./",
+ "scope": "./",
  "display": "standalone",
- "background_color": "#fff9ec",
+ "orientation": "any",
+ "background_color": "#0f1a40",
  "theme_color": "#d92d20",
+ "categories": ["education"],
  "icons": [
-  {
-   "src": "icon-192.png",
-   "sizes": "192x192",
-   "type": "image/png"
-  },
-  {
-   "src": "icon-512.png",
-   "sizes": "512x512",
-   "type": "image/png",
-   "purpose": "any maskable"
-  }
+  {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+  {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+  {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+ ],
+ "shortcuts": [
+  {"name": "Latihan JFT", "url": "./#latihan", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+  {"name": "Irodori", "url": "./#irodori", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+  {"name": "Hafalan", "url": "./#hafalan", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
  ]
 }
