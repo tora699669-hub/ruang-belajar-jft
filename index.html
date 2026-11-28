@@ -1824,7 +1824,7 @@ html:has(#ar-root){overflow-anchor:none}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261127-1333"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261128-0107"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -15905,16 +15905,21 @@ function paletSaya(){
     const first={};pl.filter(x=>x&&/^to:/.test(x.k)&&(x.n||x.sc)).sort((a,b)=>(a.t||0)-(b.t||0)).forEach(x=>{if(!first[x.k])first[x.k]=x});
     const sel=Object.values(first).map(x=>({kode:x.k.slice(3),t:x.t||0,nilai:window.TO_POIN?TO_POIN(x.sc):null})).filter(x=>x.nilai!=null).sort((a,b)=>a.t-b.t);
     const l3=sel.slice(-3).map(x=>x.nilai),nilai=l3.length?l3.reduce((a,b)=>a+b,0)/l3.length:null;
-    const tt=(window.TOCFG&&Array.isArray(window.TOCFG.tutup))?window.TOCFG.tutup:[];
-    const pk=paksaL();   /* paket paksa-buka di luar Palet: tidak dijadwalkan ulang dan tidak memakai jatah slot */
-    const paket=PK().filter(p=>!layak(p)&&!tt.includes(p.kode)&&!pk.includes(p.kode)).map(p=>({kode:p.kode,nama:p.nama,level:levelP(p),n:p.sections.reduce((a,s)=>a+s.n,0)}));
-    const v=PALET_TO.susun({tUjian:z.tgl,paket,selesai:sel.filter(x=>!pk.includes(x.kode)),nilai,now:Date.now()});v.tUjian=z.tgl;v.sudah=sel.map(x=>x.kode);
+    const v=paletUntuk(z.tgl,sel,nilai);
     PC={key,v};return v}catch(e){return null}}
-const buka=()=>{const pt=paletSaya();if(!pt)return bukaGlobal();
+/* SATU sumber kebenaran Palet + paksa-buka. Dipakai murid (paletSaya, buka) dan panel Sensei (tindak.js), jadi yang Sensei lihat sama dengan yang murid lihat.
+   sel = percobaan pertama [{kode,t}], nilai = rata-rata 3 TO terakhir atau null. Paket paksa-buka di luar Palet: tidak dijadwalkan ulang dan tidak memakai jatah slot. */
+function paletUntuk(tUjian,sel,nilai){
+  const tt=(window.TOCFG&&Array.isArray(window.TOCFG.tutup))?window.TOCFG.tutup:[],pk=paksaL();
+  const paket=PK().filter(p=>!layak(p)&&!tt.includes(p.kode)&&!pk.includes(p.kode)).map(p=>({kode:p.kode,nama:p.nama,level:levelP(p),n:p.sections.reduce((a,s)=>a+s.n,0)}));
+  const v=PALET_TO.susun({tUjian,paket,selesai:sel.filter(x=>!pk.includes(x.kode)),nilai,now:Date.now()});v.tUjian=tUjian;v.sudah=sel.map(x=>x.kode);v.paksa=pk.slice();return v}
+function bukaUntuk(pt,jalan){
   const tt=(window.TOCFG&&Array.isArray(window.TOCFG.tutup))?window.TOCFG.tutup:[];
   const ada=new Set(PK().filter(p=>!layak(p)&&!tt.includes(p.kode)).map(p=>p.kode));
+  return Array.from(new Set(pt.buka.concat(pt.sudah,jalan||[],pt.paksa||[]))).filter(k=>ada.has(k))}
+const buka=()=>{const pt=paletSaya();if(!pt)return bukaGlobal();
   let jalan=[];try{jalan=Object.keys(lokalM())}catch(e){}   /* sesi yang sedang berjalan tetap boleh dilanjutkan */
-  return Array.from(new Set(pt.buka.concat(pt.sudah,jalan,paksaL()))).filter(k=>ada.has(k))};
+  return bukaUntuk(pt,jalan)};
 const menunggu=()=>PK().filter(p=>!layak(p)&&jadwalP(p)&&!sudahTiba(jadwalP(p))&&!buka().includes(p.kode)&&!((window.TOCFG&&window.TOCFG.tutup)||[]).includes(p.kode));
 /* Jadwal rilis (hanya baca, dipakai jalur belajar): paket yang layak dan tidak ditutup. t = waktu buka (epoch ms, jadwal dibaca sebagai WIB), 0 = tanpa jadwal. */
 const rilis=()=>{const tt=(window.TOCFG&&Array.isArray(window.TOCFG.tutup))?window.TOCFG.tutup:[],bk=buka();
@@ -16318,7 +16323,7 @@ document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.ma
 document.addEventListener('change',e=>{const t=e.target;if(!t||!t.matches||!t.matches('[data-tod-jd]'))return;
   const kd=t.dataset.todJd,v=t.value;simpanBuka(buka(),o=>{o.jadwal=Object.assign({},o.jadwal||{});if(v)o.jadwal[kd]=v;else o.jadwal[kd]='';o.tutup=(o.tutup||[]).filter(k=>k!==kd);o.buka=(o.buka||[]).filter(k=>k!==kd||(v&&sudahTiba(v)))})});
 document.addEventListener('click',e=>{const mr=e.target.closest&&e.target.closest('[data-tod-tmur]');if(mr){TMUR=mr.dataset.todTmur||'';redraw();if(TMUR)setTimeout(()=>{const r=document.getElementById('tod-rapor');if(r)r.scrollIntoView({block:'start'})},60);return}const ps=e.target.closest&&e.target.closest('[data-tod-psel]');if(ps){PSEL=ps.dataset.todPsel;redraw();return}const t=e.target.closest&&e.target.closest('[data-tod-bkall]');if(!t)return;t.dataset.todBkall==='def'?simpanBuka(bukaDef(),o=>{o.tutup=[]}):simpanBuka([],o=>{o.tutup=PK().map(p=>p.kode)})});
-window.TODRAF={html,buka,bukaGlobal,palet:paletSaya,layak,bukaDef,rilis,act,panel,sync:awanSync,_st:()=>({E,R,saved,AST})};
+window.TODRAF={html,buka,bukaGlobal,palet:paletSaya,paletUntuk,bukaUntuk,layak,bukaDef,rilis,act,panel,sync:awanSync,_st:()=>({E,R,saved,AST})};
 })();
 
 </script>
@@ -18044,14 +18049,15 @@ function analisa(pl,tUjian){
   const hfPakai=new Set(hfL.map(x=>x.k.slice(3)));
   const haf={sesi:hfL.length,dek:dek.length,dicoba:dek.filter(d=>hfPakai.has(d.id)).length,belum:dek.filter(d=>!hfPakai.has(d.id)).map(d=>d.t),minggu:hfL.filter(x=>now-(x.t||0)<7*DAY).length,p:pc(hfL.reduce((a,x)=>a+(x.ok||0),0),hfL.reduce((a,x)=>a+(x.n||0),0))};
   let buka=[],palet=null;
-  try{if(tAsli&&window.PALET_TO&&window.TODRAF&&TODRAF.rilis){const sel=to.filter(a=>a.nilai!=null).map(a=>({kode:a.k.slice(3),t:a.t||0})),l3=to.filter(a=>a.nilai!=null).slice(-3).map(a=>a.nilai);
-      palet=PALET_TO.susun({tUjian:tUjian,paket:TODRAF.rilis().map(r=>({kode:r.kode,nama:r.nama,level:r.level,n:r.n})),selesai:sel,nilai:l3.length?l3.reduce((a,b)=>a+b,0)/l3.length:null,now});palet.sudah=sel.map(x=>x.kode)}}catch(e){palet=null}
-  try{buka=palet?Array.from(new Set(palet.buka.concat(palet.sudah))):(window.TODRAF&&TODRAF.buka?TODRAF.buka():[])}catch(e){}
+  /* Palet dan daftar paket terbuka memakai fungsi YANG SAMA dengan tampilan murid (TODRAF.paletUntuk/bukaUntuk), termasuk paket paksa-buka */
+  try{if(tAsli&&window.PALET_TO&&window.TODRAF&&TODRAF.paletUntuk){const sel=to.filter(a=>a.nilai!=null).map(a=>({kode:a.k.slice(3),t:a.t||0})),l3=to.filter(a=>a.nilai!=null).slice(-3).map(a=>a.nilai);
+      palet=TODRAF.paletUntuk(tUjian,sel,l3.length?l3.reduce((a,b)=>a+b,0)/l3.length:null)}}catch(e){palet=null}
+  try{buka=palet?TODRAF.bukaUntuk(palet):(window.TODRAF&&TODRAF.buka?TODRAF.buka():[])}catch(e){}
   const selesai=new Set(to.map(a=>a.k.slice(3)));
   const belum=buka.filter(k=>!selesai.has(k)).map(k=>((window.TO_DRAF||[]).find(p=>p.kode===k)||{nama:k}).nama);
   const lastT=Math.max(0,...pl.map(x=>x.t||0)),idle=lastT?Math.floor((now-lastT)/DAY):null;
   const sisa=PJ?PJ.sisa(tUjian,now):Math.max(0,Math.ceil((tUjian-now)/DAY));
-  const o={to,sec,lat,pred,pond,haf,belum,palet,idle,sisa,tUjian,totalTO:buka.length+0,lastT,n:pl.length};
+  const o={to,sec,lat,pred,pond,haf,belum,palet,buka,idle,sisa,tUjian,totalTO:buka.length+0,lastT,n:pl.length};
   /* peluang lulus gabungan banyak sumber (TO, latihan per bagian, Pondasi, Hafalan); nilai prediksi TO tetap dari GRAFIK */
   try{if(window.PELUANG){const pl2=PELUANG.hitung({to:to.filter(a=>a.nilai!=null).map(a=>({t:a.t,nilai:a.nilai})),pred,secTO:sec,lat,pondLulus:pond.lulus,pondTotal:pond.total,pondCoba:pl.some(x=>/^pd:/.test(x.k)&&x.n),hafDicoba:haf.dicoba,hafDek:haf.dek,hafSesi:haf.sesi,hari:sisa});
     o.peluang=pl2;if(pl2.p!=null){o.pred=Object.assign({},pred||{n:to.length,cukup:false},{pTO:pred?pred.p:null,p:pl2.p,lo:pl2.nLo,hi:pl2.nHi,pred:pl2.nilai,cukup:pl2.cukup,gabungan:true})}}}catch(e){}
@@ -18202,6 +18208,17 @@ function infoMurid(id){
   const a=(AKUN||[]).find(x=>x.user_id===id),em=a&&a.email?String(a.email).split('@')[0].toLowerCase():'';
   const j=(JDW||[]).find(x=>x.email_user&&String(x.email_user).toLowerCase()===em);
   return {tUjian:j?parse(j.tanggal):null,panggilan:j&&j.panggilan?String(j.panggilan).replace(/\s*\(.*\)/,'').trim():'',catatan:j&&j.catatan}}
+/* Pratinjau "apa yang dilihat murid ini sekarang" untuk Sensei. Angkanya dari analisa() yang sama dengan tampilan murid, jadi tidak bisa beda. */
+function lihatMurid(d){const o=d.o,p=o.peluang,pal=o.palet,pk=(pal&&pal.paksa)||[],buka=o.buka||[],sudah=new Set(o.to.map(a=>a.k.slice(3)));
+  const tg=ms=>{const t=new Date(ms+7*36e5);return t.getUTCDate()+' '+BL[t.getUTCMonth()]+' pukul '+String(t.getUTCHours()).padStart(2,'0')+'.'+String(t.getUTCMinutes()).padStart(2,'0')+' WIB'};
+  const lst=buka.length?buka.map(k=>esc(TOnama('to:'+k))+(pk.includes(k)?' ★':'')+(sudah.has(k)?' ✓':'')).join(', '):'belum ada paket terbuka';
+  const nx=pal&&pal.berikut?esc(pal.berikut.nama)+' buka '+tg(pal.berikut.t):pal?'tidak ada paket baru yang menunggu':'-';
+  return `<div class="card" style="margin:8px 0"><b>Tampilan murid ini sekarang</b> <span class="small muted">(angka yang sama dengan yang ia lihat di Beranda dan Simulasi TO)</span>
+  <ul class="small" style="margin:6px 0 0 18px"><li>Ujian: ${d.inf.tUjian?tglS(d.inf.tUjian)+' ('+o.sisa+' hari lagi)':'tanggal belum ada, ia memakai jadwal umum'}</li>
+  <li>Peluang lulus: ${p&&p.p!=null?p.p+'% · '+esc(p.level.nama)+(p.level.pasti?'':' (dekat batas)'):'belum ada data'}</li>
+  <li>Paket TO yang terbuka untuknya (${buka.length}): ${lst}</li>
+  <li>Paket Palet berikutnya: ${nx}</li>
+  <li class="muted">★ dipaksa buka oleh Sensei · ✓ sudah dikerjakan</li></ul></div>`}
 function panelHTML(rows){
   muatGuru();
   const q=CARI.trim().toLowerCase();
@@ -18229,6 +18246,7 @@ function panelHTML(rows){
     return `<section class="card"><h2>Peta data kelas: siapa yang masih bolong</h2><p class="small muted">Bagian yang belum pernah dikerjakan murid <b>tidak dihitung 0%</b> dan tidak ikut rata-rata. Rata-rata keseluruhan kelas: <b>${rk.keseluruhan.p==null?'-':rk.keseluruhan.p+'%'}</b> dari ${rk.keseluruhan.murid} dari ${rk.n} murid yang sudah punya data bagian. Data lengkap di semua komponen: ${rk.lengkap} murid. Periode tes: ${esc(JFT_PERIODE.teks)}; tanggal tes per murid masih perkiraan.</p><div class="pn-scroll"><table class="pn-t"><thead><tr><th>Komponen</th><th>Belum dikerjakan</th><th>Murid</th></tr></thead><tbody>${baris}</tbody></table></div></section>`})():'';
   const kartu=data.map(d=>{const p=d.o.pred&&d.o.pred.p!=null?d.o.pred.p:null,w=warnaP(p);
     return `<details class="card pn-lipat" style="border-left:5px solid ${w}"><summary><b>${esc(d.r.nama)}</b> <span class="small muted">· ${d.o.to.length} TO · data ${d.o.jalur?d.o.jalur.cakupan.ada+'/7':'-'} · palet TO ${d.o.palet?d.o.palet.buka.length+' terbuka dari '+d.o.palet.slot:'-'} · peluang lulus ${p==null?'belum ada data':p+'%'}${d.o.peluang&&d.o.peluang.p!=null?' · '+d.o.peluang.level.nama+(d.o.peluang.level.pasti?'':'?'):''} · ${d.inf.tUjian?'ujian '+tglS(d.inf.tUjian):'tanggal ujian belum ada'}</span></summary>
+    ${lihatMurid(d)}
     <textarea readonly rows="${Math.min(22,d.txt.split('\n').length+1)}" style="width:100%;font:14px/1.45 system-ui,sans-serif;padding:10px;border-radius:10px;border:1px solid #cfd6e0" id="ti-${esc(d.r.id)}" aria-label="Pesan untuk ${esc(d.r.nama)}">${esc(d.txt)}</textarea>
     <div class="actions"><button type="button" class="btn" data-ti="salin" data-id="${esc(d.r.id)}">Salin pesan</button><span class="small muted" data-ti-msg="${esc(d.r.id)}"></span></div></details>`}).join('');
   return `<div class="pn-bar"><h2 style="margin:0">Pesan WhatsApp tindak lanjut</h2><input class="fc-sel pn-q" type="search" id="ti-q" placeholder="Cari nama murid" value="${esc(CARI)}" aria-label="Cari nama murid"></div>
@@ -18590,6 +18608,8 @@ const PLAN=['Ulangi yang salah dari tes minggu ini (Tugas harian, langkah 1).','
 const STU=()=>{try{return sessionStorage.getItem('lms:asstudent')==='1'}catch(e){return false}};
 const ADMIN=()=>!!(window.lmsHosted&&OWNER&&!STU());
 const GURUONLY=()=>!!(OWNER&&!STU());
+/* Pemilik di mode Sensei. Di mode Murid (sakelar Sensei/Murid) pemilik melihat Simulasi TO persis seperti murid. */
+const SENSEI=()=>!!(OWNER&&!(window.lmsHosted&&STU()));
 let PREVR='',OWNER=false,DB=null,RESJ=[],RESK=[],CUR='',openG=null,gNote='';
 let LIVE={},PLOGS={},RESET={},GT='ringkas',GSEL='',gDelAsk='',ACT_BATSU=false;
 const fmtDate=ts=>new Date(ts).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
@@ -18635,7 +18655,7 @@ addEventListener('scroll',()=>{LASTI=Date.now()},{passive:true});
 function softRender(){clearTimeout(SOFTT);const w=Date.now()-LASTI;if(w<900){SOFTT=setTimeout(softRender,900-w+60);return}renderPage()}
 function renderPage(){
   const m=$$('lms-main');if(!m||CUR==='jft'||CUR==='kotoba')return;
-  const f={beranda:berandaHTML,semua:semuaMenuHTML,gamehub:gameHubHTML,bot:()=>window.BOTGAME?BOTGAME.html():'',batsu:()=>window.BATSU_UI?BATSU_UI.html(me()):'',ruang:()=>window.RG?RG.html():'',arena:()=>window.ARENA?ARENA.html():'',aku:akuHTML,belajar:belajarHTML,latihan:latihanHTML,simulasi:simulasiHTML,irodori:irodoriHTML,hafalan:hafalanHTML,dokkai:()=>window.PSEC?PSEC.secPage('dokkai'):'',moji:()=>window.PSEC?PSEC.secPage('moji'):'',kaiwa:()=>window.PSEC?PSEC.secPage('kaiwa'):'',choukai:()=>window.PSEC?PSEC.secPage('choukai'):'',cbt:()=>window.CBT?CBT.html():'',bunpou:()=>window.BUNPOU_UI?BUNPOU_UI.html():'',kelola:()=>OWNER&&window.KELOLA?KELOLA.html():'',ubabdraf:()=>GURUONLY()&&window.DRAFGURU?DRAFGURU.ubab():'',simdraf:()=>GURUONLY()&&window.DRAFGURU?DRAFGURU.sim():'',todraf:()=>GURUONLY()&&window.TODRAF?TODRAF.html('g'):'',simto:()=>!OWNER&&window.TODRAF?TODRAF.html('m'):'',pondasi:()=>window.PONDASI?PONDASI.html():'',psec:()=>window.PSEC?PSEC.html():'',hjft:()=>window.FLASH&&FLASH.hjft?'<button type="button" class="backlink" data-lms="go" data-r="hafalan">← Hafalan</button>'+FLASH.hjft(window.HJ_DEK):'',hjtes:()=>window.HAFALAN_JFT_UI?HAFALAN_JFT_UI.html():'',verb:()=>{const h=GAME.verbHTML();return (window.MATERI_KK&&/Pilih bentuk yang mau dilatih/.test(h))?h+MATERI_KK.html():h},harian:harianHTML,menu:menuHTML,petunjuk:petunjukHTML,progres:progresHTML,guru:guruHTML,bantuan:bantuanHTML,kamus:()=>window.KAMUS?KAMUS.html():'',bunfc:()=>window.FLASH?FLASH.bunfc():'',bunlat:()=>window.FLASH?FLASH.bunlat():'',flash:()=>window.FLASH?FLASH.kwajib():'',kwajib:()=>window.FLASH?FLASH.kwajib():'',kosa:()=>window.FLASH?FLASH.kosa():'',peringkat:()=>GAME.peringkatHTML(me()),karakter:()=>GAME.karakterHTML(me()),game:()=>window.ASOBI?ASOBI.html():''}[CUR]||berandaHTML;
+  const f={beranda:berandaHTML,semua:semuaMenuHTML,gamehub:gameHubHTML,bot:()=>window.BOTGAME?BOTGAME.html():'',batsu:()=>window.BATSU_UI?BATSU_UI.html(me()):'',ruang:()=>window.RG?RG.html():'',arena:()=>window.ARENA?ARENA.html():'',aku:akuHTML,belajar:belajarHTML,latihan:latihanHTML,simulasi:simulasiHTML,irodori:irodoriHTML,hafalan:hafalanHTML,dokkai:()=>window.PSEC?PSEC.secPage('dokkai'):'',moji:()=>window.PSEC?PSEC.secPage('moji'):'',kaiwa:()=>window.PSEC?PSEC.secPage('kaiwa'):'',choukai:()=>window.PSEC?PSEC.secPage('choukai'):'',cbt:()=>window.CBT?CBT.html():'',bunpou:()=>window.BUNPOU_UI?BUNPOU_UI.html():'',kelola:()=>OWNER&&window.KELOLA?KELOLA.html():'',ubabdraf:()=>GURUONLY()&&window.DRAFGURU?DRAFGURU.ubab():'',simdraf:()=>GURUONLY()&&window.DRAFGURU?DRAFGURU.sim():'',todraf:()=>GURUONLY()&&window.TODRAF?TODRAF.html('g'):'',simto:()=>!SENSEI()&&window.TODRAF?TODRAF.html('m'):'',pondasi:()=>window.PONDASI?PONDASI.html():'',psec:()=>window.PSEC?PSEC.html():'',hjft:()=>window.FLASH&&FLASH.hjft?'<button type="button" class="backlink" data-lms="go" data-r="hafalan">← Hafalan</button>'+FLASH.hjft(window.HJ_DEK):'',hjtes:()=>window.HAFALAN_JFT_UI?HAFALAN_JFT_UI.html():'',verb:()=>{const h=GAME.verbHTML();return (window.MATERI_KK&&/Pilih bentuk yang mau dilatih/.test(h))?h+MATERI_KK.html():h},harian:harianHTML,menu:menuHTML,petunjuk:petunjukHTML,progres:progresHTML,guru:guruHTML,bantuan:bantuanHTML,kamus:()=>window.KAMUS?KAMUS.html():'',bunfc:()=>window.FLASH?FLASH.bunfc():'',bunlat:()=>window.FLASH?FLASH.bunlat():'',flash:()=>window.FLASH?FLASH.kwajib():'',kwajib:()=>window.FLASH?FLASH.kwajib():'',kosa:()=>window.FLASH?FLASH.kosa():'',peringkat:()=>GAME.peringkatHTML(me()),karakter:()=>GAME.karakterHTML(me()),game:()=>window.ASOBI?ASOBI.html():''}[CUR]||berandaHTML;
   if(CUR==='gamehub'&&$$('bh-rest')&&((window.PLANET&&PLANET.active&&$$('pwbox'))||(window.DUNIA&&DUNIA.active&&$$('dw')))){const hb=gameRest();if(hb===LASTHB){try{PLANET.refresh()}catch(e){}return}LASTHB=hb;const kn=$$('lms-nama'),kv2=kn?kn.value:null,kf=kn&&document.activeElement===kn;$$('bh-rest').innerHTML=hb;const kn2=$$('lms-nama');if(kn2&&kv2!==null){kn2.value=kv2;if(kf)kn2.focus()}try{GAME.mount3d()}catch(e){}try{DUNIA.refresh()}catch(e){}try{PLANET.refresh()}catch(e){}try{if(LMS.account&&LMS.account.id&&!ADMIN())GAME.pushStats(me(),getName())}catch(e){}return}
   const keep=$$('lms-nama');const kv=keep?keep.value:null;const gk=$$('g-nick'),gkv=gk&&document.activeElement===gk?gk.value:null;
   const h=(!['beranda','gamehub','aku','semua','belajar','latihan','hafalan','progres','peringkat','karakter'].includes(CUR)&&!(CUR==='menu'&&!(QM.qs&&QM.sel))&&!(CUR==='cbt'&&window.CBT&&CBT.inPack&&CBT.inPack())&&!ADMIN()?'<button type="button" class="backlink" data-lms="back">← Kembali</button>':'')+f();
@@ -18653,7 +18673,7 @@ function route(){
   let r=(location.hash||'').slice(1);if(!ROUTES.some(x=>x[0]===r))r='beranda';
   if(r==='guru'&&!OWNER)r='beranda';
   if((r==='ubabdraf'||r==='simdraf'||r==='todraf')&&!GURUONLY())r='beranda';
-  if(r==='simto'&&(OWNER||!TO_ON))r=OWNER?'guru':'beranda';
+  if(r==='simto'&&(SENSEI()||!TO_ON))r=SENSEI()?'guru':'beranda';
   if(ADMIN()&&!['guru','kelola','ubabdraf','simdraf','todraf','bantuan','jft','kotoba','psec','moji','kaiwa','choukai','dokkai'].includes(r))r='guru';
   const ex=examRoute();if(ex&&r!==ex){location.hash=ex;return}
   show(r);
@@ -18801,7 +18821,7 @@ function semuaMenuHTML(){
   const out=[];
   out.push(G('Mulai dari sini','Misi, rapor, dan peringkatmu.',[L('h','日','Misi harian','Tugas kecil tiap hari + EXP','harian'),L('p','進','Rapor dan progres','Nilai dan perkembanganmu','progres'),L('r','冠','Peringkat','Posisimu di tiap paket','peringkat'),L('k','人','Karakter dan foto','Ganti foto profil, pakaian','karakter')]));
   out.push(G('Latihan per bagian JFT','Satu bagian satu menu. Semua paket (PPT, TO, CBT) sudah digabung.',[sec('moji','文','Kosakata dan kanji'),sec('kaiwa','話','Ungkapan percakapan'),sec('choukai','聴','Soal dengar dari paket TO'),sec('dokkai','読','Soal bacaan')]));
-  out.push(G('Try Out dan simulasi','Latihan seperti ujian asli (60 menit).',[...(window.TODRAF&&TO_ON&&!OWNER?[L('t','試','Simulasi TO','Paket 60 menit, audio 2x putar','simto')]:[]),L('s','総','Simulasi JFT A2','Panduan dan paket bertahap','simulasi'),L('d','基','Pondasi JFT','Tahap dasar, lolos 80%','pondasi'),L('c','試','Latihan acak dan riwayat','Campuran 40 soal','cbt')]));
+  out.push(G('Try Out dan simulasi','Latihan seperti ujian asli (60 menit).',[...(window.TODRAF&&TO_ON&&!SENSEI()?[L('t','試','Simulasi TO','Paket 60 menit, audio 2x putar','simto')]:[]),L('s','総','Simulasi JFT A2','Panduan dan paket bertahap','simulasi'),L('d','基','Pondasi JFT','Tahap dasar, lolos 80%','pondasi'),L('c','試','Latihan acak dan riwayat','Campuran 40 soal','cbt')]));
   out.push(G('Hafalan','Kartu balik dan tes cepat. Prioritasnya berubah sesuai nilaimu.',[L('hj','暗','Hafalan JFT A2','18 dek, ditata per bagian ujian','hjft'),L('ht','試','Tes hafalan','10 soal per dek, masuk rapor','hjtes'),L('ko','語','Kosakata Irodori','Per buku dan bab','kosa'),L('kw','必','Kanji kata Irodori','Kanji wajib','kwajib'),L('km','辞','Kamus Irodori','Cari kata','kamus')]));
   out.push(G('Belajar tata bahasa','Pelajaran, kartu, dan latihan.',[L('b','文','Belajar Bunpou JFT A2','Rumus, contoh, latihan','bunpou'),L('v','動','Kata kerja dan sifat','Ubah bentuk kata kerja','verb'),L('bf','文','Kartu Bunpou','Kartu pola kalimat','bunfc'),L('bl','文','Latihan Bunpou','Soal pola kalimat','bunlat'),L('i','基','Irodori','Ujian per bab 13-18','irodori')]));
   out.push(G('Santai','Latihan sambil bermain.',[L('g','遊','Taman Bermain','Mini game soal JFT','game'),L('bo','機','Latihan lawan Bot','Lawan bot tanpa hadiah','bot'),L('ar','競','Arena Rekor','Adu rekor 2 versi','arena'),L('rm','場','Ruang Main','Main bareng: 8 kursi, bot, tim','ruang'),L('bt','助','Bantuan','Panduan memakai web','bantuan')]));
@@ -19116,7 +19136,7 @@ function latihanHTML(){
    card('読','Dokkai (membaca)','Khusus soal bacaan · teks pendek · pembahasan','data-lms="go" data-r="dokkai"',true,'','2')+
    card('試','Latihan acak dan riwayat','Campuran 40 soal · acak per bagian · ulang yang salah','data-lms="go" data-r="cbt"',true,'','2'))}
   ${sec('3 · Simulasi JFT A2 (60 menit)','Format ujian asli: 4 bagian berurutan, Choukai tanpa kembali, skor perkiraan 250.',
-   (window.TODRAF&&TO_ON&&!OWNER&&TODRAF.buka().length?card('試','Simulasi TO (paket 60 menit)','Paket ujian lengkap · waktu berhenti kalau kamu keluar · hasil masuk Pantauan Sensei','data-lms="go" data-r="simto"',true,'feat','3'):'')+
+   (window.TODRAF&&TO_ON&&!SENSEI()&&TODRAF.buka().length?card('試','Simulasi TO (paket 60 menit)','Paket ujian lengkap · waktu berhenti kalau kamu keluar · hasil masuk Pantauan Sensei','data-lms="go" data-r="simto"',true,'feat','3'):'')+
    card('総','Simulasi JFT A2',d.best?'Skor terbaik '+d.best.est+' · target 200':'Panduan, paket bertahap, jalur belajar','data-lms="go" data-r="simulasi"',true,'feat','3')+
    card('冠','Peringkat per paket','Lihat posisimu di tiap paket TO dan simulasi','data-lms="go" data-r="peringkat"',true,'','3'))}
   ${sec('Pantau','Lihat kelemahanmu dan apa yang perlu diulang.',
