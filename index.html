@@ -1888,7 +1888,7 @@ html:has(#ar-root){overflow-anchor:none}
 <div id="jft-wrap" hidden><div id="jft-hd"></div><div class="wrap" id="jft-app"></div><div class="bar" id="jft-bar" hidden></div><div id="jft-dlg"></div></div>
 <div id="ktk-wrap" hidden><div class="wrap" id="ktk-app"></div><div class="bar" id="ktk-bar" hidden></div></div>
 <nav class="lms-nav" id="lms-nav" aria-label="Menu utama"></nav>
-<script>window.LMS_BUILD="20261128-0656"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.LMS_BUILD="20261128-0739"</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="shim.js"></script>
 <script>
@@ -12416,6 +12416,58 @@ window.VIS_JUMLAH_IMG=function(){return window.VISUAL_IMG?Object.keys(window.VIS
 
 </script>
 <script>
+/* Ulasan harian: kata/situasi yang salah di Tebak gambar, Tebak situasi, dan tes cepat muncul lagi besok di Beranda.
+   Jadwal sederhana (kotak Leitner): ingat -> 1, 2, 4 hari, setelah 3x ingat selesai; lupa -> besok lagi.
+   Disimpan per perangkat (lms:ulas). Tidak menyentuh nilai, rapor, atau ekonomi game. */
+(function(){'use strict';
+const KEY='lms:ulas',HARI=864e5,SELANG=[1,2,4],MAKS=40;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const baca=()=>{try{const v=JSON.parse(localStorage.getItem(KEY));return Array.isArray(v)?v:[]}catch(e){return[]}};
+const tulis=a=>{try{localStorage.setItem(KEY,JSON.stringify(a.slice(-MAKS)))}catch(e){}};
+const awalHari=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()};
+let peta=null;
+function cariKata(w){
+  if(!peta){peta={};((window.HAFALAN_JFT&&HAFALAN_JFT.dek)||[]).forEach(d=>d.items.forEach(it=>{if(!peta[it.w])peta[it.w]=it}))}
+  return peta[w]||null;
+}
+function cariSit(j){return (window.VSITU||[]).find(x=>x.j===j)||null}
+function catat(k,id,benar,now){
+  now=now||Date.now();const a=baca(),i=a.findIndex(x=>x.k===k&&x.id===id);
+  if(!benar){
+    const dueBaru=awalHari(now)+HARI;
+    if(i>=0){a[i].box=0;a[i].due=dueBaru;a[i].t=now}else a.push({k,id,box:0,due:dueBaru,t:now});
+  }else if(i>=0&&a[i].due<=now){ /* benar saat sudah jatuh tempo: naik kotak */
+    a[i].box++;if(a[i].box>=SELANG.length){a.splice(i,1)}else{a[i].due=awalHari(now)+SELANG[a[i].box]*HARI;a[i].t=now}
+  }
+  tulis(a);
+}
+function jatuhTempo(now){now=now||Date.now();return baca().filter(x=>x.due<=now&&(x.k==='w'?cariKata(x.id):cariSit(x.id))).slice(0,5)}
+let buka={};
+function html(){
+  const L=jatuhTempo();if(!L.length)return '';
+  const baris=L.map(x=>{
+    const key=x.k+':'+x.id,tampak=!!buka[key];
+    const isi=x.k==='w'
+      ?(()=>{const it=cariKata(x.id);return `<div style="display:flex;gap:12px;align-items:center">${window.VIS?VIS(it.w,'sm blok'):''}<div style="min-width:0"><div lang="ja" style="font:700 24px var(--f-jp,inherit)">${esc(it.w)}</div>${tampak?`${it.y&&it.y!==it.w?`<div lang="ja" class="muted">${esc(it.y)}</div>`:''}<div><b>${esc(it.a)}</b></div>`:''}</div></div>`})()
+      :(()=>{const it=cariSit(x.id);return `<div style="display:flex;gap:12px;align-items:center"><img class="vis-img sm" style="margin:0;flex:none;max-width:84px" src="${esc(it.i)}" alt="Ilustrasi situasi" width="84" height="84" loading="lazy"><div style="min-width:0">${tampak?`<div lang="ja" style="font:700 20px var(--f-jp,inherit)">${esc(it.j)}</div><div lang="ja" class="muted">${esc(it.y)}</div>`:'<div class="small muted">Ingat kalimat Jepang untuk gambar ini?</div>'}</div></div>`})();
+    const aksi=tampak?`<button type="button" class="btn sm" data-ulas="ingat" data-key="${esc(key)}">Ingat</button><button type="button" class="btn sm ghost" data-ulas="lupa" data-key="${esc(key)}">Lupa</button>`:`<button type="button" class="btn sm ghost" data-ulas="lihat" data-key="${esc(key)}">Lihat jawaban</button>`;
+    return `<div class="ulas-baris" style="padding:8px 0;border-top:1px solid var(--line,#e5e5e5)">${isi}<div class="actions" style="margin-top:6px">${aksi}</div></div>`;
+  }).join('');
+  return `<section class="card ulas-kartu" style="border-left:5px solid #c77d0a"><b>Ulasan hari ini</b> <span class="small muted">${L.length} yang kemarin masih salah</span>${baris}</section>`;
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest&&e.target.closest('[data-ulas]');if(!t)return;
+  const key=t.dataset.key||'',i=key.indexOf(':'),k=key.slice(0,i),id=key.slice(i+1),aksi=t.dataset.ulas;
+  if(aksi==='lihat')buka[key]=1;
+  else{delete buka[key];catat(k,id,aksi==='ingat')}
+  if(aksi==='ingat'){/* catat() hanya menaikkan kotak kalau jatuh tempo; item yang sudah tampil pasti jatuh tempo */}
+  try{if(window.LMS_REDRAW)window.LMS_REDRAW(0)}catch(x){}
+});
+window.ULAS={catat,html,jatuhTempo,baca,_reset:()=>{try{localStorage.removeItem(KEY)}catch(e){}buka={}}};
+})();
+
+</script>
+<script>
 /* Kategori kata untuk Kamus Irodori dan Kartu Kosakata.
    Sumber kategori: kolom jenis kata di daftar kosakata Irodori (N, V［1］, イA, ナA, Exp).
    Kata tanpa jenis dipilah dengan daftar kecil di bawah (penghubung, keterangan, imbuhan).
@@ -17171,6 +17223,7 @@ function tesHTML(){
   if(V.i>=V.qs.length){
     const ok=V.qs.filter(q=>q.pick===q.a).length,n=V.qs.length;
     if(!V.logged){V.logged=true;try{if(window.lmsLog&&!window.LMS_OWNER_VIEW)window.lmsLog('hf:'+d.id,ok,n)}catch(e){}
+      try{if(window.ULAS)V.qs.forEach(q=>{const it=d.items[q.ix];ULAS.catat('w',it.w,q.pick===q.a)})}catch(e){}
       if(!V.gb){const hf=hafal(d.id);V.qs.forEach(q=>{if(q.pick===q.a)hf[q.ix]=1;else delete hf[q.ix]});lsSet(HKEY(d.id),hf)}}
     const salah=V.qs.filter(q=>q.pick!==q.a).map(q=>{const it=d.items[q.ix];return `<li><b lang="ja">${esc(it.w)}</b>${it.y&&it.y!==it.w?' ('+esc(it.y)+')':''} = ${esc(it.a)}</li>`}).join('');
     return `<button type="button" class="backlink" data-hj-menu="1">← Hafalan JFT A2</button><section class="card"><h2>Hasil tes · ${esc(d.t)}</h2><p style="font-size:30px;margin:6px 0"><b>${ok}/${n}</b></p>
@@ -17195,6 +17248,7 @@ function sitHTML(){
   if(S.length<6)return menuHTML();
   if(!V.qs){V.qs=acak(S).slice(0,10).map(it=>{const lain=acak(S.filter(x=>x.j!==it.j)).slice(0,2),o=acak([it,...lain]);return {it,o:o.map(x=>x.j),a:o.indexOf(it),pick:null}});V.i=0}
   if(V.i>=V.qs.length){const ok=V.qs.filter(q=>q.pick===q.a).length;
+    if(!V.logged){V.logged=true;try{if(window.lmsLog&&!window.LMS_OWNER_VIEW)window.lmsLog('hf:situasi',ok,V.qs.length);if(window.ULAS)V.qs.forEach(q=>ULAS.catat('s',q.it.j,q.pick===q.a))}catch(e){}}
     return `<button type="button" class="backlink" data-hj-menu="1">← Hafalan JFT A2</button><section class="card"><h2>Hasil Tebak situasi</h2><p style="font-size:30px;margin:6px 0"><b>${ok}/${V.qs.length}</b></p><p class="small muted">${ok>=8?'Keren! Kamu paham situasi sehari-hari.':'Coba lagi, gambarnya nanti berganti.'}</p><div class="actions"><button type="button" class="btn" data-hj-sit="1">Main lagi</button></div></section>`}
   const q=V.qs[V.i],AB='ABC',ops=q.o.map((t,i)=>{const on=q.pick===i,cls=q.pick==null?'':i===q.a?' benar':on?' salah':'';return `<button type="button" class="pd-opt${on?' on':''}${cls}" data-hj-a="${i}" ${q.pick!=null?'disabled':''}><b>${AB[i]}</b><span lang="ja">${esc(t)}</span></button>`}).join('');
   return `<button type="button" class="backlink" data-hj-menu="1">← Hafalan JFT A2</button>
@@ -17214,7 +17268,7 @@ document.addEventListener('click',e=>{
   else if(d.hjDaftar){V={m:'daftar',id:d.hjDaftar};cari=''}
   else if(d.hjTes){V={m:'tes',id:d.hjTes}}
   else if(d.hjGb){V={m:'tes',id:d.hjGb,gb:1}}
-  else if(d.hjSit){V={m:'sit'}}
+  else if(d.hjSit){V={m:'sit',logged:false}}
   else if(d.hjMenu){V={m:'menu'}}
   else if(d.hjBalik){V.buka=!V.buka}
   else if(d.hjTandai!=null){const hf=hafal(V.id),ix=V.urut[V.i];if(d.hjTandai==='1')hf[ix]=1;else delete hf[ix];lsSet(HKEY(V.id),hf);V.i++;V.buka=false}
@@ -17229,6 +17283,7 @@ const label={kosa:'Kosakata wajib',kanji:'Kanji JFT A2',verb:'Kata kerja wajib',
 /* ringkasan untuk menu: berapa dek sudah dihafal / dites, dan mana yang belum */
 function ringkasSaya(){const L=D().map(d=>{const hf=hafal(d.id),nh=d.items.filter((_,i)=>hf[i]).length,t=nilaiTerakhir(d.id);return {id:d.id,nama:d.t,nh,n:d.items.length,tes:t?Math.round(t.ok/t.n*100):null}});
   return {total:L.length,mulai:L.filter(x=>x.nh>0).length,dites:L.filter(x=>x.tes!=null).length,belum:L.filter(x=>x.nh===0).map(x=>x.nama),lemah:L.filter(x=>x.tes!=null&&x.tes<60).map(x=>x.nama)}}
+label.situasi='Tebak situasi';D().forEach(d=>{if(!label[d.id])label[d.id]=d.t});
 window.HAFALAN_JFT_UI={ringkasSaya,html,label,reset:()=>{V={m:'menu'}}};
 })();
 
@@ -19135,7 +19190,7 @@ function kataHariIni(){
 function berandaHTML(){
  const d=me(),foot=berandaFoot();
  let hero='';try{hero=window.TINDAK?TINDAK.ringkasHTML():''}catch(e){}
- return nameCard()+hero+kataHariIni()+ngambekHTML(d)+batsuCard(d)+misiCard(d,true)+(window.GERAK?'<section class="card apicard">'+GERAK.apiHTML(d.streak,{ringkas:true})+'</section>':'')+peringkatKu()
+ return nameCard()+hero+(window.ULAS?ULAS.html():'')+kataHariIni()+ngambekHTML(d)+batsuCard(d)+misiCard(d,true)+(window.GERAK?'<section class="card apicard">'+GERAK.apiHTML(d.streak,{ringkas:true})+'</section>':'')+peringkatKu()
   +`<button type="button" class="card tizer" data-lms="nav" data-r="irodori"><i aria-hidden="true">基</i><span><b>Irodori</b><small>Latihan soal per bab, kotoba, kanji</small></span><em aria-hidden="true">Buka ›</em></button><button type="button" class="card tizer" data-lms="nav" data-r="ssw"><i aria-hidden="true">介</i><span><b>SSW Kaigo</b><small>Menu baru, materi menyusul</small></span><em aria-hidden="true">Buka ›</em></button>`+pwaCard(true)+`<button type="button" class="card tizer" data-lms="nav" data-r="gamehub"><i aria-hidden="true">遊</i><span><b>Arena Game</b><small>Duel, turnamen, Kota JFT, toko, karakter</small></span><em aria-hidden="true">Buka ›</em></button>`+foot}
 function berandaFoot(){const a=LMS.account||{};
  return `<p class="lms-foot muted small">${a.id?`Masuk sebagai <b>${esc(a.name||'')}</b> · hasil tersimpan otomatis`:'Mode kode hasil'} · <button type="button" class="lnk" data-lms="nav" data-r="semua">Semua menu</button> · <button type="button" class="lnk" data-lms="nav" data-r="bantuan">Panduan</button>${window.LMS_BUILD?' · versi '+esc(window.LMS_BUILD):''}</p>`}

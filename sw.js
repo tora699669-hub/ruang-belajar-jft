@@ -3,7 +3,7 @@
    - Halaman utama: jaringan dulu (murid selalu dapat versi terbaru), cadangan dari cache bila offline.
    - Font, gambar, ikon: cache-first supaya aplikasi cepat dibuka.
    - Tidak pernah menyimpan permintaan non-GET, API, atau data murid: nilai selalu langsung dari server. */
-const V='akimichi-v113';
+const V='akimichi-v114';
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.add('./')).catch(()=>{}));self.skipWaiting()});
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{
